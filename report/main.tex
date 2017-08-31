@@ -1,0 +1,96 @@
+\documentclass[a4paper]{article}
+
+%text
+\usepackage[utf8]{inputenc}
+\usepackage{lipsum}
+\usepackage{amssymb,amsmath}
+\usepackage[linktocpage=true]{hyperref}
+\usepackage{listings}
+
+%graphics
+\usepackage{graphicx, xcolor}
+\usepackage{rotating}
+\usepackage{subfig}
+
+%layout
+\usepackage{multicol}
+\usepackage{fancyhdr,lastpage}
+\setcounter{tocdepth}{2}
+
+%header layout
+\usepackage{suffix}
+
+\newcommand\chapterauthor[1]{\authortoc{#1}\printchapterauthor{#1}}
+\WithSuffix\newcommand\chapterauthor*[1]{\printchapterauthor{#1}}
+
+\makeatletter
+\newcommand{\printchapterauthor}[1]{%
+  {\parindent0pt\vspace*{-10pt}%
+  \linespread{1.1}\large\scshape#1%
+  \par\nobreak\vspace*{10pt}}
+  \@afterheading%
+}
+\newcommand{\authortoc}[1]{%
+  \addtocontents{toc}{\vskip-1pt}%
+  \addtocontents{toc}{%
+    \protect\contentsline{chapter}%
+    {\hskip0em\mdseries\scshape\protect\scriptsize#1}{}{}}
+  \addtocontents{toc}{\vskip5pt}%
+}
+\makeatother
+
+
+\usepackage{lipsum}
+
+%header style
+\pagestyle{fancy}
+\lhead{Project SailorAid}
+\chead{}
+\rhead{\today}
+\lfoot{}
+\cfoot{\thepage~of~\pageref{LastPage}}
+\rfoot{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\begin{document}
+
+\begin{titlepage}
+\input{titlepage.tex}
+\end{titlepage}
+
+\clearpage
+\begin{abstract}
+\input{abstract.tex}
+\end{abstract}
+
+\clearpage
+\setlength{\columnseprule}{0.2pt}
+
+\tableofcontents
+
+\vspace{0.5em}
+
+\clearpage
+
+\setcounter{page}{2}
+\section{Introduction}
+\chapterauthor{Sjölund, Johannes (Theolin, Henrik)}
+\input{introduction.tex}
+
+\section{The Physics of Sailing}
+\label{sec:physics}
+\input{physics.tex}
+
+\clearpage
+\section{Product Application}
+\label{sec:application}
+\input{application.tex}
+
+\clearpage
+\section{Hardware Design}
+
+\clearpage
+\section{Software Design}
+
+\end{document}
