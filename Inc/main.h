@@ -1,81 +1,132 @@
 /**
   ******************************************************************************
-  * File Name          : main.h
-  * Description        : This file contains the common defines of the application
+  * @file    main.h
+  * @author  MCD Application Team
+  * @version V1.0
+  * @date    14-April-2014
+  * @brief   Header for main.c module
   ******************************************************************************
-  ** This notice applies to any and all portions of this file
-  * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
-  * inserted by the user or by software development tools
-  * are owned by their respective copyright owners.
+  * @attention
   *
-  * COPYRIGHT(c) 2017 STMicroelectronics
+  * <h2><center>&copy; COPYRIGHT 2014 STMicroelectronics</center></h2>
   *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
+  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
   *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  *        http://www.st.com/software_license_agreement_liberty_v2
+  *
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
   *
   ******************************************************************************
   */
+
+
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MAIN_H
 #define __MAIN_H
-  /* Includes ------------------------------------------------------------------*/
 
-/* USER CODE BEGIN Includes */
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
-/* USER CODE END Includes */
+/* Includes ------------------------------------------------------------------*/
+#include "stm32f411xe.h"
+#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal_def.h"
+#include "stm32f4xx_hal_dma.h"
+#include "stm32f4xx_hal_rtc.h"
+#include "stm32f4xx_hal_spi.h"
+#include "stdint.h"
+#include "cube_hal.h"
 
-/* Private define ------------------------------------------------------------*/
+/** @addtogroup X-CUBE-BLE1_Applications
+ *  @{
+ */
 
-#define B1_Pin GPIO_PIN_13
-#define B1_GPIO_Port GPIOC
-#define USART_TX_Pin GPIO_PIN_2
-#define USART_TX_GPIO_Port GPIOA
-#define USART_RX_Pin GPIO_PIN_3
-#define USART_RX_GPIO_Port GPIOA
-#define LD2_Pin GPIO_PIN_5
-#define LD2_GPIO_Port GPIOA
-#define TMS_Pin GPIO_PIN_13
-#define TMS_GPIO_Port GPIOA
-#define TCK_Pin GPIO_PIN_14
-#define TCK_GPIO_Port GPIOA
-#define SWO_Pin GPIO_PIN_3
-#define SWO_GPIO_Port GPIOB
+/** @addtogroup SensorDemo_DMA_LowPower
+ *  @{
+ */
 
-/* USER CODE BEGIN Private defines */
+/** @addtogroup MAIN
+ *  @{
+ */
+ 
+/* Exported constants --------------------------------------------------------*/
+/**
+ * bit mapping of event not requiring sending HCI event
+ */
+#define	EVENT_NOT_REQUIRING_SENDING_HCI_COMMAND	(~(uint32_t)((1<<eMAIN_HCI_THRESHOLD)-1))
 
-/* USER CODE END Private defines */
+/** @addtogroup MAIN_Exported_Types
+ *  @{
+ */
+/* Exported types ------------------------------------------------------------*/
+/**
+ * All enum after eMAIN_HCI_THRESHOLD shall not request sending HCI command
+ */
+typedef enum
+{
+  eMAIN_HCI_Process_Request_Id,
+  eMAIN_User_Process_Request_Id,
+  eMAIN_HCI_THRESHOLD,						/**< Shall be in the list of enum and shall not be used by the application */
+} eMAIN_Background_Task_Id_t;
+/**
+ * @}
+ */
 
-void _Error_Handler(char *, int);
+/** @addtogroup MAIN_Exported_Defines
+ *  @{
+ */
+/* Exported defines -----------------------------------------------------------*/
+#define JTAG_SUPPORTED 0 /* if 1 keep debugger enabled while in any low power mode */
 
-#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+#define HCLK_32MHZ 0 /* can be set to 1 only for STM32L053xx */
+#define HCLK_80MHZ 0 /* can be set to 1 only for STM32L476xx */
+#define HCLK_84MHZ 0 /* can be set to 1 only for STM32F401xE */
+
+#define LOW_POWER_MODE 1 /* 1 = Low Power mode ON, 0 = Low Power Mode OFF */
 
 /**
-  * @}
-  */ 
+ * RTC cloc divider
+ */
+#define WUCKSEL_DIVIDER (3)		/**< Tick is  (LSI speed clock/2) */
+#define RTC_ASYNCH_PRESCALER (1)
+#define RTC_SYNCH_PRESCALER (0x7FFF)
+/**
+ * @}
+ */
+
+/** @addtogroup MAIN_Exported_Functions
+ *  @{
+ */ 
+/* Exported functions ------------------------------------------------------- */
+void TaskExecutionRequest(eMAIN_Background_Task_Id_t eMAIN_Background_Task_Id);
+void TaskExecuted(eMAIN_Background_Task_Id_t eMAIN_Background_Task_Id);
+/**
+ * @}
+ */
 
 /**
-  * @}
-*/ 
+ * @}
+ */
 
-#endif /* __MAIN_H */
+/**
+ * @}
+ */
+ 
+/**
+ * @}
+ */
+ 
+#ifdef __cplusplus
+}
+#endif
+
+#endif /*__MAIN_H */
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
