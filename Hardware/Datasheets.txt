@@ -1,0 +1,14 @@
+TYPE:	Using:x	NAME:			SHEET:
+LINK:
+___________________________________________________________________
+MCU	x	STM32F411xC/E		Reference manual
+http://www.st.com/content/ccc/resource/technical/document/reference_manual/9b/53/39/1c/f7/01/4a/79/DM00119316.pdf/files/DM00119316.pdf/jcr:content/translations/en.DM00119316.pdf
+-------------------------------------------------------------------
+					Datasheet - Production Data
+http://www.st.com/content/ccc/resource/technical/document/datasheet/b3/a5/46/3b/b4/e5/4c/85/DM00115249.pdf/files/DM00115249.pdf/jcr:content/translations/en.DM00115249.pdf
+___________________________________________________________________
+GPS	x	A2235-H			Users manual
+http://www.mouser.com/catalog/specsheets/EVA2235-H.pdf
+___________________________________________________________________
+GPS		PA6H			Datasheet
+https://cdn-shop.adafruit.com/datasheets/GlobalTop-FGPMMOPA6H-Datasheet-V0A.pdf
