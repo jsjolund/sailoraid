@@ -125,7 +125,7 @@ typedef void (*pf_TIMER_TimerCallBack_t)(void);
 #define	NVIC_RTC_WAKEUP_HANDLER_ID      RTC_WKUP_IRQn
 #endif
 
-#ifdef STM32F401xE
+#ifdef STM32F411xE
 #define	NVIC_RTC_WAKEUP_HANDLER_ID      RTC_WKUP_IRQn
 #endif
 

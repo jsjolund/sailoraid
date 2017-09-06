@@ -99,7 +99,7 @@ void SystemPower_Config(void)
 #if (JTAG_SUPPORTED == 1)
   GPIO_InitStructure.Pin = (GPIO_PIN_All ^ (GPIO_PIN_13 | GPIO_PIN_14));
 #endif
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
+//  HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
   
   /*
   * Disable GPIOs clock

@@ -36,7 +36,10 @@
 #include "stm32f4xx_it.h"
 
 /* USER CODE BEGIN 0 */
-
+volatile uint32_t ms_counter = 0;
+volatile int button_event = 0;
+/* SPI handler declared in "main.c" file */
+extern SPI_HandleTypeDef SpiHandle;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -82,7 +85,7 @@ void SysTick_Handler(void)
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+  ms_counter++;
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -94,6 +97,20 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /* USER CODE BEGIN 1 */
+void DMA2_Stream0_IRQHandler(void)
+{
+  if(__HAL_DMA_GET_IT_SOURCE(SpiHandle.hdmarx, DMA_IT_TC)  && __HAL_DMA_GET_FLAG(SpiHandle.hdmarx, DMA_FLAG_TCIF0_4))
+  {
+    BlueNRG_DMA_RxCallback();
+  }
+}
 
+void DMA2_Stream3_IRQHandler(void)
+{
+  if(__HAL_DMA_GET_IT_SOURCE(SpiHandle.hdmatx, DMA_IT_TC)  && __HAL_DMA_GET_FLAG(SpiHandle.hdmatx, DMA_FLAG_TCIF3_7))
+  {
+    BlueNRG_DMA_TxCallback();
+  }
+}
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
