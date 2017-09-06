@@ -9,6 +9,9 @@ http://www.st.com/content/ccc/resource/technical/document/datasheet/b3/a5/46/3b/
 ___________________________________________________________________
 GPS	x	A2235-H			Users manual
 http://www.mouser.com/catalog/specsheets/EVA2235-H.pdf
+-------------------------------------------------------------------
+					Power ON/OFF Sequences
+http://update.maestro-wireless.com/GNSS/A2100-AB/Power_ONOFF_Sequences_and_Power_On_ResetPORon_A2100_AB_V11.pdf
 ___________________________________________________________________
 GPS		PA6H			Datasheet
 https://cdn-shop.adafruit.com/datasheets/GlobalTop-FGPMMOPA6H-Datasheet-V0A.pdf
