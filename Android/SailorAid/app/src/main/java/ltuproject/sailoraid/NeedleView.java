@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
@@ -12,14 +13,15 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 /**
- * Class that draws a boat that can change alignment depending on values received
+ * Created by Henrik on 2017-09-06.
  */
-public class BoatView extends SurfaceView implements
+
+public class NeedleView extends SurfaceView implements
         SurfaceHolder.Callback {
 
     private final Bitmap mBitmap;
-    private final int mBitmapHeightAndWidth, mBitmapHeightAndWidthAdj;
-    private float mX, mY, mRotation;
+    private final int mBitmapHeight, mBitmapWidth;
+    private float mRotation;
     private final SurfaceHolder mSurfaceHolder;
     private final Paint mPainter = new Paint();
     private Thread mDrawingThread;
@@ -27,14 +29,18 @@ public class BoatView extends SurfaceView implements
     private static final float ROT_STEP = 1.0f;
 
 
-    public BoatView(Context context, Bitmap bitmap) {
+    public NeedleView(Context context, Bitmap bitmap) {
         super(context);
-        mBitmapHeightAndWidth = (int) getResources().getDimension(
-                R.dimen.image_height);
+
+        mBitmapHeight = (int) getResources().getDimension(
+                R.dimen.n_image_height);
+        mBitmapWidth = (int) getResources().getDimension(
+                R.dimen.n_image_width);
         this.mBitmap = Bitmap.createScaledBitmap(bitmap,
-                mBitmapHeightAndWidth, mBitmapHeightAndWidth, false);
-        mBitmapHeightAndWidthAdj = mBitmapHeightAndWidth / 2;
+                mBitmapWidth, mBitmapHeight, false);
         mRotation = 1.0f;
+        this.x = 0;
+
         mPainter.setAntiAlias(true);
 
         mSurfaceHolder = getHolder();
@@ -42,18 +48,16 @@ public class BoatView extends SurfaceView implements
         mSurfaceHolder.setFormat(PixelFormat.TRANSLUCENT);
     }
 
-    private void drawBoat(Canvas canvas) {
+    private void drawNeedle(Canvas canvas) {
         super.draw(canvas);
         canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
         mRotation = ROT_STEP*x*10;
-        canvas.rotate(mRotation, mBitmapHeightAndWidthAdj+50, mBitmapHeightAndWidth);
-        canvas.drawBitmap(mBitmap, 100, 0, mPainter);
+        canvas.rotate(mRotation, mBitmapWidth, 600+mBitmapHeight/2);
+        canvas.drawBitmap(mBitmap, 0, 600, mPainter);
     }
 
-    public void setXYZ(float x, float y, float z){
+    public void setPressure(float x){
         this.x = x;
-        this.y = y;
-        this.z = z;
     }
 
     @Override
@@ -69,7 +73,7 @@ public class BoatView extends SurfaceView implements
                 while (!Thread.currentThread().isInterrupted()) {
                     canvas = mSurfaceHolder.lockCanvas();
                     if (null != canvas) {
-                        drawBoat(canvas);
+                        drawNeedle(canvas);
                         mSurfaceHolder.unlockCanvasAndPost(canvas);
                     }
                 }
