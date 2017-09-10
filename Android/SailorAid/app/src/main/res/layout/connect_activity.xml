@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context="ltuproject.sailoraid.BTConnectActivity">
+
+    <Button
+        android:id="@+id/paireddevicebtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Paired devices"
+        android:background="@color/laserblue"
+        android:textColor="@color/darkblue"
+        android:textSize="12pt"
+        android:layout_margin="10dp"/>
+
+    <Button
+        android:id="@+id/searchdevicebtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Search for the boat"
+        android:background="@color/laserblue"
+        android:textColor="@color/darkblue"
+        android:textSize="12pt"
+        android:layout_margin="10dp"/>
+
+
+</LinearLayout>

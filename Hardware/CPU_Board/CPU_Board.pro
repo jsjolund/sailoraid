@@ -1,4 +1,4 @@
-update=2017-09-05 23:11:51
+update=2017-09-08 20:42:15
 version=1
 last_client=kicad
 [pcbnew]
@@ -66,3 +66,4 @@ LibName34=atmel
 LibName35=contrib
 LibName36=valves
 LibName37=CUSTOMS/a2235-h
+LibName38=CUSTOMS/MOSFET_depleted
