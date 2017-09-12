@@ -24,6 +24,7 @@
 #include "gp_timer.h"
 
 #include "stm32_bluenrg_ble.h"
+#include "bluenrg_interface.h"
 
 #if BLE_CONFIG_DBG_ENABLE
 #define PRINTF(...) printf(__VA_ARGS__)

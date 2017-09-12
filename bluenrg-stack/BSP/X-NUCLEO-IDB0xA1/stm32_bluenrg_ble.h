@@ -83,7 +83,7 @@
 /** @defgroup STM32_BLUENRG_BLE_Exported_Functions 
  * @{
  */
-  
+void Clear_SPI_EXTI_Flag(void);
 // FIXME: add prototypes for BlueNRG here
 void BNRG_SPI_Init(void);
 void BlueNRG_RST(void);

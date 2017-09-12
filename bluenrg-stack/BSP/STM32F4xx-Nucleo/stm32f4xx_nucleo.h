@@ -48,7 +48,7 @@
 //#endif
 //
 ///* Includes ------------------------------------------------------------------*/
-//#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal.h"
 //
 ///* To be defined only if the board is provided with the related shield */
 ///* https://www.adafruit.com/products/802 */
@@ -119,11 +119,11 @@ typedef enum
 //
 //#define LED2_PIN                                GPIO_PIN_5
 //#define LED2_GPIO_PORT                          GPIOA
-//#define LED2_GPIO_CLK_ENABLE()                  __HAL_RCC_GPIOA_CLK_ENABLE()
-//#define LED2_GPIO_CLK_DISABLE()                 __HAL_RCC_GPIOA_CLK_DISABLE()
+#define LED2_GPIO_CLK_ENABLE()                  __HAL_RCC_GPIOA_CLK_ENABLE()
+#define LED2_GPIO_CLK_DISABLE()                 __HAL_RCC_GPIOA_CLK_DISABLE()
 //
-//#define LEDx_GPIO_CLK_ENABLE(__INDEX__)         LED2_GPIO_CLK_ENABLE()
-//#define LEDx_GPIO_CLK_DISABLE(__INDEX__)        LED2_GPIO_CLK_DISABLE()
+#define LEDx_GPIO_CLK_ENABLE(__INDEX__)         LED2_GPIO_CLK_ENABLE()
+#define LEDx_GPIO_CLK_DISABLE(__INDEX__)        LED2_GPIO_CLK_DISABLE()
 ///**
 //  * @}
 //  */
@@ -269,9 +269,9 @@ typedef enum
 //void             BSP_LED_On(Led_TypeDef Led);
 //void             BSP_LED_Off(Led_TypeDef Led);
 //void             BSP_LED_Toggle(Led_TypeDef Led);
-//void             BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef ButtonMode);
-//void             BSP_PB_DeInit(Button_TypeDef Button);
-//uint32_t         BSP_PB_GetState(Button_TypeDef Button);
+void             BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef ButtonMode);
+void             BSP_PB_DeInit(Button_TypeDef Button);
+uint32_t         BSP_PB_GetState(Button_TypeDef Button);
 //#ifdef HAL_ADC_MODULE_ENABLED
 //uint8_t          BSP_JOY_Init(void);
 //JOYState_TypeDef BSP_JOY_GetState(void);

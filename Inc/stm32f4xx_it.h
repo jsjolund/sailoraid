@@ -49,7 +49,6 @@ void SVC_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
 void PVD_IRQHandler(void);
-void RTC_WKUP_IRQHandler(void);
 void RCC_IRQHandler(void);
 void EXTI0_IRQHandler(void);
 void SPI1_IRQHandler(void);

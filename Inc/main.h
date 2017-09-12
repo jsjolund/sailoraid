@@ -45,7 +45,6 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_def.h"
 #include "stm32f4xx_hal_dma.h"
-#include "stm32f4xx_hal_rtc.h"
 #include "stm32f4xx_hal_spi.h"
 #include "stdint.h"
 

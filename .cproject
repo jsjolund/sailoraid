@@ -43,13 +43,9 @@
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include"/>
 									<listOptionValue builtIn="false" value="../Inc"/>
-									<listOptionValue builtIn="false" value="../bluenrg-stack/Middlewares/ST/TimerServer/STM32xx_HAL_TimerServer_Drivers/inc"/>
-									<listOptionValue builtIn="false" value="../bluenrg-stack/Middlewares/ST/TimerServer/inc"/>
-									<listOptionValue builtIn="false" value="../bluenrg-stack/Middlewares/ST/STM32_BlueNRG/Prof_Periph/includes"/>
 									<listOptionValue builtIn="false" value="../bluenrg-stack//Middlewares/ST/STM32_BlueNRG/STM32F4xx_HAL_BlueNRG_Drivers/inc"/>
 									<listOptionValue builtIn="false" value="../bluenrg-stack/Middlewares/ST/STM32_BlueNRG/Interface"/>
 									<listOptionValue builtIn="false" value="../bluenrg-stack/Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/includes"/>
-									<listOptionValue builtIn="false" value="../bluenrg-stack/Middlewares/ST/LowPowerManager/Inc"/>
 									<listOptionValue builtIn="false" value="../bluenrg-stack/BSP/STM32F4xx-Nucleo"/>
 									<listOptionValue builtIn="false" value="../bluenrg-stack/BSP/X-NUCLEO-IDB0xA1"/>
 								</option>
@@ -117,6 +113,25 @@
 						</toolChain>
 					</folderInfo>
 					<fileInfo id="com.atollic.truestudio.exe.debug.1518366166.1139903888" name="stm32_bluenrg_ble.h" rcbsApplicability="disable" resourcePath="bluenrg-stack/BSP/X-NUCLEO-IDB0xA1/stm32_bluenrg_ble.h" toolsToInvoke=""/>
+					<folderInfo id="com.atollic.truestudio.exe.debug.1518366166.230890412" name="/" resourcePath="bluenrg-stack/Middlewares/ST/STM32_BlueNRG/Prof_Periph">
+						<toolChain id="com.atollic.truestudio.exe.debug.toolchain.1665569381" name="Atollic ARM Tools" superClass="com.atollic.truestudio.exe.debug.toolchain" unusedChildren="">
+							<option id="com.atollic.truestudio.general.runtimelib.937606395.1754981894" name="Runtime Library" superClass="com.atollic.truestudio.general.runtimelib.937606395"/>
+							<option id="com.atollic.truestudio.toolchain_options.mcu.1776217845.936362477" name="Microcontroller" superClass="com.atollic.truestudio.toolchain_options.mcu.1776217845"/>
+							<option id="com.atollic.truestudio.toolchain_options.vendor.993246712.1837105033" name="Vendor name" superClass="com.atollic.truestudio.toolchain_options.vendor.993246712"/>
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.atollic.truestudio.exe.debug.toolchain.platform" isAbstract="false" name="Debug platform" osList="all" superClass="com.atollic.truestudio.exe.debug.toolchain.platform"/>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.as.1316155996" name="Assembler" superClass="com.atollic.truestudio.exe.debug.toolchain.as.1545899283">
+								<inputType id="com.atollic.truestudio.as.input.1512409868" name="Input" superClass="com.atollic.truestudio.as.input"/>
+							</tool>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.gcc.130800310" name="C Compiler" superClass="com.atollic.truestudio.exe.debug.toolchain.gcc.1836874447">
+								<inputType id="com.atollic.truestudio.gcc.input.191259790" superClass="com.atollic.truestudio.gcc.input"/>
+							</tool>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.ld.1076914605" name="C Linker" superClass="com.atollic.truestudio.exe.debug.toolchain.ld.1444973427"/>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.gpp.598775849" name="C++ Compiler" superClass="com.atollic.truestudio.exe.debug.toolchain.gpp.981298185"/>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.ldcc.71022378" name="C++ Linker" superClass="com.atollic.truestudio.exe.debug.toolchain.ldcc.428260"/>
+							<tool id="com.atollic.truestudio.ar.base.276515242" name="Archiver" superClass="com.atollic.truestudio.ar.base.1186430235"/>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.secoutput.1259320369" name="Other" superClass="com.atollic.truestudio.exe.debug.toolchain.secoutput.839033486"/>
+						</toolChain>
+					</folderInfo>
 					<fileInfo id="com.atollic.truestudio.exe.debug.311825581.983937533" name="" rcbsApplicability="disable" resourcePath="nofile" toolsToInvoke="com.atollic.truestudio.exe.debug.toolchain.gcc.1836874447.1976695455">
 						<tool id="com.atollic.truestudio.exe.debug.toolchain.gcc.1836874447.1976695455" name="C Compiler" superClass="com.atollic.truestudio.exe.debug.toolchain.gcc.1836874447">
 							<inputType id="com.atollic.truestudio.gcc.input.1274347818" superClass="com.atollic.truestudio.gcc.input"/>
@@ -126,7 +141,7 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry excluding="stm32xx_it.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Inc"/>
 						<entry excluding="stm32xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Src"/>
-						<entry excluding="BSP/STM32F4xx-Nucleo/stm32f4xx_nucleo_bluenrg_dma_lp.h|Middlewares/ST/STM32_BlueNRG/BLE_ANCS_Lib|Middlewares/ST/STM32_BlueNRG/Prof_Periph_Lib|Middlewares/ST/STM32_BlueNRG/Prof_Centr|Middlewares/ST/STM32_BlueNRG/Prof_Centr_Lib|Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/hci/controller/bluenrg_utils_small.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="bluenrg-stack"/>
+						<entry excluding="Middlewares/ST/STM32_BlueNRG/Prof_Periph|Middlewares/ST/TimerServer|BSP/STM32F4xx-Nucleo/stm32f4xx_nucleo_bluenrg_dma_lp.h|Middlewares/ST/STM32_BlueNRG/BLE_ANCS_Lib|Middlewares/ST/STM32_BlueNRG/Prof_Periph_Lib|Middlewares/ST/STM32_BlueNRG/Prof_Centr|Middlewares/ST/STM32_BlueNRG/Prof_Centr_Lib|Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/hci/controller/bluenrg_utils_small.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="bluenrg-stack"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="startup"/>
 					</sourceEntries>
 				</configuration>

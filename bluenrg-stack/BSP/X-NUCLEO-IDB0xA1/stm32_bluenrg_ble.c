@@ -40,6 +40,7 @@
 #include "gp_timer.h"
 #include "debug.h"
 #include "main.h"
+#include "hal.h"
 
 extern volatile uint32_t ms_counter;
 
@@ -101,7 +102,7 @@ void set_irq_as_input(void);
  * @retval None
  */
 void print_csv_time(void){
-  uint32_t ms = ms_counter;
+//  uint32_t ms = ms_counter;
   PRINT_CSV("%02d:%02d:%02d.%03d", ms/(60*60*1000)%24, ms/(60*1000)%60, (ms/1000)%60, ms%1000);
 }
 
