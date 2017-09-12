@@ -44,7 +44,6 @@
 #endif 
 
 /* Includes ------------------------------------------------------------------*/
-#include "cube_hal.h"
 #include "hal_types.h"
 #include "bluenrg_gatt_server.h"
 #include "bluenrg_gap.h"

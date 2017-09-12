@@ -48,6 +48,15 @@
 void SVC_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
+void PVD_IRQHandler(void);
+void RTC_WKUP_IRQHandler(void);
+void RCC_IRQHandler(void);
+void EXTI0_IRQHandler(void);
+void SPI1_IRQHandler(void);
+void USART2_IRQHandler(void);
+void EXTI15_10_IRQHandler(void);
+void DMA2_Stream0_IRQHandler(void);
+void DMA2_Stream3_IRQHandler(void);
 
 #ifdef __cplusplus
 }

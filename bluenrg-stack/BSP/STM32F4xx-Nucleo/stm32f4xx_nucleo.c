@@ -41,7 +41,7 @@
   
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_nucleo.h"
-
+#include "stm32f4xx_hal.h"
 /** @defgroup BSP BSP
   * @{
   */ 
@@ -100,13 +100,13 @@
 /** @defgroup STM32F4XX_NUCLEO_LOW_LEVEL_Private_Variables STM32F4XX NUCLEO LOW LEVEL Private Variables
   * @{
   */ 
-GPIO_TypeDef* GPIO_PORT[LEDn] = {LED2_GPIO_PORT};
+GPIO_TypeDef* GPIO_PORT[LEDn] = {LED2_GPIO_Port};
 
-const uint16_t GPIO_PIN[LEDn] = {LED2_PIN};
+const uint16_t GPIO_PIN[LEDn] = {LED2_Pin};
 
-GPIO_TypeDef* BUTTON_PORT[BUTTONn] = {KEY_BUTTON_GPIO_PORT}; 
-const uint16_t BUTTON_PIN[BUTTONn] = {KEY_BUTTON_PIN}; 
-const uint8_t BUTTON_IRQn[BUTTONn] = {KEY_BUTTON_EXTI_IRQn};
+GPIO_TypeDef* BUTTON_PORT[BUTTONn] = {USER_BUTTON_GPIO_Port};
+const uint16_t BUTTON_PIN[BUTTONn] = {USER_BUTTON_Pin};
+const uint8_t BUTTON_IRQn[BUTTONn] = {USER_BUTTON_EXTI_IRQn};
 
 /**
  * @brief BUS variables
@@ -183,34 +183,34 @@ uint32_t BSP_GetVersion(void)
 
 /**
   * @brief  Configures LED GPIO.
-  * @param  Led: Specifies the Led to be configured. 
+  * @param  Led: Specifies the Led to be configured.
   *   This parameter can be one of following parameters:
   *     @arg LED2
   */
 void BSP_LED_Init(Led_TypeDef Led)
 {
   GPIO_InitTypeDef  GPIO_InitStruct;
-  
+
   /* Enable the GPIO_LED Clock */
   LEDx_GPIO_CLK_ENABLE(Led);
-  
+
   /* Configure the GPIO_LED pin */
   GPIO_InitStruct.Pin = GPIO_PIN[Led];
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FAST;
-  
+
   HAL_GPIO_Init(GPIO_PORT[Led], &GPIO_InitStruct);
-  
-  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET); 
+
+  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET);
 }
 
 /**
   * @brief  DeInit LEDs.
-  * @param  Led: LED to be de-init. 
+  * @param  Led: LED to be de-init.
   *   This parameter can be one of the following values:
   *     @arg  LED2
-  * @note Led DeInit does not disable the GPIO clock nor disable the Mfx 
+  * @note Led DeInit does not disable the GPIO clock nor disable the Mfx
   */
 void BSP_LED_DeInit(Led_TypeDef Led)
 {
@@ -225,31 +225,31 @@ void BSP_LED_DeInit(Led_TypeDef Led)
 
 /**
   * @brief  Turns selected LED On.
-  * @param  Led: Specifies the Led to be set on. 
+  * @param  Led: Specifies the Led to be set on.
   *   This parameter can be one of following parameters:
   *     @arg LED2
   */
 void BSP_LED_On(Led_TypeDef Led)
 {
-  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_SET); 
+  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_SET);
 }
 
 /**
   * @brief  Turns selected LED Off.
-  * @param  Led: Specifies the Led to be set off. 
+  * @param  Led: Specifies the Led to be set off.
   *   This parameter can be one of following parameters:
   *     @arg LED2
   */
 void BSP_LED_Off(Led_TypeDef Led)
 {
-  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET); 
+  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET);
 }
 
 /**
   * @brief  Toggles the selected LED.
-  * @param  Led: Specifies the Led to be toggled. 
+  * @param  Led: Specifies the Led to be toggled.
   *   This parameter can be one of following parameters:
-  *     @arg LED2  
+  *     @arg LED2
   */
 void BSP_LED_Toggle(Led_TypeDef Led)
 {

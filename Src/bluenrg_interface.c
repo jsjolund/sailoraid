@@ -41,7 +41,8 @@
 #include "debug.h"
 #include "ble_status.h"
 #include "hci_const.h"
-#include "cube_hal.h"
+#include "stm32xx_lpm.h"
+#include "stm32_bluenrg_ble_dma_lp.h"
 
 extern SPI_HandleTypeDef SpiHandle;
 
@@ -86,7 +87,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     BlueNRG_SPI_IRQ_Callback(); 
   }
   else {
-    if(GPIO_Pin == KEY_BUTTON_PIN) {     
+    if(GPIO_Pin == USER_BUTTON_Pin) {
       LPM_Mode_Request(eLPM_MAIN_LOOP_PROCESSES, eLPM_Mode_RUN);
     }
   }  

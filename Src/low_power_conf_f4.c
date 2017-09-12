@@ -1,10 +1,10 @@
 /**
 ******************************************************************************
-* @file    low_power_conf_f4.c 
+* @file    low_power_conf_f4.c
 * @author  AAS / CL
 * @version V1.0.0
 * @date    04-July-2014
-* @brief   
+* @brief
 ******************************************************************************
   * @attention
   *
@@ -56,12 +56,12 @@
 void SystemPower_Config(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
-  
+
   /**
   * Disable FLASH in SLEEP Mode
   */
   HAL_PWREx_EnableFlashPowerDown();
-    
+
   /*
   * Disable all GPIOs clock in SLEEP mode
   */
@@ -73,7 +73,7 @@ void SystemPower_Config(void)
   __GPIOD_CLK_SLEEP_DISABLE();
   __GPIOE_CLK_SLEEP_DISABLE();
   __GPIOH_CLK_SLEEP_DISABLE();
-  
+
   /*
   * Enable GPIOs clock
   */
@@ -86,7 +86,7 @@ void SystemPower_Config(void)
 
   /*
   * Configure all GPIO port pins in Analog mode with no pull
-  */ 
+  */
   GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStructure.Pull = GPIO_NOPULL;
   GPIO_InitStructure.Pin = GPIO_PIN_All;
@@ -100,7 +100,7 @@ void SystemPower_Config(void)
   GPIO_InitStructure.Pin = (GPIO_PIN_All ^ (GPIO_PIN_13 | GPIO_PIN_14));
 #endif
 //  HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
-  
+
   /*
   * Disable GPIOs clock
   */
@@ -109,86 +109,9 @@ void SystemPower_Config(void)
   __GPIOC_CLK_DISABLE();
   __GPIOD_CLK_DISABLE();
   __GPIOE_CLK_DISABLE();
-  __GPIOH_CLK_DISABLE(); 
-  
+  __GPIOH_CLK_DISABLE();
+
   return;
-}
-
-/**
-  * @brief RTC MSP Initialization 
-  *        This function configures the hardware resources used in this example
-  * @param hrtc: RTC handle pointer
-  * 
-  * @note  Care must be taken when HAL_RCCEx_PeriphCLKConfig() is used to select 
-  *        the RTC clock source; in this case the Backup domain will be reset in  
-  *        order to modify the RTC Clock source, as consequence RTC registers (including 
-  *        the backup registers) and RCC_BDCR register are set to their reset values.
-  *             
-  * @retval None
-  */
-void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct;
-  RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
-      
-  /*##-1- Configue the RTC clock source ######################################*/
-#ifdef RTC_CLOCK_SOURCE_LSE
-  /* -a- Enable LSE Oscillator */
-  RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSE;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    while(1);
-  }
-
-  /* -b- Select LSE as RTC clock source */
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
-  if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-  { 
-    while(1);
-  }
-#elif defined (RTC_CLOCK_SOURCE_LSI)
-  /* -a- Enable LSI Oscillator */
-  RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSI;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
-  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    while(1);
-  }
-  /* -b- Select LSI as RTC clock source */ 
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
-  if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-  {
-    while(1);
-  }
-#else
-#error Please select the RTC Clock source inside the low_power_conf.h file
-#endif /*RTC_CLOCK_SOURCE_LSE*/
-
-  /*##-2- Enable the RTC peripheral Clock ####################################*/
-  /* Enable RTC Clock */
-  __HAL_RCC_RTC_ENABLE();
-
-  /*##-3- Configure the NVIC for RTC Wake up Timer #########################*/
-  HAL_NVIC_SetPriority(RTC_WKUP_IRQn, 0x0F, 0);
-  HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
-}
-
-/**
-  * @brief RTC MSP De-Initialization
-  *        This function freeze the hardware resources used in this example:
-  *          - Disable the Peripheral's clock
-  * @param hrtc: RTC handle pointer
-  * @retval None
-  */
-void HAL_RTC_MspDeInit(RTC_HandleTypeDef *hrtc)
-{
-  /*##-1- Reset peripherals ##################################################*/
-   __HAL_RCC_RTC_DISABLE();
 }
 
 /**
@@ -205,7 +128,7 @@ void LPM_ExitStopMode(void)
   __HAL_APP_RCC_SET_SYSCLK_SRC(RCC_CFGR_SW_PLL);              /**< Select PLL as system clock source */
   while (__HAL_RCC_GET_SYSCLK_SOURCE() != RCC_CFGR_SWS_PLL);  /**< Wait till PLL is used as system clock source */
 #endif
-  
+
   return;
 }
 

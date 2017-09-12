@@ -379,22 +379,22 @@ void BlueNRG_RST(void)
   
   GPIO_InitTypeDef GPIO_InitStruct;
   
-  GPIO_InitStruct.Pin = BNRG_SPI_RESET_PIN;
+  GPIO_InitStruct.Pin = BNRG_SPI_RESET_Pin;
   GPIO_InitStruct.Speed = BNRG_SPI_RESET_SPEED;
   TIMER_Create(eTimerModuleID_Interrupt, &ubnRFResetTimerID, eTimerMode_SingleShot, pf_nRFResetTimerCallBack);
   
   BNRG_SPI_RESET_CLK_ENABLE();
   
-  HAL_GPIO_WritePin(BNRG_SPI_RESET_PORT, BNRG_SPI_RESET_PIN, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(BNRG_SPI_RESET_GPIO_Port, BNRG_SPI_RESET_Pin, GPIO_PIN_RESET);
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(BNRG_SPI_RESET_PORT, &GPIO_InitStruct);
+  HAL_GPIO_Init(BNRG_SPI_RESET_GPIO_Port, &GPIO_InitStruct);
   
   TIMER_Start(ubnRFResetTimerID, BLUENRG_HOLD_TIME_IN_RESET);
   ubnRFresetTimerLock = 1;
   while(ubnRFresetTimerLock == 1);
   
-  HAL_GPIO_WritePin(BNRG_SPI_RESET_PORT, BNRG_SPI_RESET_PIN, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(BNRG_SPI_RESET_GPIO_Port, BNRG_SPI_RESET_Pin, GPIO_PIN_SET);
     
   TIMER_Start(ubnRFResetTimerID, BLUENRG_HOLD_TIME_AFTER_RESET);
   ubnRFresetTimerLock = 1;
@@ -439,28 +439,28 @@ void BlueNRG_SPI_Write(uint8_t* header_data, uint8_t* payload_data, uint8_t head
   return;
 }
 
-/**
- * @brief  Set in Output mode the IRQ.
- * @param  None
- * @retval None
- */
-static void set_irq_as_output(void)
-{
-  HAL_GPIO_WritePin(BNRG_SPI_IRQ_PORT, BNRG_SPI_IRQ_PIN, GPIO_PIN_SET);
-  HAL_LPPUART_GPIO_Set_Mode(BNRG_SPI_IRQ_PORT, BNRG_SPI_IRQ_PIN_POSITION, GPIO_MODE_OUTPUT_PP);
-  __HAL_GPIO_EXTI_CLEAR_IT(BNRG_SPI_IRQ_PIN);
-}
-
-/**
- * @brief  Set the IRQ in input mode.
- * @param  None
- * @retval None
- */
-static void set_irq_as_input(void)
-{
-  HAL_GPIO_WritePin(BNRG_SPI_IRQ_PORT, BNRG_SPI_IRQ_PIN, GPIO_PIN_RESET); // WARNING: it may conflict with BlueNRG driving High
-  HAL_LPPUART_GPIO_Set_Mode(BNRG_SPI_IRQ_PORT, BNRG_SPI_IRQ_PIN_POSITION, GPIO_MODE_INPUT);
-}
+///**
+// * @brief  Set in Output mode the IRQ.
+// * @param  None
+// * @retval None
+// */
+//static void set_irq_as_output(void)
+//{
+//  HAL_GPIO_WritePin(BNRG_SPI_IRQ_GPIO_Port, BNRG_SPI_IRQ_Pin, GPIO_PIN_SET);
+//  HAL_LPPUART_GPIO_Set_Mode(BNRG_SPI_IRQ_GPIO_Port, BNRG_SPI_IRQ_Pin_POSITION, GPIO_MODE_OUTPUT_PP);
+//  __HAL_GPIO_EXTI_CLEAR_IT(BNRG_SPI_IRQ_Pin);
+//}
+//
+///**
+// * @brief  Set the IRQ in input mode.
+// * @param  None
+// * @retval None
+// */
+//static void set_irq_as_input(void)
+//{
+//  HAL_GPIO_WritePin(BNRG_SPI_IRQ_GPIO_Port, BNRG_SPI_IRQ_Pin, GPIO_PIN_RESET); // WARNING: it may conflict with BlueNRG driving High
+//  HAL_LPPUART_GPIO_Set_Mode(BNRG_SPI_IRQ_GPIO_Port, BNRG_SPI_IRQ_Pin_POSITION, GPIO_MODE_INPUT);
+//}
 
 /**
  * @brief  Enable SPI IRQ.
@@ -473,9 +473,9 @@ static void Enable_SPI_Receiving_Path(void)
   HAL_NVIC_ClearPendingIRQ(BNRG_SPI_EXTI_IRQn);
   HAL_NVIC_EnableIRQ(BNRG_SPI_EXTI_IRQn);
   
-  if (HAL_GPIO_ReadPin(BNRG_SPI_IRQ_PORT, BNRG_SPI_IRQ_PIN) == GPIO_PIN_SET)
+  if (HAL_GPIO_ReadPin(BNRG_SPI_IRQ_GPIO_Port, BNRG_SPI_IRQ_Pin) == GPIO_PIN_SET)
   {
-    __HAL_GPIO_EXTI_GENERATE_SWIT(BNRG_SPI_IRQ_PIN);
+    __HAL_GPIO_EXTI_GENERATE_SWIT(BNRG_SPI_IRQ_Pin);
   }
 }
 
@@ -497,7 +497,7 @@ static void Disable_SPI_Receiving_Path(void)
 static void Enable_SPI_CS(void)
 {
   /* CS reset */
-  HAL_GPIO_WritePin(BNRG_SPI_CS_PORT, BNRG_SPI_CS_PIN, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(BNRG_SPI_CS_GPIO_Port, BNRG_SPI_CS_Pin, GPIO_PIN_RESET);
 }
 
 /**
@@ -510,7 +510,7 @@ static void Disable_SPI_CS(void)
   while (__HAL_SPI_GET_FLAG(SPI_Context.hspi,SPI_FLAG_BSY) == SET);
   
   /* CS set */
-  HAL_GPIO_WritePin(BNRG_SPI_CS_PORT, BNRG_SPI_CS_PIN, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(BNRG_SPI_CS_GPIO_Port, BNRG_SPI_CS_Pin, GPIO_PIN_SET);
 }
 
 /**
@@ -567,7 +567,7 @@ void BlueNRG_DMA_RxCallback(void)
     
     if ((byte_count == 0) || (ready_state != BLUENRG_READY_STATE))
     {
-      if (HAL_GPIO_ReadPin(BNRG_SPI_IRQ_PORT, BNRG_SPI_IRQ_PIN) == GPIO_PIN_RESET)
+      if (HAL_GPIO_ReadPin(BNRG_SPI_IRQ_GPIO_Port, BNRG_SPI_IRQ_Pin) == GPIO_PIN_RESET)
       {
         /**
          * This USE CASE shall never happen as this may break the IRQ/CS specification

@@ -1,15 +1,16 @@
 /**
   ******************************************************************************
-  * @file    stm32f4xx_hal_msp.c
-  * @author  MCD Application Team
-  * @version V1.5.0
-  * @date    06-May-2016
-  * @brief   This file contains the HAL System and Peripheral (PPP) MSP initialization
-  *          and de-initialization functions.
-  *******************************************************************************
-  * @attention
+  * File Name          : stm32f4xx_hal_msp.c
+  * Description        : This file provides code for the MSP Initialization 
+  *                      and de-Initialization codes.
+  ******************************************************************************
+  ** This notice applies to any and all portions of this file
+  * that are not between comment pairs USER CODE BEGIN and
+  * USER CODE END. Other portions of this file, whether 
+  * inserted by the user or by software development tools
+  * are owned by their respective copyright owners.
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * COPYRIGHT(c) 2017 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -34,165 +35,317 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-  */ 
-
-/* Includes ------------------------------------------------------------------*/
-#include "stm32_bluenrg_ble_dma_lp.h"
-
-/** @addtogroup X-CUBE-BLE1_Applications
- *  @{
- */
-
-/** @addtogroup SensorDemo_DMA_LowPower
- *  @{
- */
- 
-/** @defgroup STM32F4XX_HAL_MSP
- * @{
- */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
-
-/** @defgroup STM32F4XX_HAL_MSP_Private_Functions
-  * @{
   */
+/* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx_hal.h"
 
+extern DMA_HandleTypeDef hdma_spi1_rx;
+
+extern DMA_HandleTypeDef hdma_spi1_tx;
+
+extern void _Error_Handler(char *, int);
+/* USER CODE BEGIN 0 */
+#include "stm32f4xx_nucleo_bluenrg_dma_lp.h"
+#include "stm32f4xx_hal_bluenrg_spi.h"
+#include "stm32f4xx_hal_bluenrg_dma.h"
+/* USER CODE END 0 */
 /**
- * @brief  This function is used for low level initialization of the SPI 
- *         communication with the BlueNRG Expansion Board.
- * @param  Pointer to the handle of the STM32Cube HAL SPI interface.
- * @retval None
- */
-void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
+  * Initializes the Global MSP.
+  */
+void HAL_MspInit(void)
 {
-  uint32_t peripheral_address;
-  
-  GPIO_InitTypeDef GPIO_InitStruct;
-  if(hspi->Instance==BNRG_SPI_INSTANCE)
-  {
-    /* Enable peripherals clock */
-    
-    /* Enable GPIO Ports Clock */  
-    BNRG_SPI_SCLK_CLK_ENABLE();
-    BNRG_SPI_MISO_CLK_ENABLE();
-    BNRG_SPI_MOSI_CLK_ENABLE();
-    BNRG_SPI_CS_CLK_ENABLE();
-    BNRG_SPI_IRQ_CLK_ENABLE();
-    
-    /* Enable SPI clock */
-    BNRG_SPI_CLK_ENABLE();
-    
-    /* SCLK */
-    GPIO_InitStruct.Pin = BNRG_SPI_SCLK_PIN;
-    GPIO_InitStruct.Mode = BNRG_SPI_SCLK_MODE;
-    GPIO_InitStruct.Pull = BNRG_SPI_SCLK_PULL;
-    GPIO_InitStruct.Speed = BNRG_SPI_SCLK_SPEED;
-    GPIO_InitStruct.Alternate = BNRG_SPI_SCLK_ALTERNATE;
-    HAL_GPIO_Init(BNRG_SPI_SCLK_PORT, &GPIO_InitStruct); 
-    
-    /* MISO */
-    GPIO_InitStruct.Pin = BNRG_SPI_MISO_PIN;
-    GPIO_InitStruct.Mode = BNRG_SPI_MISO_MODE;
-    GPIO_InitStruct.Pull = BNRG_SPI_MISO_PULL;
-    GPIO_InitStruct.Speed = BNRG_SPI_MISO_SPEED;
-    GPIO_InitStruct.Alternate = BNRG_SPI_MISO_ALTERNATE;
-    HAL_GPIO_Init(BNRG_SPI_MISO_PORT, &GPIO_InitStruct);
-    
-    /* MOSI */
-    GPIO_InitStruct.Pin = BNRG_SPI_MOSI_PIN;
-    GPIO_InitStruct.Mode = BNRG_SPI_MOSI_MODE;
-    GPIO_InitStruct.Pull = BNRG_SPI_MOSI_PULL;
-    GPIO_InitStruct.Speed = BNRG_SPI_MOSI_SPEED;
-    GPIO_InitStruct.Alternate = BNRG_SPI_MOSI_ALTERNATE;
-    HAL_GPIO_Init(BNRG_SPI_MOSI_PORT, &GPIO_InitStruct);
-    
-    /* NSS/CSN/CS */
-    GPIO_InitStruct.Pin = BNRG_SPI_CS_PIN;
-    GPIO_InitStruct.Mode = BNRG_SPI_CS_MODE;
-    GPIO_InitStruct.Pull = BNRG_SPI_CS_PULL;
-    GPIO_InitStruct.Speed = BNRG_SPI_CS_SPEED;
-    GPIO_InitStruct.Alternate = BNRG_SPI_CS_ALTERNATE;
-    HAL_GPIO_Init(BNRG_SPI_CS_PORT, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(BNRG_SPI_CS_PORT, BNRG_SPI_CS_PIN, GPIO_PIN_SET);
-    
-    /* IRQ -- INPUT */
-    GPIO_InitStruct.Pin = BNRG_SPI_IRQ_PIN;
-    GPIO_InitStruct.Mode = BNRG_SPI_IRQ_MODE;
-    GPIO_InitStruct.Pull = BNRG_SPI_IRQ_PULL;
-    GPIO_InitStruct.Speed = BNRG_SPI_IRQ_SPEED;
-    GPIO_InitStruct.Alternate = BNRG_SPI_IRQ_ALTERNATE;
-    HAL_GPIO_Init(BNRG_SPI_IRQ_PORT, &GPIO_InitStruct);
-    
-    /*##-3- Configure the DMA channel ##########################################*/ 
-    static DMA_HandleTypeDef hdma_tx;
-    static DMA_HandleTypeDef hdma_rx;
-    
-    /* Enable DMA2 clock */
-    BNRG_DMA_CLK_ENABLE();   
-        
-    /* Configure the DMA handler for Transmission process */
-    hdma_tx.Init.Channel             = BNRG_SPI_TX_DMA_CHANNEL;
-    
-    hdma_tx.Init.Direction           = DMA_MEMORY_TO_PERIPH;
-    hdma_tx.Init.PeriphInc           = DMA_PINC_DISABLE;
-    hdma_tx.Init.MemInc              = DMA_MINC_ENABLE;
-    hdma_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_tx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
-    hdma_tx.Init.Mode                = DMA_NORMAL;
-    hdma_tx.Init.Priority            = DMA_PRIORITY_HIGH;
-    hdma_tx.Instance                 = BNRG_SPI_TX_DMA_STREAM;
-    
-    HAL_DMA_Init(&hdma_tx);   
-    peripheral_address = __HAL_BLUENRG_SPI_GET_TX_DATA_REGISTER_ADDRESS(hspi);
-    __HAL_BLUENRG_DMA_SET_PERIPHERAL_ADDRESS(&hdma_tx, peripheral_address);
-    
-    /* Associate the initialized DMA handle to the SPI handle */
-    __HAL_LINKDMA(hspi, hdmatx, hdma_tx);
-    
-    /* Configure the DMA handler for Transmission process */
-    hdma_rx.Init.Channel             = BNRG_SPI_RX_DMA_CHANNEL;
-    
-    hdma_rx.Init.Direction           = DMA_PERIPH_TO_MEMORY;
-    hdma_rx.Init.PeriphInc           = DMA_PINC_DISABLE;
-    hdma_rx.Init.MemInc              = DMA_MINC_ENABLE;
-    hdma_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_rx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
-    hdma_rx.Init.Mode                = DMA_NORMAL;
-    hdma_rx.Init.Priority            = DMA_PRIORITY_HIGH;
-    hdma_rx.Instance                 = BNRG_SPI_RX_DMA_STREAM;
-    
-    HAL_DMA_Init(&hdma_rx);
-    peripheral_address = __HAL_BLUENRG_SPI_GET_RX_DATA_REGISTER_ADDRESS(hspi);
-    __HAL_BLUENRG_DMA_SET_PERIPHERAL_ADDRESS(&hdma_rx, peripheral_address);
-    
-    /* Associate the initialized DMA handle to the SPI handle */
-    __HAL_LINKDMA(hspi, hdmarx, hdma_rx); 
-    
-    /* Configure the NVIC for SPI */  
-    HAL_NVIC_SetPriority(BNRG_SPI_DMA_TX_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(BNRG_SPI_DMA_TX_IRQn);
-    
-    HAL_NVIC_SetPriority(BNRG_SPI_DMA_RX_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(BNRG_SPI_DMA_RX_IRQn);
-    
-    /* Configure the NVIC for SPI */  
-    HAL_NVIC_SetPriority(BNRG_SPI_EXTI_IRQn, 2, 0);    
-    //HAL_NVIC_EnableIRQ(BNRG_SPI_EXTI_IRQn);
-  }
+  /* USER CODE BEGIN MspInit 0 */
+
+  /* USER CODE END MspInit 0 */
+
+  HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_0);
+
+  /* System interrupt init*/
+  /* MemoryManagement_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(MemoryManagement_IRQn, 0, 0);
+  /* BusFault_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(BusFault_IRQn, 0, 0);
+  /* UsageFault_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(UsageFault_IRQn, 0, 0);
+  /* SVCall_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(SVCall_IRQn, 0, 0);
+  /* DebugMonitor_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DebugMonitor_IRQn, 0, 0);
+  /* PendSV_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(PendSV_IRQn, 0, 0);
+  /* SysTick_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+
+  /* Peripheral interrupt init */
+  /* PVD_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(PVD_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(PVD_IRQn);
+
+  /* USER CODE BEGIN MspInit 1 */
+
+  /* USER CODE END MspInit 1 */
 }
 
-/**
-  * @}
-  */
+void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
+{
 
-/**
-  * @}
-  */
+  if(hrtc->Instance==RTC)
+  {
+  /* USER CODE BEGIN RTC_MspInit 0 */
+	  RCC_OscInitTypeDef RCC_OscInitStruct;
+	  RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
+
+	  /*##-1- Configue the RTC clock source ######################################*/
+	#ifdef RTC_CLOCK_SOURCE_LSE
+	  /* -a- Enable LSE Oscillator */
+	  RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSE;
+	  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+	  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	  {
+	    while(1);
+	  }
+
+	  /* -b- Select LSE as RTC clock source */
+	  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+	  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
+	  if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+	  {
+	    while(1);
+	  }
+	#elif defined (RTC_CLOCK_SOURCE_LSI)
+	  /* -a- Enable LSI Oscillator */
+	  RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSI;
+	  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
+	  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	  {
+	    while(1);
+	  }
+	  /* -b- Select LSI as RTC clock source */
+	  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+	  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+	  if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+	  {
+	    while(1);
+	  }
+	#else
+	#error Please select the RTC Clock source inside the low_power_conf.h file
+	#endif /*RTC_CLOCK_SOURCE_LSE*/
+  /* USER CODE END RTC_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_RTC_ENABLE();
+  /* USER CODE BEGIN RTC_MspInit 1 */
+    HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
+  /* USER CODE END RTC_MspInit 1 */
+  }
+
+}
+
+void HAL_RTC_MspDeInit(RTC_HandleTypeDef* hrtc)
+{
+
+  if(hrtc->Instance==RTC)
+  {
+  /* USER CODE BEGIN RTC_MspDeInit 0 */
+
+  /* USER CODE END RTC_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_RTC_DISABLE();
+
+    /* RTC interrupt DeInit */
+    HAL_NVIC_DisableIRQ(RTC_WKUP_IRQn);
+  /* USER CODE BEGIN RTC_MspDeInit 1 */
+
+  /* USER CODE END RTC_MspDeInit 1 */
+  }
+
+}
+
+void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct;
+  if(hspi->Instance==SPI1)
+  {
+  /* USER CODE BEGIN SPI1_MspInit 0 */
+	  __HAL_RCC_DMA2_CLK_ENABLE();
+  /* USER CODE END SPI1_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_SPI1_CLK_ENABLE();
+  
+    /**SPI1 GPIO Configuration    
+    PA6     ------> SPI1_MISO
+    PA7     ------> SPI1_MOSI
+    PB3     ------> SPI1_SCK 
+    */
+    GPIO_InitStruct.Pin = BNRG_SPI_MISO_Pin|BNRG_SPI_MOSI_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = BNRG_SPI_SCLK_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    HAL_GPIO_Init(BNRG_SPI_SCLK_GPIO_Port, &GPIO_InitStruct);
+
+    /* SPI1 DMA Init */
+    /* SPI1_RX Init */
+    hdma_spi1_rx.Instance = DMA2_Stream0;
+    hdma_spi1_rx.Init.Channel = DMA_CHANNEL_3;
+    hdma_spi1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_spi1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_spi1_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_spi1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_spi1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_spi1_rx.Init.Mode = DMA_NORMAL;
+    hdma_spi1_rx.Init.Priority = DMA_PRIORITY_HIGH;
+    hdma_spi1_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_spi1_rx) != HAL_OK)
+    {
+      _Error_Handler(__FILE__, __LINE__);
+    }
+
+    __HAL_LINKDMA(hspi,hdmarx,hdma_spi1_rx);
+
+    /* SPI1_TX Init */
+    hdma_spi1_tx.Instance = DMA2_Stream3;
+    hdma_spi1_tx.Init.Channel = DMA_CHANNEL_3;
+    hdma_spi1_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_spi1_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_spi1_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_spi1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_spi1_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_spi1_tx.Init.Mode = DMA_NORMAL;
+    hdma_spi1_tx.Init.Priority = DMA_PRIORITY_HIGH;
+    hdma_spi1_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_spi1_tx) != HAL_OK)
+    {
+      _Error_Handler(__FILE__, __LINE__);
+    }
+
+    __HAL_LINKDMA(hspi,hdmatx,hdma_spi1_tx);
+
+  /* USER CODE BEGIN SPI1_MspInit 1 */
+    uint32_t peripheral_address = __HAL_BLUENRG_SPI_GET_RX_DATA_REGISTER_ADDRESS(hspi);
+    __HAL_BLUENRG_DMA_SET_PERIPHERAL_ADDRESS(&hdma_spi1_rx, peripheral_address);
+    peripheral_address = __HAL_BLUENRG_SPI_GET_TX_DATA_REGISTER_ADDRESS(hspi);
+    __HAL_BLUENRG_DMA_SET_PERIPHERAL_ADDRESS(&hdma_spi1_tx, peripheral_address);
+
+    /* Configure the NVIC for SPI */
+    HAL_NVIC_SetPriority(BNRG_SPI_DMA_TX_IRQn, 1, 0);
+    HAL_NVIC_EnableIRQ(BNRG_SPI_DMA_TX_IRQn);
+
+    HAL_NVIC_SetPriority(BNRG_SPI_DMA_RX_IRQn, 1, 0);
+    HAL_NVIC_EnableIRQ(BNRG_SPI_DMA_RX_IRQn);
+
+    /* Configure the NVIC for SPI */
+    HAL_NVIC_SetPriority(BNRG_SPI_EXTI_IRQn, 2, 0);
+
+  /* USER CODE END SPI1_MspInit 1 */
+  }
+
+}
+
+void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
+{
+
+  if(hspi->Instance==SPI1)
+  {
+  /* USER CODE BEGIN SPI1_MspDeInit 0 */
+
+  /* USER CODE END SPI1_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_SPI1_CLK_DISABLE();
+  
+    /**SPI1 GPIO Configuration    
+    PA6     ------> SPI1_MISO
+    PA7     ------> SPI1_MOSI
+    PB3     ------> SPI1_SCK 
+    */
+    HAL_GPIO_DeInit(GPIOA, BNRG_SPI_MISO_Pin|BNRG_SPI_MOSI_Pin);
+
+    HAL_GPIO_DeInit(BNRG_SPI_SCLK_GPIO_Port, BNRG_SPI_SCLK_Pin);
+
+    /* SPI1 DMA DeInit */
+    HAL_DMA_DeInit(hspi->hdmarx);
+    HAL_DMA_DeInit(hspi->hdmatx);
+
+    /* SPI1 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(SPI1_IRQn);
+  /* USER CODE BEGIN SPI1_MspDeInit 1 */
+
+  /* USER CODE END SPI1_MspDeInit 1 */
+  }
+
+}
+
+void HAL_UART_MspInit(UART_HandleTypeDef* huart)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct;
+  if(huart->Instance==USART2)
+  {
+  /* USER CODE BEGIN USART2_MspInit 0 */
+
+  /* USER CODE END USART2_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_USART2_CLK_ENABLE();
+  
+    /**USART2 GPIO Configuration    
+    PA2     ------> USART2_TX
+    PA3     ------> USART2_RX 
+    */
+    GPIO_InitStruct.Pin = USART_TX_Pin|USART_RX_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    /* USART2 interrupt Init */
+    HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
+  /* USER CODE BEGIN USART2_MspInit 1 */
+
+  /* USER CODE END USART2_MspInit 1 */
+  }
+
+}
+
+void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
+{
+
+  if(huart->Instance==USART2)
+  {
+  /* USER CODE BEGIN USART2_MspDeInit 0 */
+
+  /* USER CODE END USART2_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_USART2_CLK_DISABLE();
+  
+    /**USART2 GPIO Configuration    
+    PA2     ------> USART2_TX
+    PA3     ------> USART2_RX 
+    */
+    HAL_GPIO_DeInit(GPIOA, USART_TX_Pin|USART_RX_Pin);
+
+    /* USART2 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(USART2_IRQn);
+  /* USER CODE BEGIN USART2_MspDeInit 1 */
+
+  /* USER CODE END USART2_MspDeInit 1 */
+  }
+
+}
+
+/* USER CODE BEGIN 1 */
+
+/* USER CODE END 1 */
 
 /**
   * @}

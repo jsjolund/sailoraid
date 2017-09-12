@@ -40,7 +40,6 @@
 #define __BLUENRG_INTERFACE_H_
 
 /* Includes ------------------------------------------------------------------*/
-#include "cube_hal.h"
 #include "hal_types.h"
 
 void Hal_Write_Serial(const void* data1, const void* data2, int32_t n_bytes1,
