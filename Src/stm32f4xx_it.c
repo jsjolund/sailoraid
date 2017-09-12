@@ -36,7 +36,7 @@
 #include "stm32f4xx_it.h"
 
 /* USER CODE BEGIN 0 */
-#include "stm32_bluenrg_ble_dma_lp.h"
+#include "stm32_bluenrg_ble.h"
 #include "sensor_service.h"
 volatile uint32_t ms_counter = 0;
 volatile int button_event = 0;
@@ -46,8 +46,6 @@ extern SPI_HandleTypeDef SpiHandle;
 
 /* External variables --------------------------------------------------------*/
 extern RTC_HandleTypeDef hrtc;
-extern DMA_HandleTypeDef hdma_spi1_rx;
-extern DMA_HandleTypeDef hdma_spi1_tx;
 extern SPI_HandleTypeDef hspi1;
 extern UART_HandleTypeDef huart2;
 
@@ -127,7 +125,7 @@ void RTC_WKUP_IRQHandler(void)
   /* USER CODE END RTC_WKUP_IRQn 0 */
   HAL_RTCEx_WakeUpTimerIRQHandler(&hrtc);
   /* USER CODE BEGIN RTC_WKUP_IRQn 1 */
-  TIMER_RTC_Wakeup_Handler();
+//  TIMER_RTC_Wakeup_Handler();
   /* USER CODE END RTC_WKUP_IRQn 1 */
 }
 
@@ -197,43 +195,8 @@ void EXTI15_10_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
   button_event = 1;
-  SetUserProcessRequest(TRUE);
 
   /* USER CODE END EXTI15_10_IRQn 1 */
-}
-
-/**
-* @brief This function handles DMA2 stream0 global interrupt.
-*/
-void DMA2_Stream0_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
-  if(__HAL_DMA_GET_IT_SOURCE(SpiHandle.hdmarx, DMA_IT_TC)  && __HAL_DMA_GET_FLAG(SpiHandle.hdmarx, DMA_FLAG_TCIF0_4))
-  {
-	BlueNRG_DMA_RxCallback();
-  }
-  /* USER CODE END DMA2_Stream0_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi1_rx);
-  /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
-
-  /* USER CODE END DMA2_Stream0_IRQn 1 */
-}
-
-/**
-* @brief This function handles DMA2 stream3 global interrupt.
-*/
-void DMA2_Stream3_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream3_IRQn 0 */
-  if(__HAL_DMA_GET_IT_SOURCE(SpiHandle.hdmatx, DMA_IT_TC)  && __HAL_DMA_GET_FLAG(SpiHandle.hdmatx, DMA_FLAG_TCIF3_7))
-  {
-	BlueNRG_DMA_TxCallback();
-  }
-  /* USER CODE END DMA2_Stream3_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi1_tx);
-  /* USER CODE BEGIN DMA2_Stream3_IRQn 1 */
-
-  /* USER CODE END DMA2_Stream3_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

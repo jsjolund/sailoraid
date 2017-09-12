@@ -138,13 +138,13 @@ typedef enum
 //  */
 //#define USER_BUTTON_PIN                         GPIO_PIN_13
 //#define USER_BUTTON_GPIO_PORT                   GPIOC
-//#define USER_BUTTON_GPIO_CLK_ENABLE()           __HAL_RCC_GPIOC_CLK_ENABLE()
-//#define USER_BUTTON_GPIO_CLK_DISABLE()          __HAL_RCC_GPIOC_CLK_DISABLE()
+#define USER_BUTTON_GPIO_CLK_ENABLE()           __HAL_RCC_GPIOC_CLK_ENABLE()
+#define USER_BUTTON_GPIO_CLK_DISABLE()          __HAL_RCC_GPIOC_CLK_DISABLE()
 //#define USER_BUTTON_EXTI_LINE                   GPIO_PIN_13
 //#define USER_BUTTON_EXTI_IRQn                   EXTI15_10_IRQn
 //
-//#define BUTTONx_GPIO_CLK_ENABLE(__INDEX__)       USER_BUTTON_GPIO_CLK_ENABLE()
-//#define BUTTONx_GPIO_CLK_DISABLE(__INDEX__)      USER_BUTTON_GPIO_CLK_DISABLE()
+#define BUTTONx_GPIO_CLK_ENABLE(__INDEX__)       USER_BUTTON_GPIO_CLK_ENABLE()
+#define BUTTONx_GPIO_CLK_DISABLE(__INDEX__)      USER_BUTTON_GPIO_CLK_DISABLE()
 //
 ///* Aliases */
 //#define KEY_BUTTON_PIN                       USER_BUTTON_PIN

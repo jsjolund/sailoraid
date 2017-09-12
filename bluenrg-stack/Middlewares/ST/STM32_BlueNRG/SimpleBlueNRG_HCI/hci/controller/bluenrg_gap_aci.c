@@ -17,7 +17,7 @@
 #include "osal.h"
 #include "ble_status.h"
 #include "hal.h"
-#include "osal.h"
+#include "hci.h"
 #include "hci_const.h"
 #include "bluenrg_aci_const.h"
 #include "bluenrg_gap_aci.h"

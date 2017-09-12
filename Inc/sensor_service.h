@@ -66,7 +66,7 @@
  *  @{
  */
 
-/** @addtogroup SensorDemo_DMA_LowPower
+/** @addtogroup SensorDemo
  *  @{
  */
  
@@ -77,10 +77,10 @@
 /** @addtogroup SENSOR_SERVICE_Exported_Defines 
  * @{
  */
-/* Exported defines ----------------------------------------------------------*/  
+/* Exported defines ----------------------------------------------------------*/   
 #define IDB04A1 0
 #define IDB05A1 1
-   
+
 /**
  * @brief Instantiate two new services:
  *        1. Timer Service with two characteristics
@@ -122,8 +122,6 @@ void       enableNotification(void);
 void       GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle);
 void       GAP_DisconnectionComplete_CB(void);
 void       HCI_Event_CB(void *pckt);
-void       User_Process_Notification_Request(void);
-void SetUserProcessRequest(BOOL userProcessValue);
 
 #if NEW_SERVICES
   tBleStatus Add_Time_Service(void);

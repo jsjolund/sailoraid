@@ -8,7 +8,7 @@
 #include "hci_le.h"
 #include "osal.h"
 #include "string.h"
-#include "stm32_bluenrg_ble_dma_lp.h"
+#include "stm32_bluenrg_ble.h"
 
 #define SUPPORTED_BOOTLOADER_VERSION_MIN  3
 #define SUPPORTED_BOOTLOADER_VERSION_MAX  5

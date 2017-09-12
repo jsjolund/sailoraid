@@ -40,7 +40,7 @@
  *  @{
  */
 
-/** @addtogroup SensorDemo_DMA_LowPower
+/** @addtogroup SensorDemo
  *  @{
  */
  
@@ -61,8 +61,6 @@ uint16_t sampleServHandle, TXCharHandle, RXCharHandle;
 uint16_t accServHandle, freeFallCharHandle, accCharHandle;
 uint16_t envSensServHandle, tempCharHandle, pressCharHandle, humidityCharHandle;
 
-BOOL userProcess = FALSE;
-
 #if NEW_SERVICES
   uint16_t timeServHandle, secondsCharHandle, minuteCharHandle;
   uint16_t ledServHandle, ledButtonCharHandle;
@@ -70,14 +68,6 @@ BOOL userProcess = FALSE;
   int previousMinuteValue = -1;
   extern uint8_t bnrg_expansion_board;
 #endif
-/**
- * @}
- */
-   
-/** @defgroup SENSOR_SERVICE_Private_Function_Prototypes
- * @{
- */
-/* Private function prototypes -----------------------------------------------*/
 /**
  * @}
  */
@@ -190,7 +180,7 @@ tBleStatus Free_Fall_Notify(void)
                                    &val);
 	
   if (ret != BLE_STATUS_SUCCESS){
-    PRINTF("Error while updating ACC characteristic.\n") ;
+    PRINTF("Error while updating FFall characteristic.\n") ;
     return BLE_STATUS_ERROR ;
   }
   return BLE_STATUS_SUCCESS;	
@@ -437,9 +427,7 @@ void setConnectable(void)
                                  sizeof(local_name), local_name, 0, NULL, 0, 0);
   if (ret != BLE_STATUS_SUCCESS) {
     PRINTF("Error while setting discoverable mode (%d)\n", ret);    
-  } 
-  
-  SetUserProcessRequest(TRUE);
+  }  
 }
 
 /**
@@ -526,8 +514,6 @@ void HCI_Event_CB(void *pckt)
   /* obtain event packet */
   hci_event_pckt *event_pckt = (hci_event_pckt*)hci_pckt->data;
   
-  SetUserProcessRequest(TRUE);
-  
   if(hci_pckt->type != HCI_EVENT_PKT)
     return;
   
@@ -566,12 +552,12 @@ void HCI_Event_CB(void *pckt)
           extract callback data and pass to suitable handler function */
           if (bnrg_expansion_board == IDB05A1) {
             evt_gatt_attr_modified_IDB05A1 *evt = (evt_gatt_attr_modified_IDB05A1*)blue_evt->data;
-            Attribute_Modified_CB(evt->attr_handle, evt->data_length, evt->att_data);
+            Attribute_Modified_CB(evt->attr_handle, evt->data_length, evt->att_data); 
           }
           else {
             evt_gatt_attr_modified_IDB04A1 *evt = (evt_gatt_attr_modified_IDB04A1*)blue_evt->data;
-            Attribute_Modified_CB(evt->attr_handle, evt->data_length, evt->att_data);
-          }
+            Attribute_Modified_CB(evt->attr_handle, evt->data_length, evt->att_data); 
+          }                       
         }
         break; 
 #endif
@@ -586,24 +572,6 @@ void HCI_Event_CB(void *pckt)
     }
     break;
   }    
-}
-
-/**
- * @brief  Set the user process value
- *
- * @param  User process value
- * @retval None
- */
-void SetUserProcessRequest(BOOL userProcessValue)
-{
-  userProcess = userProcessValue;
-  
-  if (userProcessValue == TRUE)
-  {
-    User_Process_Notification_Request();
-  }
-  
-  return;
 }
 
 #if NEW_SERVICES

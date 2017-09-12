@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file    bluenrg_interface.c 
+  * @file    bluenrg_interface.h 
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    04-July-2014
-  * @brief   This file provides code for the BlueNRG STM32 expansion board driver
+  * @brief   This file provides code for the BlueNRG Expansion Board driver
   *          based on STM32Cube HAL for STM32 Nucleo boards.
   ******************************************************************************
   * @attention
@@ -40,57 +40,19 @@
 
 #include "debug.h"
 #include "ble_status.h"
-#include "hci_const.h"
-#include "stm32xx_lpm.h"
-#include "stm32_bluenrg_ble_dma_lp.h"
+#include "hci.h"
+#include "stm32_bluenrg_ble.h"
 
 extern SPI_HandleTypeDef SpiHandle;
 
-uint8_t * HCI_read_packet;
-
-/**
- * @brief  Writes data to a serial interface.
- * @param  data1   :  1st buffer
- * @param  data2   :  2nd buffer
- * @param  n_bytes1: number of bytes in 1st buffer
- * @param  n_bytes2: number of bytes in 2nd buffer
- * @retval None
- */
-void Hal_Write_Serial(const void* data1, const void* data2, int32_t n_bytes1,
-                      int32_t n_bytes2)
-{
-  /* New implementation (with DMA write) */
-  BlueNRG_SPI_Write((uint8_t *)data1,(uint8_t *)data2, n_bytes1, n_bytes2);
-}
-
-/**
- * @brief  Request for an event
- * @param  uint8_t*: the event packet
- * @param  uint8_t : the event packet size
- * @retval None
- */
-void Hal_Event_Request(uint8_t *buffer, uint8_t buff_size)
-{
-  HCI_read_packet = buffer;
-  
-  BlueNRG_SPI_Request_Events(((tHciDataPacket*)buffer)->dataBuff, buff_size);
-}
-
 /**
  * @brief  EXTI line detection callback.
- * @param  uint16_t GPIO_Pin Specifies the pins connected EXTI line
+ * @param  Specifies the pins connected EXTI line
  * @retval None
  */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  if(GPIO_Pin == BNRG_SPI_EXTI_PIN) {    
-    BlueNRG_SPI_IRQ_Callback(); 
-  }
-  else {
-    if(GPIO_Pin == USER_BUTTON_Pin) {
-      LPM_Mode_Request(eLPM_MAIN_LOOP_PROCESSES, eLPM_Mode_RUN);
-    }
-  }  
+  HCI_Isr();
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

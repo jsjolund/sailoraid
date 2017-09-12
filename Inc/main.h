@@ -81,10 +81,35 @@
 #define BNRG_SPI_SCLK_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
+#define BNRG_SPI_EXTI_IRQn BNRG_SPI_IRQ_EXTI_IRQn
+#define BNRG_SPI_INSTANCE		SPI1
+#define BNRG_SPI_CLK_ENABLE()		__SPI1_CLK_ENABLE()
+
+// SPI Configuration
+#define BNRG_SPI_MODE			SPI_MODE_MASTER
+#define BNRG_SPI_DIRECTION		SPI_DIRECTION_2LINES
+#define BNRG_SPI_DATASIZE		SPI_DATASIZE_8BIT
+#define BNRG_SPI_CLKPOLARITY		SPI_POLARITY_LOW
+#define BNRG_SPI_CLKPHASE	        SPI_PHASE_1EDGE
+#define BNRG_SPI_NSS			SPI_NSS_SOFT
+#define BNRG_SPI_FIRSTBIT	        SPI_FIRSTBIT_MSB
+#define BNRG_SPI_TIMODE		        SPI_TIMODE_DISABLED
+#define BNRG_SPI_CRCPOLYNOMIAL	        7
+#define BNRG_SPI_BAUDRATEPRESCALER      SPI_BAUDRATEPRESCALER_4
+#define BNRG_SPI_CRCCALCULATION		SPI_CRCCALCULATION_DISABLED
+
+#define BNRG_SPI_IRQ_ALTERNATE		0
+
+#define BNRG_SPI_IRQ_MODE		GPIO_MODE_IT_RISING
+#define BNRG_SPI_IRQ_PULL		GPIO_NOPULL
+#define BNRG_SPI_IRQ_SPEED		GPIO_SPEED_HIGH
+
+
+
 #define LEDn                                    1
 #define BUTTONn                                 1
 #define USER_BUTTON_EXTI_IRQn                   EXTI15_10_IRQn
-#define BNRG_SPI_EXTI_PIN BNRG_SPI_IRQ_Pin
+#define BNRG_SPI_EXTI_Pin BNRG_SPI_IRQ_Pin
 #define BNRG_SPI_EXTI_GPIO_Port BNRG_SPI_IRQ_GPIO_Port
 #define RTC_CLOCK_SOURCE_LSI
 /* Exported constants --------------------------------------------------------*/
