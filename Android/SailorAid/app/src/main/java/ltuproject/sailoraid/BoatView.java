@@ -6,11 +6,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 /**
- *
+ * Class that draws a boat that can change alignment depending on values received
  */
 public class BoatView extends SurfaceView implements
         SurfaceHolder.Callback {
@@ -27,38 +29,31 @@ public class BoatView extends SurfaceView implements
 
     public BoatView(Context context, Bitmap bitmap) {
         super(context);
-
         mBitmapHeightAndWidth = (int) getResources().getDimension(
                 R.dimen.image_height);
         this.mBitmap = Bitmap.createScaledBitmap(bitmap,
                 mBitmapHeightAndWidth, mBitmapHeightAndWidth, false);
-
         mBitmapHeightAndWidthAdj = mBitmapHeightAndWidth / 2;
         mRotation = 1.0f;
-
         mPainter.setAntiAlias(true);
 
         mSurfaceHolder = getHolder();
         mSurfaceHolder.addCallback(this);
+        mSurfaceHolder.setFormat(PixelFormat.TRANSLUCENT);
     }
 
-    private void drawStar(Canvas canvas) {
+    private void drawBoat(Canvas canvas) {
         super.draw(canvas);
-        Bitmap boat = BitmapFactory.decodeResource(getResources(),R.drawable.boat_alignement);
-        canvas.drawColor(Color.BLACK);
-        canvas.drawBitmap(boat, 50, 50, new Paint());
-
+        canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
         mRotation = ROT_STEP*x*10;
-        canvas.rotate(mRotation, mY + mBitmapHeightAndWidthAdj, mX
-                + mBitmapHeightAndWidthAdj);
-        canvas.drawBitmap(mBitmap, mY, mX, mPainter);
+        canvas.rotate(mRotation, mBitmapHeightAndWidthAdj+50, mBitmapHeightAndWidth);
+        canvas.drawBitmap(mBitmap, 100, 0, mPainter);
     }
 
     public void setXYZ(float x, float y, float z){
         this.x = x;
         this.y = y;
         this.z = z;
-
     }
 
     @Override
@@ -74,7 +69,7 @@ public class BoatView extends SurfaceView implements
                 while (!Thread.currentThread().isInterrupted()) {
                     canvas = mSurfaceHolder.lockCanvas();
                     if (null != canvas) {
-                        drawStar(canvas);
+                        drawBoat(canvas);
                         mSurfaceHolder.unlockCanvasAndPost(canvas);
                     }
                 }

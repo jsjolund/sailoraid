@@ -15,3 +15,10 @@ http://update.maestro-wireless.com/GNSS/A2100-AB/Power_ONOFF_Sequences_and_Power
 ___________________________________________________________________
 GPS		PA6H			Datasheet
 https://cdn-shop.adafruit.com/datasheets/GlobalTop-FGPMMOPA6H-Datasheet-V0A.pdf
+___________________________________________________________________
+XL/Mag	LSM303AGR		Datasheet
+http://www.st.com/content/ccc/resource/technical/document/datasheet/74/c4/19/54/62/c5/46/13/DM00177685.pdf/files/DM00177685.pdf/jcr:content/translations/en.DM00177685.pdf
+___________________________________________________________________
+XL/Gyro	LSM6DSL			Datasheet
+http://www.st.com/content/ccc/resource/technical/document/datasheet/ee/23/a0/dc/1d/68/45/52/DM00237456.pdf/files/DM00237456.pdf/jcr:content/translations/en.DM00237456.pdf
+___________________________________________________________________
