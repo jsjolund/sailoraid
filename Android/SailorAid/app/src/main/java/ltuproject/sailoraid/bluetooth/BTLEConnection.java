@@ -3,18 +3,25 @@ package ltuproject.sailoraid.bluetooth;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.security.Provider;
 import java.util.UUID;
+
+import ltuproject.sailoraid.R;
 
 /**
  * Created by Henrik on 2017-09-13.
@@ -29,6 +36,7 @@ public class BTLEConnection extends Service {
     private BluetoothGatt mBluetoothGatt;
     private int mConnectionState = STATE_DISCONNECTED;
 
+    private boolean mConnected = false;
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
@@ -48,7 +56,7 @@ public class BTLEConnection extends Service {
             UUID.fromString("19B10001-E8F2-537E-4F6C-D104768A1214");
 
     // Various callback methods defined by the BLE API.
-    private final BluetoothGattCallback mGattCallback =
+    public final BluetoothGattCallback mGattCallback =
             new BluetoothGattCallback() {
                 @Override
                 public void onConnectionStateChange(BluetoothGatt gatt, int status,
@@ -90,9 +98,7 @@ public class BTLEConnection extends Service {
                     }
                 }
             };
-            public BluetoothGattCallback getGattCallback(){
-                return mGattCallback;
-            }
+
 
     @Nullable
     @Override
@@ -100,9 +106,39 @@ public class BTLEConnection extends Service {
         return null;
     }
 
+    public void connectToDevice(final Context contx, final BluetoothDevice device) {
+        Handler handler = new Handler(contx.getApplicationContext().getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+
+                if (device != null) {
+                   mBluetoothGatt = device.connectGatt(contx.getApplicationContext(), false, mGattCallback);
+                }
+            }
+        });
+    }
+
+    private void backgroundConnect() {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+
+                mBluetoothGatt.connect();
+
+            }
+        });
+    }
+    public BluetoothGattCallback getGattCallback(){
+        return mGattCallback;
+    }
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
         sendBroadcast(intent);
+        /*if (mConnectionState == STATE_DISCONNECTED){
+            backgroundConnect();
+        }*/
     }
 
     private void broadcastUpdate(final String action,
@@ -137,4 +173,32 @@ public class BTLEConnection extends Service {
         }
         sendBroadcast(intent);
     }
+
+    // Handles various events fired by the Service.
+// ACTION_GATT_CONNECTED: connected to a GATT server.
+// ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
+// ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
+// ACTION_DATA_AVAILABLE: received data from the device. This can be a
+// result of read or notification operations.
+    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (BTLEConnection.ACTION_GATT_CONNECTED.equals(action)) {
+                mConnected = true;
+
+
+            } else if (BTLEConnection.ACTION_GATT_DISCONNECTED.equals(action)) {
+                mConnected = false;
+
+            } else if (BTLEConnection.
+                    ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                // Show all the supported services and characteristics on the
+                // user interface.
+
+            } else if (BTLEConnection.ACTION_DATA_AVAILABLE.equals(action)) {
+
+            }
+        }
+    };
 }

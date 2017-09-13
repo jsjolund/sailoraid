@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SailorAid</string>
+    <string name="connected">You are connected</string>
 </resources>

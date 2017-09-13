@@ -4,9 +4,7 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothServerSocket;
-import android.bluetooth.BluetoothSocket;
-import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
@@ -17,11 +15,10 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.ParcelUuid;
+import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,22 +26,13 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import java.util.zip.Inflater;
 
 import ltuproject.sailoraid.bluetooth.AcceptConnection;
 import ltuproject.sailoraid.bluetooth.BTConnection;
+import ltuproject.sailoraid.bluetooth.BTHandler;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
 
 import static android.bluetooth.BluetoothDevice.BOND_BONDED;
@@ -62,27 +50,19 @@ public class BTConnectActivity extends AppCompatActivity {
 
     private BluetoothAdapter btAdapter;
     private Button searchbtn, pairedbtn, listenbtn, searchLEbtn, connectLEbtn;
-    private Set<BluetoothDevice> pairedDevices;
-    private ArrayList<BluetoothDevice> newDeviceList;
-    private ArrayList<BluetoothDevice> leDeviceList;
-    private BluetoothDevice newDevice;
     private ArrayAdapter<String> BTArrayAdapter;
     private IntentFilter filter;
     private AlertDialog.Builder popDialog;
     private AlertDialog alertpop;
     private BluetoothDevice chosenDevice;
-    private String deviceName, deviceaddress;
-
-    private BTConnection btConnection;
     private BTLEConnection btLEConnection;
     private AcceptConnection btServer;
     private BluetoothGatt mBluetoothGatt;
     private byte[] readBuffer;
     private boolean hasPermission;
 
-    private boolean mScanning;
-    private Handler mHandler;
 
+    private BTHandler myBTHandler;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,17 +82,14 @@ public class BTConnectActivity extends AppCompatActivity {
         searchLEbtn = (Button)findViewById(R.id.searchLe);
         connectLEbtn = (Button)findViewById(R.id.connectLe);
 
-        newDeviceList = new ArrayList<>();
-        leDeviceList = new ArrayList<>();
-        mHandler = new Handler();
-
+        myBTHandler = new BTHandler(btAdapter);
 
         assert pairedbtn != null;
         pairedbtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 // stat view button function
-                if(!btAdapter.isEnabled()) {
+                if(!myBTHandler.getBtAdapter().isEnabled()) {
                     turnOn();
                 }
                 cleanPop();
@@ -127,17 +104,16 @@ public class BTConnectActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 // stat view button function
-                if(!btAdapter.isEnabled()) {
+                if(!myBTHandler.getBtAdapter().isEnabled()) {
                     turnOn();
                 }
                 //newDeviceList.clear();
                 checkLocationPermission();
                 if (hasPermission){
-                    if ( btAdapter.isDiscovering()){
-                        btAdapter.cancelDiscovery();
+                    if ( myBTHandler.getBtAdapter().isDiscovering()){
+                        myBTHandler.getBtAdapter().cancelDiscovery();
                     }
-                    newDeviceList.clear();
-                    btAdapter.startDiscovery();
+                    myBTHandler.getBtAdapter().startDiscovery();
                 }
             }
         });
@@ -147,10 +123,10 @@ public class BTConnectActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 // stat view button function
-                if(!btAdapter.isEnabled()) {
+                if(!myBTHandler.getBtAdapter().isEnabled()) {
                     turnOn();
                 }
-                btServer = new AcceptConnection(btAdapter);
+                btServer = new AcceptConnection(myBTHandler.getBtAdapter());
                 btServer.run();
             }
         });
@@ -160,10 +136,18 @@ public class BTConnectActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 // stat view button function
-                if(!btAdapter.isEnabled()) {
+                if(!myBTHandler.getBtAdapter().isEnabled()) {
                     turnOn();
                 }
-                scanLeDevice(true);
+                checkLocationPermission();
+                if(hasPermission){
+                    cleanPop();
+                    setPopDialog(LE_LIST);
+                    BTArrayAdapter.clear();
+                    alertpop = popDialog.show();
+                    myBTHandler.clearLeList();
+                    myBTHandler.scanLeDevice(mLeScanCallback, true);
+                }
             }
         });
     }
@@ -182,19 +166,19 @@ public class BTConnectActivity extends AppCompatActivity {
                 String lines[] = device.split("[\\r\\n]+");
                 String deviceName = lines[0];
                 String deviceaddress = lines[1];
-                chosenDevice = getDevice(deviceName, deviceaddress);
+                chosenDevice = myBTHandler.getDevice(deviceName, deviceaddress);
             }
         });
         popDialog = new AlertDialog.Builder(this);
         popDialog.setView(Viewlayout);
-
+        popDialog.setTitle(type);
         if(!type.equals(PAIRED_LIST)){
             popDialog.setNeutralButton("Pair",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             if (chosenDevice != null){
-                                createBond(chosenDevice);
+                                myBTHandler.createBond(chosenDevice);
                             }
                             //btDevice.run();
                         }
@@ -212,8 +196,11 @@ public class BTConnectActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             if (chosenDevice != null){
+                                closeGatt();
                                 btLEConnection = new BTLEConnection();
-                                mBluetoothGatt = chosenDevice.connectGatt(getApplicationContext(), false, btLEConnection.getGattCallback());
+                                btLEConnection.connectToDevice(getApplicationContext(), chosenDevice);
+                                //connectToDevice(chosenDevice, btLEConnection.getGattCallback());
+                               // mBluetoothGatt = chosenDevice.connectGatt(getApplicationContext(), false, btLEConnection.getGattCallback());
                             }
                         }
                     });
@@ -224,7 +211,7 @@ public class BTConnectActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             if (chosenDevice != null){
-                                startConnection(chosenDevice);
+                                myBTHandler.startConnection(chosenDevice);
                             }
                         }
                     });
@@ -234,7 +221,6 @@ public class BTConnectActivity extends AppCompatActivity {
 
     public void cleanPop(){
         if (popDialog != null){
-
             popDialog = null;
         }
         if (alertpop != null) {
@@ -245,75 +231,47 @@ public class BTConnectActivity extends AppCompatActivity {
 
     public void updateDevicesShown(String text) {
         BTArrayAdapter.clear();
-        popDialog.setTitle(text);
 
         if (text.equals(PAIRED_LIST)){
-            pairedDevices = btAdapter.getBondedDevices();
+            myBTHandler.setPairedList();
             // put it's one to the adapter
-            for(BluetoothDevice device : pairedDevices)
+            for(BluetoothDevice device : myBTHandler.getPairedDevices())
                 BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
 
         }
         else if(text.equals(DISCOVERED_LIST)){
-            for (BluetoothDevice device : newDeviceList){
-                    String name = device.getName();
-                    BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
+            for (BluetoothDevice device : myBTHandler.getNewDeviceList()){
+                BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
+            }
+        }
+        else if(text.equals(LE_LIST)){
+            for (BluetoothDevice device : myBTHandler.getLeDeviceList()){
+                BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
             }
         }
     }
 
-    private BluetoothDevice getDevice(String name, String address){
-        BluetoothDevice tmp = null;
-        if (newDeviceList != null){
-            for (int i=0;i<newDeviceList.size();i++){
-                tmp = newDeviceList.get(i);
-                if (tmp.getAddress().equals(address)){
-                    break;
-                }
-            }
-        }
-        if (pairedDevices != null){
-            for(BluetoothDevice device : pairedDevices){
-                tmp = device;
-                if (tmp.getAddress().equals(address)){
-                    break;
-                }
-            }
-        }
-        if (leDeviceList != null){
-            for (int i=0;i<leDeviceList.size();i++){
-                tmp = leDeviceList.get(i);
-                if (tmp.getAddress().equals(address)){
-                    break;
-                }
-            }
-        }
-        return tmp;
-    }
+    public void connectToDevice(final BluetoothDevice device, final BluetoothGattCallback mGattCallback) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        final Context contx = this;
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
 
-    private void createBond(BluetoothDevice bd){
-        if (bd !=null) {
-            boolean isPaired = (bd.getBondState() == BOND_BONDED);
-            if (!isPaired) {
-                bd.createBond();
-            }
-        }
-    }
-    private void startConnection(BluetoothDevice bd){
-        boolean isbtElement = false;
-        boolean isPaired = (bd.getBondState() == BOND_BONDED);
 
-        if (bd !=null) {
-            if (!isPaired) {
-                bd.createBond();
+                if (device != null) {
+
+                    mBluetoothGatt = device.connectGatt(getApplicationContext(), true, mGattCallback);
+                }
             }
-            newDevice = bd;
+        });
+    }
+    public void closeGatt() {
+        if (mBluetoothGatt == null) {
+            return;
         }
-        else{
-            TextView connectTv = (TextView)findViewById(R.id.connectedtext);
-            connectTv.setText("Not Connected!");
-        }
-        btConnection = new BTConnection(newDevice, btAdapter);
+        mBluetoothGatt.close();
+        mBluetoothGatt = null;
     }
 
     // Create a BroadcastReceiver for ACTION_FOUND.
@@ -328,9 +286,8 @@ public class BTConnectActivity extends AppCompatActivity {
             // If it's already paired, skip it, because it's been listed already
             if (device.getBondState() != BOND_BONDED)
             {
-                 if(!deviceExists(newDeviceList, device)){
-                    String name = device.getName();
-                    newDeviceList.add(device);
+                if (!myBTHandler.deviceExists(myBTHandler.getNewDeviceList(), device)){
+                myBTHandler.addToDevices(device);
                 }
             }
             updateDevicesShown(DISCOVERED_LIST);
@@ -350,24 +307,13 @@ public class BTConnectActivity extends AppCompatActivity {
             }
     };
 
-    private boolean deviceExists(ArrayList<BluetoothDevice> list, BluetoothDevice device){
-        boolean exists = false;
-        for (int i=0;i<list.size();i++){
-            if (list.get(i).equals(device)){
-                exists = true;
-                break;
-            }
-        }
-        return exists;
-    }
     private ScanCallback mLeScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
             BluetoothDevice bd = result.getDevice();
-            if(!deviceExists(leDeviceList, bd)){
-                leDeviceList.add(bd);
-                result.getRssi();
+            if(!myBTHandler.deviceExists(myBTHandler.getLeDeviceList(), bd)){
+                myBTHandler.addLeDeviceList(bd);
                 BTArrayAdapter.add(bd.getName()+ "\n" + bd.getAddress());
                 BTArrayAdapter.notifyDataSetChanged();
             }
@@ -384,34 +330,6 @@ public class BTConnectActivity extends AppCompatActivity {
         }
     };
 
-    private void scanLeDevice(final boolean enable) {
-
-        final BluetoothLeScanner bluetoothLeScanner = btAdapter.getBluetoothLeScanner();
-
-        if (enable) {
-            // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mScanning = false;
-
-                    bluetoothLeScanner.stopScan(mLeScanCallback);
-                }
-            }, SCAN_PERIOD);
-
-            mScanning = true;
-            cleanPop();
-            setPopDialog(LE_LIST);
-            BTArrayAdapter.clear();
-            leDeviceList.clear();
-            popDialog.setTitle("LE devices");
-            alertpop = popDialog.show();
-            bluetoothLeScanner.startScan(mLeScanCallback);
-        } else {
-            mScanning = false;
-            bluetoothLeScanner.stopScan(mLeScanCallback);
-        }
-    }
     /*
     Check permissions during runtime for bluetooth discovery
      */
@@ -473,7 +391,7 @@ public class BTConnectActivity extends AppCompatActivity {
 
 
     public void turnOff(){
-        btAdapter.disable();
+        myBTHandler.getBtAdapter().disable();
     }
 
 }
