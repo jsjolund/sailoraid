@@ -27,5 +27,39 @@
         android:textSize="12pt"
         android:layout_margin="10dp"/>
 
+    <Button
+        android:id="@+id/listenForDevicebtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Listen for connection"
+        android:background="@color/laserblue"
+        android:textColor="@color/darkblue"
+        android:textSize="12pt"
+        android:layout_margin="10dp"/>
 
+    <Button
+        android:id="@+id/searchLe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Search for LE devices"
+        android:background="@color/laserblue"
+        android:textColor="@color/darkblue"
+        android:textSize="12pt"
+        android:layout_margin="10dp"/>
+
+    <Button
+        android:id="@+id/connectLe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Connect to LE devices"
+        android:background="@color/laserblue"
+        android:textColor="@color/darkblue"
+        android:textSize="12pt"
+        android:layout_margin="10dp"/>
+
+    <TextView
+        android:id="@+id/connectedtext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14pt"/>
 </LinearLayout>
