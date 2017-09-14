@@ -4,7 +4,8 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
@@ -15,7 +16,6 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -26,14 +26,19 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
+
+import java.io.ObjectStreamClass;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import ltuproject.sailoraid.bluetooth.AcceptConnection;
-import ltuproject.sailoraid.bluetooth.BTConnection;
 import ltuproject.sailoraid.bluetooth.BTHandler;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
+import ltuproject.sailoraid.bluetooth.SampleGattAttributes;
 
 import static android.bluetooth.BluetoothDevice.BOND_BONDED;
 
@@ -42,12 +47,14 @@ public class BTConnectActivity extends AppCompatActivity {
     private static final String PAIRED_LIST = "Paired devices";
     private static final String DISCOVERED_LIST = "Discovered devices";
     private static final String LE_LIST = "LE devices";
-
+    private final String LIST_NAME = "NAME";
+    private final String LIST_UUID = "UUID";
+    private SampleGattAttributes sampleGattAttributes;
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_COARSE_LOCATION = 999;
     private static final long SCAN_PERIOD = 10000;
-
+    private boolean mConnected = false;
     private BluetoothAdapter btAdapter;
     private Button searchbtn, pairedbtn, listenbtn, searchLEbtn, connectLEbtn;
     private ArrayAdapter<String> BTArrayAdapter;
@@ -60,7 +67,8 @@ public class BTConnectActivity extends AppCompatActivity {
     private BluetoothGatt mBluetoothGatt;
     private byte[] readBuffer;
     private boolean hasPermission;
-
+    private boolean btEnabled;
+    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics;
 
     private BTHandler myBTHandler;
     @Override
@@ -72,7 +80,13 @@ public class BTConnectActivity extends AppCompatActivity {
         filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         this.registerReceiver(mReceiver, filter);
+
+        filter = new IntentFilter(BTLEConnection.ACTION_GATT_CONNECTED);
+        filter.addAction(BTLEConnection.ACTION_GATT_DISCONNECTED);
+        filter.addAction(BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED);
+        this.registerReceiver(mGattUpdateReceiver, filter);
 
         btAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -82,13 +96,14 @@ public class BTConnectActivity extends AppCompatActivity {
         searchLEbtn = (Button)findViewById(R.id.searchLe);
         connectLEbtn = (Button)findViewById(R.id.connectLe);
 
+        //Create a handler for bluetooth search and managing
         myBTHandler = new BTHandler(btAdapter);
+        sampleGattAttributes = new SampleGattAttributes();
 
         assert pairedbtn != null;
         pairedbtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                // stat view button function
                 if(!myBTHandler.getBtAdapter().isEnabled()) {
                     turnOn();
                 }
@@ -103,11 +118,9 @@ public class BTConnectActivity extends AppCompatActivity {
         searchbtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                // stat view button function
                 if(!myBTHandler.getBtAdapter().isEnabled()) {
                     turnOn();
                 }
-                //newDeviceList.clear();
                 checkLocationPermission();
                 if (hasPermission){
                     if ( myBTHandler.getBtAdapter().isDiscovering()){
@@ -122,7 +135,6 @@ public class BTConnectActivity extends AppCompatActivity {
         listenbtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                // stat view button function
                 if(!myBTHandler.getBtAdapter().isEnabled()) {
                     turnOn();
                 }
@@ -135,7 +147,6 @@ public class BTConnectActivity extends AppCompatActivity {
         searchLEbtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                // stat view button function
                 if(!myBTHandler.getBtAdapter().isEnabled()) {
                     turnOn();
                 }
@@ -152,8 +163,11 @@ public class BTConnectActivity extends AppCompatActivity {
         });
     }
 
+    /*
+    Popup when searching for bluetooth devices
+     */
     public void setPopDialog(String type) {
-        //Popup when searching for bluetooth devices
+
         BTArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
         View Viewlayout = inflater.inflate(R.layout.bt_list, (ViewGroup) findViewById(R.id.bt_list));
@@ -197,8 +211,8 @@ public class BTConnectActivity extends AppCompatActivity {
                             dialog.dismiss();
                             if (chosenDevice != null){
                                 closeGatt();
-                                btLEConnection = new BTLEConnection();
-                                btLEConnection.connectToDevice(getApplicationContext(), chosenDevice);
+                                btLEConnection = new BTLEConnection(getApplicationContext());
+                                connectToDevice(chosenDevice);
                                 //connectToDevice(chosenDevice, btLEConnection.getGattCallback());
                                // mBluetoothGatt = chosenDevice.connectGatt(getApplicationContext(), false, btLEConnection.getGattCallback());
                             }
@@ -229,6 +243,9 @@ public class BTConnectActivity extends AppCompatActivity {
         }
     }
 
+    /*
+    Updates the adapter that is on the Listview displayed in the popup window with lists of found devices
+     */
     public void updateDevicesShown(String text) {
         BTArrayAdapter.clear();
 
@@ -251,21 +268,6 @@ public class BTConnectActivity extends AppCompatActivity {
         }
     }
 
-    public void connectToDevice(final BluetoothDevice device, final BluetoothGattCallback mGattCallback) {
-        Handler handler = new Handler(Looper.getMainLooper());
-        final Context contx = this;
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-
-
-                if (device != null) {
-
-                    mBluetoothGatt = device.connectGatt(getApplicationContext(), true, mGattCallback);
-                }
-            }
-        });
-    }
     public void closeGatt() {
         if (mBluetoothGatt == null) {
             return;
@@ -276,37 +278,62 @@ public class BTConnectActivity extends AppCompatActivity {
 
     // Create a BroadcastReceiver for ACTION_FOUND.
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-        String action = intent.getAction();
+                public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
 
-        // When discovery finds a device
-        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-            // Get the BluetoothDevice object from the Intent
-            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            // If it's already paired, skip it, because it's been listed already
-            if (device.getBondState() != BOND_BONDED)
-            {
-                if (!myBTHandler.deviceExists(myBTHandler.getNewDeviceList(), device)){
-                myBTHandler.addToDevices(device);
+                // When discovery finds a device
+                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                    // Get the BluetoothDevice object from the Intent
+                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    // If it's already paired, skip it, because it's been listed already
+                    if (device.getBondState() != BOND_BONDED)
+                    {
+                        if (!myBTHandler.deviceExists(myBTHandler.getNewDeviceList(), device)){
+                        myBTHandler.addToDevices(device);
+                        }
+                    }
+                    updateDevicesShown(DISCOVERED_LIST);
+                    BTArrayAdapter.notifyDataSetChanged();
+
                 }
-            }
-            updateDevicesShown(DISCOVERED_LIST);
-            BTArrayAdapter.notifyDataSetChanged();
-
-        }
-        else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
-            if (btAdapter.isDiscovering()){
-                btAdapter.cancelDiscovery();
-            }
-        }
-        else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)){
-            cleanPop();
-            setPopDialog(DISCOVERED_LIST);
-            alertpop = popDialog.show();
-        }
+                else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
+                    if (btAdapter.isDiscovering()){
+                        btAdapter.cancelDiscovery();
+                    }
+                }
+                //Start searching clean popup before show or it will crash
+                else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)){
+                    cleanPop();
+                    setPopDialog(DISCOVERED_LIST);
+                    alertpop = popDialog.show();
+                }
+                else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)){
+                    final int bluetoothState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+                            BluetoothAdapter.ERROR);
+                    switch (bluetoothState) {
+                        case BluetoothAdapter.STATE_ON:
+                            break;
+                    }
+                }
             }
     };
 
+    public void connectToDevice(final BluetoothDevice device) {
+        Handler handler = new Handler(this.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+
+                if (device != null) {
+                    mBluetoothGatt = device.connectGatt(getApplicationContext(), false, btLEConnection.getGattCallback());
+                }
+            }
+        });
+    }
+
+    /*
+    Get results from Bluetooth LE device scan and adds to list on BTHandler and updates adapter so the item will be displayed on the popup window
+     */
     private ScanCallback mLeScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
@@ -329,6 +356,92 @@ public class BTConnectActivity extends AppCompatActivity {
             super.onScanFailed(errorCode);
         }
     };
+
+    // Handles various events fired by the Service.
+// ACTION_GATT_CONNECTED: connected to a GATT server.
+// ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
+// ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
+// ACTION_DATA_AVAILABLE: received data from the device. This can be a
+// result of read or notification operations.
+    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            TextView tv = (TextView) findViewById(R.id.connectedtext);
+            if (btLEConnection.ACTION_GATT_CONNECTED.equals(action)) {
+                mConnected = true;
+                tv.setText(R.string.connected);
+                invalidateOptionsMenu();
+            } else if (btLEConnection.ACTION_GATT_DISCONNECTED.equals(action)) {
+                mConnected = false;
+                tv.setText(R.string.disconnected);
+                invalidateOptionsMenu();
+            } else if (btLEConnection.
+                    ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                // Show all the supported services and characteristics on the
+                // user interface.
+
+                displayGattServices(btLEConnection.getSupportedGattServices());
+            } else if (BTLEConnection.ACTION_DATA_AVAILABLE.equals(action)) {
+                //displayData(intent.getStringExtra(BTLEConnection.EXTRA_DATA));
+            }
+        }
+    };
+
+    private void displayGattServices(List<BluetoothGattService> gattServices) {
+        if (gattServices == null) return;
+        String uuid = null;
+        String unknownServiceString = getResources().
+                getString(R.string.unknown_service);
+        String unknownCharaString = getResources().
+                getString(R.string.unknown_characteristic);
+        ArrayList<HashMap<String, String>> gattServiceData =
+                new ArrayList<HashMap<String, String>>();
+        ArrayList<ArrayList<HashMap<String, String>>> gattCharacteristicData
+                = new ArrayList<ArrayList<HashMap<String, String>>>();
+        mGattCharacteristics =
+                new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+
+        // Loops through available GATT Services.
+        for (BluetoothGattService gattService : gattServices) {
+            HashMap<String, String> currentServiceData =
+                    new HashMap<String, String>();
+            uuid = gattService.getUuid().toString();
+            currentServiceData.put(
+                    LIST_NAME, sampleGattAttributes.
+                            lookup(uuid, unknownServiceString));
+            currentServiceData.put(LIST_UUID, uuid);
+            gattServiceData.add(currentServiceData);
+
+            ArrayList<HashMap<String, String>> gattCharacteristicGroupData =
+                    new ArrayList<HashMap<String, String>>();
+            List<BluetoothGattCharacteristic> gattCharacteristics =
+                    gattService.getCharacteristics();
+            ArrayList<BluetoothGattCharacteristic> charas =
+                    new ArrayList<BluetoothGattCharacteristic>();
+            // Loops through available Characteristics.
+            for (BluetoothGattCharacteristic gattCharacteristic :
+                    gattCharacteristics) {
+                charas.add(gattCharacteristic);
+                HashMap<String, String> currentCharaData =
+                        new HashMap<String, String>();
+                uuid = gattCharacteristic.getUuid().toString();
+                currentCharaData.put(
+                        LIST_NAME, sampleGattAttributes.lookup(uuid,
+                                unknownCharaString));
+                currentCharaData.put(LIST_UUID, uuid);
+                gattCharacteristicGroupData.add(currentCharaData);
+            }
+            mGattCharacteristics.add(charas);
+            gattCharacteristicData.add(gattCharacteristicGroupData);
+        }
+        TextView tv1 = (TextView) findViewById(R.id.uuidText);
+        for (int i =0;i<gattServiceData.size();i++){
+            tv1.append(gattServiceData.get(i).toString() +"\n");
+        }
+        TextView tv2 = (TextView) findViewById(R.id.chatData);
+        tv2.setText(gattCharacteristicData.get(0).get(0).toString());
+    }
 
     /*
     Check permissions during runtime for bluetooth discovery
@@ -367,13 +480,20 @@ public class BTConnectActivity extends AppCompatActivity {
         super.onResume();
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         this.registerReceiver(mReceiver, filter);
+        filter = new IntentFilter(BTLEConnection.ACTION_GATT_CONNECTED);
+        filter.addAction(BTLEConnection.ACTION_GATT_DISCONNECTED);
+        filter.addAction(BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED);
+        this.registerReceiver(mGattUpdateReceiver, filter);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         this.unregisterReceiver(mReceiver);
+        this.unregisterReceiver(mGattUpdateReceiver);
         cleanPop();
     }
 
@@ -381,12 +501,16 @@ public class BTConnectActivity extends AppCompatActivity {
     protected  void onPause() {
         super.onPause();
         this.unregisterReceiver(mReceiver);
+        this.unregisterReceiver(mGattUpdateReceiver);
         cleanPop();
     }
 
     public void turnOn(){
         Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         this.startActivityForResult(turnOn, REQUEST_ENABLE_BT);
+        while(!myBTHandler.getBtAdapter().isEnabled()){
+
+        }
     }
 
 
