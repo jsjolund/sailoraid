@@ -62,4 +62,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="14pt"/>
+
+    <TextView
+        android:id="@+id/uuidText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="8pt"/>
+
+    <TextView
+        android:id="@+id/chatData"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="8pt"/>
 </LinearLayout>

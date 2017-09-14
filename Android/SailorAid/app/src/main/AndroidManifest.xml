@@ -37,6 +37,7 @@
         </activity>
         <activity android:name=".BTConnectActivity">
             <action android:name="android.intent.action.ACTION_FOUND" />
+            <action android:name="ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_CONNECTED" />
         </activity>
     </application>
 
