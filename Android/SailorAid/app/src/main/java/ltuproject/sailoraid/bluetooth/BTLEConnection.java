@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
@@ -18,6 +19,7 @@ import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,14 +53,23 @@ public class BTLEConnection extends Service {
             "ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA =
             "ltuproject.sailoraid.bluetooth.BTLEConnection.EXTRA_DATA";
+    public final static String EXTRA_TYPE =
+            "ltuproject.sailoraid.bluetooth.BTLEConnection.EXTRA_TYPE";
 
     public final static UUID UUID_HEART_RATE_MEASUREMENT =
-            UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb");
+            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+    public final static UUID UUID_ACCELEROMETER_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+    public final static UUID UUID_GPS_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+    public final static UUID UUID_PRESSURE_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
     private Context contx;
 
-    public BTLEConnection(Context contx){
+    public BTLEConnection(Context contx, BluetoothAdapter btAdapter){
         this.contx = contx;
+        this.mBluetoothAdapter = btAdapter;
     }
     // Various callback methods defined by the BLE API.
     public final BluetoothGattCallback mGattCallback =
@@ -103,6 +114,11 @@ public class BTLEConnection extends Service {
                         broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
                     }
                 }
+                @Override
+                public void onCharacteristicChanged(BluetoothGatt gatt,
+                                                    BluetoothGattCharacteristic characteristic) {
+                    broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+                }
             };
 
     @Nullable
@@ -125,6 +141,37 @@ public class BTLEConnection extends Service {
         return mBluetoothGatt.getServices();
     }
 
+    public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        mBluetoothGatt.readCharacteristic(characteristic);
+    }
+
+    /**
+     * Enables or disables notification on a give characteristic.
+     *
+     * @param characteristic Characteristic to act on.
+     * @param enabled If true, enable notification.  False otherwise.
+     */
+    public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic,
+                                              boolean enabled) {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
+
+        // This is specific to Heart Rate Measurement.
+        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
+            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
+                    UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            mBluetoothGatt.writeDescriptor(descriptor);
+        }
+    }
+
     private void broadcastUpdate(final String action,
                                  final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
@@ -142,8 +189,11 @@ public class BTLEConnection extends Service {
                 Log.d(TAG, "Heart rate format UINT8.");
             }
             final int heartRate = characteristic.getIntValue(format, 1);
+            final String charName = characteristic.getStringValue(format);
             Log.d(TAG, String.format("Received heart rate: %d", heartRate));
+            intent.putExtra(EXTRA_TYPE, "Current rate: ");
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
+            contx.sendBroadcast(intent);
         } else {
             // For all other profiles, writes the data formatted in HEX.
             final byte[] data = characteristic.getValue();
@@ -155,6 +205,6 @@ public class BTLEConnection extends Service {
                         stringBuilder.toString());
             }
         }
-        sendBroadcast(intent);
+
     }
 }

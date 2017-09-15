@@ -14,6 +14,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
@@ -31,6 +32,7 @@ import android.widget.TextView;
 import org.w3c.dom.Text;
 
 import java.io.ObjectStreamClass;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,14 +64,9 @@ public class BTConnectActivity extends AppCompatActivity {
     private AlertDialog.Builder popDialog;
     private AlertDialog alertpop;
     private BluetoothDevice chosenDevice;
-    private BTLEConnection btLEConnection;
     private AcceptConnection btServer;
-    private BluetoothGatt mBluetoothGatt;
-    private byte[] readBuffer;
     private boolean hasPermission;
-    private boolean btEnabled;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics;
-
     private BTHandler myBTHandler;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,9 +83,10 @@ public class BTConnectActivity extends AppCompatActivity {
         filter = new IntentFilter(BTLEConnection.ACTION_GATT_CONNECTED);
         filter.addAction(BTLEConnection.ACTION_GATT_DISCONNECTED);
         filter.addAction(BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED);
+        filter.addAction(BTLEConnection.ACTION_DATA_AVAILABLE);
         this.registerReceiver(mGattUpdateReceiver, filter);
 
-        btAdapter = BluetoothAdapter.getDefaultAdapter();
+        //btAdapter = BluetoothAdapter.getDefaultAdapter();
 
         pairedbtn = (Button)findViewById(R.id.paireddevicebtn);
         searchbtn = (Button)findViewById(R.id.searchdevicebtn);
@@ -97,8 +95,7 @@ public class BTConnectActivity extends AppCompatActivity {
         connectLEbtn = (Button)findViewById(R.id.connectLe);
 
         //Create a handler for bluetooth search and managing
-        myBTHandler = new BTHandler(btAdapter);
-        sampleGattAttributes = new SampleGattAttributes();
+        myBTHandler = new BTHandler(this);
 
         assert pairedbtn != null;
         pairedbtn.setOnClickListener(new View.OnClickListener(){
@@ -161,6 +158,14 @@ public class BTConnectActivity extends AppCompatActivity {
                 }
             }
         });
+
+        assert connectLEbtn != null;
+        connectLEbtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                myBTHandler.registerGattNotifications();
+            }
+        });
     }
 
     /*
@@ -176,11 +181,13 @@ public class BTConnectActivity extends AppCompatActivity {
         myListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
+                //Highlight chosen item on the popup list
+                view.setBackgroundColor(Color.LTGRAY);
                 String device = parent.getAdapter().getItem(position).toString();
                 String lines[] = device.split("[\\r\\n]+");
                 String deviceName = lines[0];
-                String deviceaddress = lines[1];
-                chosenDevice = myBTHandler.getDevice(deviceName, deviceaddress);
+                String deviceAddress = lines[1];
+                chosenDevice = myBTHandler.getDevice(deviceName, deviceAddress);
             }
         });
         popDialog = new AlertDialog.Builder(this);
@@ -194,7 +201,6 @@ public class BTConnectActivity extends AppCompatActivity {
                             if (chosenDevice != null){
                                 myBTHandler.createBond(chosenDevice);
                             }
-                            //btDevice.run();
                         }
                     });
         }
@@ -210,11 +216,9 @@ public class BTConnectActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             if (chosenDevice != null){
-                                closeGatt();
-                                btLEConnection = new BTLEConnection(getApplicationContext());
-                                connectToDevice(chosenDevice);
-                                //connectToDevice(chosenDevice, btLEConnection.getGattCallback());
-                               // mBluetoothGatt = chosenDevice.connectGatt(getApplicationContext(), false, btLEConnection.getGattCallback());
+                                myBTHandler.closeGatt();
+                                myBTHandler.startNewBTLEConnection();
+                                myBTHandler.connectToLEDevice(chosenDevice);
                             }
                         }
                     });
@@ -268,14 +272,6 @@ public class BTConnectActivity extends AppCompatActivity {
         }
     }
 
-    public void closeGatt() {
-        if (mBluetoothGatt == null) {
-            return;
-        }
-        mBluetoothGatt.close();
-        mBluetoothGatt = null;
-    }
-
     // Create a BroadcastReceiver for ACTION_FOUND.
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
                 public void onReceive(Context context, Intent intent) {
@@ -318,76 +314,9 @@ public class BTConnectActivity extends AppCompatActivity {
             }
     };
 
-    public void connectToDevice(final BluetoothDevice device) {
-        Handler handler = new Handler(this.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-
-                if (device != null) {
-                    mBluetoothGatt = device.connectGatt(getApplicationContext(), false, btLEConnection.getGattCallback());
-                }
-            }
-        });
-    }
-
     /*
-    Get results from Bluetooth LE device scan and adds to list on BTHandler and updates adapter so the item will be displayed on the popup window
+    Displays all services provided by connected ble device not really needed in the end
      */
-    private ScanCallback mLeScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-            BluetoothDevice bd = result.getDevice();
-            if(!myBTHandler.deviceExists(myBTHandler.getLeDeviceList(), bd)){
-                myBTHandler.addLeDeviceList(bd);
-                BTArrayAdapter.add(bd.getName()+ "\n" + bd.getAddress());
-                BTArrayAdapter.notifyDataSetChanged();
-            }
-        }
-
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            super.onScanFailed(errorCode);
-        }
-    };
-
-    // Handles various events fired by the Service.
-// ACTION_GATT_CONNECTED: connected to a GATT server.
-// ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
-// ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
-// ACTION_DATA_AVAILABLE: received data from the device. This can be a
-// result of read or notification operations.
-    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String action = intent.getAction();
-            TextView tv = (TextView) findViewById(R.id.connectedtext);
-            if (btLEConnection.ACTION_GATT_CONNECTED.equals(action)) {
-                mConnected = true;
-                tv.setText(R.string.connected);
-                invalidateOptionsMenu();
-            } else if (btLEConnection.ACTION_GATT_DISCONNECTED.equals(action)) {
-                mConnected = false;
-                tv.setText(R.string.disconnected);
-                invalidateOptionsMenu();
-            } else if (btLEConnection.
-                    ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-                // Show all the supported services and characteristics on the
-                // user interface.
-
-                displayGattServices(btLEConnection.getSupportedGattServices());
-            } else if (BTLEConnection.ACTION_DATA_AVAILABLE.equals(action)) {
-                //displayData(intent.getStringExtra(BTLEConnection.EXTRA_DATA));
-            }
-        }
-    };
-
     private void displayGattServices(List<BluetoothGattService> gattServices) {
         if (gattServices == null) return;
         String uuid = null;
@@ -433,7 +362,9 @@ public class BTConnectActivity extends AppCompatActivity {
                 gattCharacteristicGroupData.add(currentCharaData);
             }
             mGattCharacteristics.add(charas);
+            myBTHandler.setmGattCharacteristics(mGattCharacteristics);
             gattCharacteristicData.add(gattCharacteristicGroupData);
+
         }
         TextView tv1 = (TextView) findViewById(R.id.uuidText);
         for (int i =0;i<gattServiceData.size();i++){
@@ -441,6 +372,74 @@ public class BTConnectActivity extends AppCompatActivity {
         }
         TextView tv2 = (TextView) findViewById(R.id.chatData);
         tv2.setText(gattCharacteristicData.get(0).get(0).toString());
+    }
+
+    /*
+    Get results from Bluetooth LE device scan and adds to list on BTHandler and updates adapter so the item will be displayed on the popup window
+     */
+    private ScanCallback mLeScanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            super.onScanResult(callbackType, result);
+            BluetoothDevice bd = result.getDevice();
+            if(!myBTHandler.deviceExists(myBTHandler.getLeDeviceList(), bd)){
+                myBTHandler.addLeDeviceList(bd);
+                BTArrayAdapter.add(bd.getName()+ "\n" + bd.getAddress());
+                BTArrayAdapter.notifyDataSetChanged();
+            }
+        }
+
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            super.onBatchScanResults(results);
+        }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            super.onScanFailed(errorCode);
+        }
+    };
+
+    // Handles various events fired by the Service.
+    // ACTION_GATT_CONNECTED: connected to a GATT server.
+    // ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
+    // ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
+    // ACTION_DATA_AVAILABLE: received data from the device. This can be a
+    // result of read or notification operations.
+    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            TextView tv = (TextView) findViewById(R.id.connectedtext);
+            if (myBTHandler.getBtLEConnection().ACTION_GATT_CONNECTED.equals(action)) {
+                mConnected = true;
+                tv.setText(R.string.connected);
+                invalidateOptionsMenu();
+            } else if (myBTHandler.getBtLEConnection().ACTION_GATT_DISCONNECTED.equals(action)) {
+                mConnected = false;
+                tv.setText(R.string.disconnected);
+                invalidateOptionsMenu();
+            } else if (myBTHandler.getBtLEConnection().
+                    ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                // Show all the supported services and characteristics on the
+                // user interface.
+
+                displayGattServices(myBTHandler.getBtLEConnection().getSupportedGattServices());
+
+
+            } else if (myBTHandler.getBtLEConnection().ACTION_DATA_AVAILABLE.equals(action)) {
+                displayData(intent.getStringExtra(myBTHandler.getBtLEConnection().EXTRA_DATA),intent.getStringExtra(myBTHandler.getBtLEConnection().EXTRA_TYPE));
+            }
+        }
+    };
+
+    private void displayData(String data, String dataType) {
+        if (data != null) {
+            TextView tv1 = (TextView) findViewById(R.id.charName);
+            TextView tv = (TextView) findViewById(R.id.chatData);
+            tv.setText(data);
+            tv1.setText(dataType);
+        }
     }
 
     /*
@@ -486,23 +485,31 @@ public class BTConnectActivity extends AppCompatActivity {
         filter = new IntentFilter(BTLEConnection.ACTION_GATT_CONNECTED);
         filter.addAction(BTLEConnection.ACTION_GATT_DISCONNECTED);
         filter.addAction(BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED);
+        filter.addAction(BTLEConnection.ACTION_DATA_AVAILABLE);
         this.registerReceiver(mGattUpdateReceiver, filter);
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-        this.unregisterReceiver(mReceiver);
-        this.unregisterReceiver(mGattUpdateReceiver);
+        if (mReceiver !=null){
+            this.unregisterReceiver(mReceiver);
+        }
+        if (mGattUpdateReceiver != null){
+            this.unregisterReceiver(mGattUpdateReceiver);
+        }
         cleanPop();
+        myBTHandler.closeGatt();
+        super.onDestroy();
+
     }
 
     @Override
     protected  void onPause() {
-        super.onPause();
         this.unregisterReceiver(mReceiver);
         this.unregisterReceiver(mGattUpdateReceiver);
         cleanPop();
+        super.onPause();
+
     }
 
     public void turnOn(){
@@ -512,7 +519,6 @@ public class BTConnectActivity extends AppCompatActivity {
 
         }
     }
-
 
     public void turnOff(){
         myBTHandler.getBtAdapter().disable();
