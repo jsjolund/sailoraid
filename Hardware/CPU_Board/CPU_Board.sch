@@ -37,9 +37,8 @@ LIBS:contrib
 LIBS:valves
 LIBS:a2235-h
 LIBS:MOSFET_depleted
+LIBS:misc_rfcom
 LIBS:CPU_Board-cache
-LIBS:IMU_Circuit-cache
-LIBS:PowerSupplySA-cache
 EELAYER 25 0
 EELAYER END
 $Descr A2 23386 16535
@@ -1548,7 +1547,7 @@ LSM303AGR_INT_MAG
 Text Label 16100 2150 2    60   ~ 0
 LSM303AGR_INT_1_XL
 Text Label 16100 2250 2    60   ~ 0
-LSM303AGR_INT_1_XL
+LSM303AGR_INT_2_XL
 Text Label 16100 4150 2    60   ~ 0
 LSM6DSL_INT1
 Text Label 16100 4250 2    60   ~ 0
@@ -1574,7 +1573,7 @@ IMU_I2C_DA2
 Text Notes 14650 1000 0    60   ~ 0
 IMU circuitry
 Text Notes 14950 3600 0    60   ~ 0
-Outputs?
+MCU Connects?
 Text Label 7650 3050 0    60   ~ 0
 IMU_I2C_CL
 Text Label 7650 4350 0    60   ~ 0

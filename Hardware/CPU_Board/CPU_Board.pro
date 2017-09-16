@@ -1,4 +1,4 @@
-update=2017-09-08 20:42:15
+update=2017-09-16 17:31:57
 version=1
 last_client=kicad
 [pcbnew]
@@ -27,7 +27,7 @@ NetIExt=net
 version=1
 [eeschema]
 version=1
-LibDir=../LIBRARIES;../CPU_Board
+LibDir=../LIBRARIES;../CPU_Board;../LIBRARIES/CUSTOMS
 [eeschema/libraries]
 LibName1=DCDCconv
 LibName2=ft232rl
@@ -67,3 +67,4 @@ LibName35=contrib
 LibName36=valves
 LibName37=CUSTOMS/a2235-h
 LibName38=CUSTOMS/MOSFET_depleted
+LibName39=CUSTOMS/misc_rfcom
