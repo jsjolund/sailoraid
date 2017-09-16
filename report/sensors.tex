@@ -1,1 +1,31 @@
 
+\section{Sensors}
+In order to sail properly and make the most out of the wind that’s is supplied by the nature itself some data acquisition is needed. The sailing is all about this harnessing all the forces of the nature and the wind that it pushing towards you. Since there has not been any other extensive projects and measurements in this particular area the measurements have to be done in new ways. 
+
+\subsection{Force sensors}
+
+The goal here is to have a system that can measure the forces that pushes on the centerboard by the water it goes through. 
+The implementation:
+By looking at some different solutions there is not any other solutions that might be as clean looking and prominent as this approach. Important to know is that every solution is mandatory to be waterproof and sealed properly from the harsh environment that this system has as its home turf. The solutions that required the sensors to be mounted on the outside or in parts that would be in danger if a crash might occur was scratched.  
+The board itself will not be disassembled in any major part of way. Meaning that our approach doesn’t need any modifications to the board itself. This has been our goal and the approach we choose to go. Modifications in the mounting plate is the way to go, the other solutions we thought about is either way more difficult to apply and mount or more complex.
+
+\subsection{The prototype}
+To implement the gauges, we have made a prototype to show how the measurements will be made. The prototype is a bit bigger than the intended solution for this project but it's good to see how it would be constructed. The function is easy to understand. The board goes on the outside and can easily slide up and down past this ball.  The ball itself is kept inside this small area where it can move in and out. The force is then measured at the back where there will be a plate. The deflection of this plate which will be the origin to the strain will be measured through strain gauges. 
+The gauge itself will measure a small difference in resistance. This small difference is most likely going to be difficult to measure without any amplifying circuit connected. With a such small signal the system might have issues with noise. Another problem is that the signal might drift, and therefore make different measurements as the circuit is running. And finally, with the signal getting amplified with a big amount the result may be off by a large amount.
+ 
+ % Picture
+
+This way of implementing strain gauges were our first idea. 
+The main case for this strategy was that in the start of this project these gauges were supplied to us, as a leftover from the last group. With this implementation, we could already start working on a prototype and get a small head start in to the project. But as some research shows, it is a more difficult way to solve this problem and it would take bit more work and some sensitive circuits to measure the force. The gauges also need to be stuck in place using some specific glue and can easily be done incorrectly and therefore prevent good measurements.
+
+New idea:
+A better solution is to make some research into load cells, which is a sensor which also utilizes strain gauges to measuring forces. The difference is that the gauges are already implemented in the sensor. The difference in the prototype is instead of having a metal plate, it can be built with a piece of plastic or rubber which can deform so the force is distributed directly to the sensor. By implementing this sensor, a lot of time was saved in troubleshooting. And by having a sensor unit, the modified mounting plate will be easier to produce. 
+ 
+% Picture
+
+\subsection{Choice of component}
+The force from the board onto the mounting plate will be a considerable amount. The actual force is something that’s not known for sure. The initial assumption was that the decision of buying the right sensor we think that a sensor with a 90.75 kg force range should be enough. In the case that we max out the sensor and overload the cell it's rated for a 150% overload without causing some damage to the sensor. 
+The sensor for this application is selected to be this part, the compression load cell called FX1901. 
+ 
+
+The work for this week is to build the according circuit for the sensor to work as intended. And by the time we get the sensor we will start making measurements using our prototype.
