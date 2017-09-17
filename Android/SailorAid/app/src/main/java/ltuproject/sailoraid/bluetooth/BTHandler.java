@@ -3,28 +3,18 @@ package ltuproject.sailoraid.bluetooth;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanResult;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.sip.SipAudioCall;
 import android.os.Handler;
-import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
-import ltuproject.sailoraid.BTConnectActivity;
-import ltuproject.sailoraid.R;
 
 import static android.bluetooth.BluetoothDevice.BOND_BONDED;
 
@@ -48,29 +38,24 @@ public class BTHandler {
     private ArrayList<BluetoothDevice> newDeviceList;
     private ArrayList<BluetoothDevice> leDeviceList;
     private BluetoothDevice newDevice;
-    private ArrayAdapter<String> BTArrayAdapter;
-    private IntentFilter filter;
-    private AlertDialog.Builder popDialog;
-    private AlertDialog alertpop;
-    private BluetoothDevice chosenDevice;
-    private String deviceName, deviceaddress;
-
-    private BTConnection btConnection;
-    private BTLEConnection btLEConnection;
-    private AcceptConnection btServer;
     private BluetoothGatt mBluetoothGatt;
-    private byte[] readBuffer;
-    private boolean hasPermission;
+    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics;
+    private BluetoothGattCharacteristic characteristic;
+    private BluetoothGattCharacteristic mNotifyCharacteristic;
+    private BTLEConnection btLEConnection;
+    private BTConnection btConnection;
 
     private boolean mScanning;
     private Handler mHandler;
-    private BluetoothGatt mGatt;
 
-    public BTHandler(BluetoothAdapter btAdapter){
-        this.btAdapter = btAdapter;
+    private Context contx;
+
+    public BTHandler(Context contx){
+        this.btAdapter = BluetoothAdapter.getDefaultAdapter();
         newDeviceList = new ArrayList<BluetoothDevice>();
         leDeviceList = new ArrayList<BluetoothDevice>();
         mHandler = new Handler();
+        this.contx = contx;
     }
 
     public BluetoothDevice getDevice(String name, String address){
@@ -114,7 +99,6 @@ public class BTHandler {
         }
     }
     public void startConnection(BluetoothDevice bd){
-        boolean isbtElement = false;
         boolean isPaired = (bd.getBondState() == BOND_BONDED);
 
         if (bd !=null) {
@@ -126,6 +110,51 @@ public class BTHandler {
         btConnection = new BTConnection(newDevice, btAdapter);
     }
 
+    public void startNewBTLEConnection(){
+        btLEConnection = new BTLEConnection(contx, btAdapter);
+    }
+    public void connectToLEDevice(final BluetoothDevice device) {
+        Handler handler = new Handler(contx.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+
+                if (device != null) {
+                    mBluetoothGatt = device.connectGatt(contx, false, btLEConnection.getGattCallback());
+                }
+            }
+        });
+    }
+
+    public void setmGattCharacteristics(ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics){
+        this.mGattCharacteristics = mGattCharacteristics;
+    }
+    public void registerGattNotifications(){
+        BluetoothGattCharacteristic characteristic = null;
+        for (int i=0; i<mGattCharacteristics.size(); i++){
+            ArrayList<BluetoothGattCharacteristic> tmp = mGattCharacteristics.get(i);
+            for (int j=0; j<tmp.size(); j++) {
+                characteristic = tmp.get(j);
+                btLEConnection.setCharacteristicNotification(characteristic, true);
+                final int charaProp = characteristic.getProperties();
+                if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+                    // If there is an active notification on a characteristic, clear
+                    // it first so it doesn't update the data field on the user interface.
+                    if (mNotifyCharacteristic != null) {
+                        btLEConnection.setCharacteristicNotification(
+                                mNotifyCharacteristic, false);
+                        mNotifyCharacteristic = null;
+                    }
+                    btLEConnection.readCharacteristic(characteristic);
+                }
+                if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+                    mNotifyCharacteristic = characteristic;
+                    btLEConnection.setCharacteristicNotification(
+                            characteristic, true);
+                }
+            }
+        }
+    }
 
     public boolean deviceExists(ArrayList<BluetoothDevice> list, BluetoothDevice device){
         boolean exists = false;
@@ -137,42 +166,18 @@ public class BTHandler {
         }
         return exists;
     }
-    /*private ScanCallback mLeScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-            BluetoothDevice bd = result.getDevice();
-            if(!deviceExists(leDeviceList, bd)){
-                leDeviceList.add(bd);
 
-            }
+    public void closeGatt() {
+        if (mBluetoothGatt == null) {
+            return;
         }
-
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            super.onScanFailed(errorCode);
-        }
-    };*/
-    public void connectToDevice(final Context contx, final BluetoothDevice device, final BluetoothGattCallback mGattCallback) {
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-
-
-                if (device != null) {
-
-                    mGatt = device.connectGatt(contx.getApplicationContext(), true, mGattCallback);
-                }
-            }
-        });
+        mBluetoothGatt.close();
+        mBluetoothGatt = null;
     }
 
+    /*
+    Scan for Bluetooth LE devices and sends result to a Scancallback
+     */
     public void scanLeDevice(final ScanCallback mLeScanCallback, final boolean enable) {
 
         final BluetoothLeScanner bluetoothLeScanner = btAdapter.getBluetoothLeScanner();
@@ -216,6 +221,9 @@ public class BTHandler {
         return  leDeviceList;
     }
 
+    public BTLEConnection getBtLEConnection(){
+        return btLEConnection;
+    }
     public void clearLeList(){
         leDeviceList.clear();
     }

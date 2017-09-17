@@ -16,9 +16,12 @@ ___________________________________________________________________
 GPS		PA6H			Datasheet
 https://cdn-shop.adafruit.com/datasheets/GlobalTop-FGPMMOPA6H-Datasheet-V0A.pdf
 ___________________________________________________________________
-XL/Mag	LSM303AGR		Datasheet
+XL/Mag		LSM303AGR		Datasheet
 http://www.st.com/content/ccc/resource/technical/document/datasheet/74/c4/19/54/62/c5/46/13/DM00177685.pdf/files/DM00177685.pdf/jcr:content/translations/en.DM00177685.pdf
 ___________________________________________________________________
-XL/Gyro	LSM6DSL			Datasheet
+XL/Gyro		LSM6DSL			Datasheet
 http://www.st.com/content/ccc/resource/technical/document/datasheet/ee/23/a0/dc/1d/68/45/52/DM00237456.pdf/files/DM00237456.pdf/jcr:content/translations/en.DM00237456.pdf
+___________________________________________________________________
+Bluetooth	SPBTLE-RF		Datasheet
+http://www.st.com/content/ccc/resource/technical/document/datasheet/48/74/89/26/50/8d/4e/33/DM00184006.pdf/files/DM00184006.pdf/jcr:content/translations/en.DM00184006.pdf
 ___________________________________________________________________

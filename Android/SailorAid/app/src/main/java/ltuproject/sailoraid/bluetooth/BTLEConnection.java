@@ -2,11 +2,12 @@ package ltuproject.sailoraid.bluetooth;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
@@ -18,7 +19,8 @@ import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import java.security.Provider;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import ltuproject.sailoraid.R;
@@ -34,27 +36,41 @@ public class BTLEConnection extends Service {
     private BluetoothAdapter mBluetoothAdapter;
     private String mBluetoothDeviceAddress;
     private BluetoothGatt mBluetoothGatt;
+    private List<BluetoothGattService> supportedGattServices;
     private int mConnectionState = STATE_DISCONNECTED;
 
-    private boolean mConnected = false;
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
     public final static String ACTION_GATT_CONNECTED =
-            "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
+            "ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_CONNECTED";
     public final static String ACTION_GATT_DISCONNECTED =
-            "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
+            "ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_DISCONNECTED";
     public final static String ACTION_GATT_SERVICES_DISCOVERED =
-            "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
+            "ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE =
-            "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
+            "ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA =
-            "com.example.bluetooth.le.EXTRA_DATA";
+            "ltuproject.sailoraid.bluetooth.BTLEConnection.EXTRA_DATA";
+    public final static String EXTRA_TYPE =
+            "ltuproject.sailoraid.bluetooth.BTLEConnection.EXTRA_TYPE";
 
     public final static UUID UUID_HEART_RATE_MEASUREMENT =
-            UUID.fromString("19B10001-E8F2-537E-4F6C-D104768A1214");
+            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+    public final static UUID UUID_ACCELEROMETER_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+    public final static UUID UUID_GPS_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+    public final static UUID UUID_PRESSURE_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
+    private Context contx;
+
+    public BTLEConnection(Context contx, BluetoothAdapter btAdapter){
+        this.contx = contx;
+        this.mBluetoothAdapter = btAdapter;
+    }
     // Various callback methods defined by the BLE API.
     public final BluetoothGattCallback mGattCallback =
             new BluetoothGattCallback() {
@@ -65,6 +81,7 @@ public class BTLEConnection extends Service {
                     if (newState == BluetoothProfile.STATE_CONNECTED) {
                         intentAction = ACTION_GATT_CONNECTED;
                         mConnectionState = STATE_CONNECTED;
+                        mBluetoothGatt = gatt;
                         broadcastUpdate(intentAction);
                         Log.i(TAG, "Connected to GATT server.");
                         Log.i(TAG, "Attempting to start service discovery:" +
@@ -97,8 +114,12 @@ public class BTLEConnection extends Service {
                         broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
                     }
                 }
+                @Override
+                public void onCharacteristicChanged(BluetoothGatt gatt,
+                                                    BluetoothGattCharacteristic characteristic) {
+                    broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+                }
             };
-
 
     @Nullable
     @Override
@@ -106,39 +127,49 @@ public class BTLEConnection extends Service {
         return null;
     }
 
-    public void connectToDevice(final Context contx, final BluetoothDevice device) {
-        Handler handler = new Handler(contx.getApplicationContext().getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-
-                if (device != null) {
-                   mBluetoothGatt = device.connectGatt(contx.getApplicationContext(), false, mGattCallback);
-                }
-            }
-        });
-    }
-
-    private void backgroundConnect() {
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-
-                mBluetoothGatt.connect();
-
-            }
-        });
-    }
     public BluetoothGattCallback getGattCallback(){
         return mGattCallback;
     }
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
-        sendBroadcast(intent);
-        /*if (mConnectionState == STATE_DISCONNECTED){
-            backgroundConnect();
-        }*/
+        contx.sendBroadcast(intent);
+    }
+
+    public List<BluetoothGattService> getSupportedGattServices() {
+        if (mBluetoothGatt == null) return null;
+
+        return mBluetoothGatt.getServices();
+    }
+
+    public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        mBluetoothGatt.readCharacteristic(characteristic);
+    }
+
+    /**
+     * Enables or disables notification on a give characteristic.
+     *
+     * @param characteristic Characteristic to act on.
+     * @param enabled If true, enable notification.  False otherwise.
+     */
+    public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic,
+                                              boolean enabled) {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
+
+        // This is specific to Heart Rate Measurement.
+        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
+            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
+                    UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            mBluetoothGatt.writeDescriptor(descriptor);
+        }
     }
 
     private void broadcastUpdate(final String action,
@@ -158,8 +189,11 @@ public class BTLEConnection extends Service {
                 Log.d(TAG, "Heart rate format UINT8.");
             }
             final int heartRate = characteristic.getIntValue(format, 1);
+            final String charName = characteristic.getStringValue(format);
             Log.d(TAG, String.format("Received heart rate: %d", heartRate));
+            intent.putExtra(EXTRA_TYPE, "Current rate: ");
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
+            contx.sendBroadcast(intent);
         } else {
             // For all other profiles, writes the data formatted in HEX.
             final byte[] data = characteristic.getValue();
@@ -171,34 +205,6 @@ public class BTLEConnection extends Service {
                         stringBuilder.toString());
             }
         }
-        sendBroadcast(intent);
+
     }
-
-    // Handles various events fired by the Service.
-// ACTION_GATT_CONNECTED: connected to a GATT server.
-// ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
-// ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
-// ACTION_DATA_AVAILABLE: received data from the device. This can be a
-// result of read or notification operations.
-    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String action = intent.getAction();
-            if (BTLEConnection.ACTION_GATT_CONNECTED.equals(action)) {
-                mConnected = true;
-
-
-            } else if (BTLEConnection.ACTION_GATT_DISCONNECTED.equals(action)) {
-                mConnected = false;
-
-            } else if (BTLEConnection.
-                    ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-                // Show all the supported services and characteristics on the
-                // user interface.
-
-            } else if (BTLEConnection.ACTION_DATA_AVAILABLE.equals(action)) {
-
-            }
-        }
-    };
 }
