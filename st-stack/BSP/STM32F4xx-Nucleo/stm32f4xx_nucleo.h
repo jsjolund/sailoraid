@@ -263,12 +263,12 @@ typedef enum
 ///** @defgroup STM32F4XX_NUCLEO_LOW_LEVEL_Exported_Functions STM32F4XX NUCLEO LOW LEVEL Exported Functions
 //  * @{
 //  */
-//uint32_t         BSP_GetVersion(void);
-//void             BSP_LED_Init(Led_TypeDef Led);
-//void             BSP_LED_DeInit(Led_TypeDef Led);
-//void             BSP_LED_On(Led_TypeDef Led);
-//void             BSP_LED_Off(Led_TypeDef Led);
-//void             BSP_LED_Toggle(Led_TypeDef Led);
+uint32_t         BSP_GetVersion(void);
+void             BSP_LED_Init(Led_TypeDef Led);
+void             BSP_LED_DeInit(Led_TypeDef Led);
+void             BSP_LED_On(Led_TypeDef Led);
+void             BSP_LED_Off(Led_TypeDef Led);
+void             BSP_LED_Toggle(Led_TypeDef Led);
 void             BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef ButtonMode);
 void             BSP_PB_DeInit(Button_TypeDef Button);
 uint32_t         BSP_PB_GetState(Button_TypeDef Button);

@@ -1,10 +1,14 @@
 /**
-  ******************************************************************************
-  * @file    stm32f4xx_it.h
-  * @brief   This file contains the headers of the interrupt handlers.
-  ******************************************************************************
+  *******************************************************************************
+  * @file    Projects/Multi/Examples/IKS01A2/LSM6DSL_6DOrientation/Inc/com.h
+  * @author  CL
+  * @version V4.0.0
+  * @date    1-May-2017
+  * @brief   header for com.c.
+  *******************************************************************************
+  * @attention
   *
-  * COPYRIGHT(c) 2017 STMicroelectronics
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -28,43 +32,48 @@
   * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
-  ******************************************************************************
+  ********************************************************************************
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F4xx_IT_H
-#define __STM32F4xx_IT_H
-
-#ifdef __cplusplus
- extern "C" {
-#endif 
+#ifndef __COM__H
+#define __COM__H
 
 /* Includes ------------------------------------------------------------------*/
+#include "main.h"
+
 /* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
+/* Exported defines ----------------------------------------------------------*/
+#define UART_BufferSize 256
+
+/* User can use this section to tailor USARTx/UARTx instance used and associated resources */
+/* Definition for USARTx clock resources */
+#define USARTx                           USART2
+#define USARTx_CLK_ENABLE()              __USART2_CLK_ENABLE();
+#define DMAx_CLK_ENABLE()                __DMA1_CLK_ENABLE()
+#define USARTx_RX_GPIO_CLK_ENABLE()      __GPIOA_CLK_ENABLE()
+#define USARTx_TX_GPIO_CLK_ENABLE()      __GPIOA_CLK_ENABLE()
+
+#define USARTx_FORCE_RESET()             __USART2_FORCE_RESET()
+#define USARTx_RELEASE_RESET()           __USART2_RELEASE_RESET()
+
+/* Definition for USARTx Pins */
+#define USARTx_TX_PIN                    GPIO_PIN_2
+#define USARTx_TX_GPIO_PORT              GPIOA
+#define USARTx_RX_PIN                    GPIO_PIN_3
+#define USARTx_RX_GPIO_PORT              GPIOA
+
+/* Exported variables --------------------------------------------------------*/
+extern volatile uint8_t UART_RxBuffer[UART_BufferSize];
+extern volatile uint8_t UART_TxBuffer[UART_BufferSize];
+extern const uint32_t Usart_BaudRate;
+extern UART_HandleTypeDef UartHandle;
+
+
+
 /* Exported macro ------------------------------------------------------------*/
+/* Private functions ---------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
+void USARTConfig(void);
 
-void SVC_Handler(void);
-void PendSV_Handler(void);
-void SysTick_Handler(void);
-void PVD_IRQHandler(void);
-void RCC_IRQHandler(void);
-void EXTI0_IRQHandler(void);
-void EXTI1_IRQHandler(void);
-void EXTI4_IRQHandler(void);
-void EXTI9_5_IRQHandler(void);
-void I2C1_EV_IRQHandler(void);
-void I2C1_ER_IRQHandler(void);
-void SPI1_IRQHandler(void);
-void USART1_IRQHandler(void);
-void USART2_IRQHandler(void);
-void EXTI15_10_IRQHandler(void);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __STM32F4xx_IT_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+#endif /* __COM__H */

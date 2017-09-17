@@ -45,11 +45,19 @@
 #include "debug.h"
 #include "stm32_bluenrg_ble.h"
 #include "bluenrg_utils.h"
+
+#include "accelerometer.h"
+#include "stm32f4xx_nucleo.h"
+#include "x_nucleo_iks01a2_accelero.h"
+#include "com.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c1;
+
 SPI_HandleTypeDef hspi1;
 
+UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
@@ -58,6 +66,13 @@ extern volatile uint8_t set_connectable;
 extern volatile int connected;
 extern AxesRaw_t axes_data;
 uint8_t bnrg_expansion_board = IDB04A1; /* at startup, suppose the X-NUCLEO-IDB04A1 is used */
+
+#define ORIENTATION_CHANGE_INDICATION_DELAY  100  /* LED is ON for this period [ms]. */
+#define MAX_BUF_SIZE 256
+static volatile uint8_t mems_event_detected       = 0;
+static volatile uint8_t send_orientation_request = 0;
+static char dataOut[MAX_BUF_SIZE];
+static void *LSM6DSL_X_0_handle = NULL;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,10 +80,14 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_SPI1_Init(void);
-static void MX_NVIC_Init(void);
+static void MX_USART1_UART_Init(void);
+static void MX_I2C1_Init(void);
 
 /* USER CODE BEGIN PFP */
 void User_Process(AxesRaw_t* p_axes);
+static void initializeAllSensors( void );
+static void enableAllSensors( void );
+static void sendOrientation( UART_HandleTypeDef UartHandle );
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -87,6 +106,8 @@ int main(void)
   uint16_t fwVersion;
 
   int ret;
+
+  ACCELERO_Event_Status_t status;
 
   /* USER CODE END 1 */
 
@@ -108,9 +129,8 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_SPI1_Init();
-
-  /* Initialize interrupts */
-  MX_NVIC_Init();
+  MX_USART1_UART_Init();
+  MX_I2C1_Init();
 
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
@@ -120,12 +140,11 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+  /* Initialize UART */
+  USARTConfig();
 
-
-#if NEW_SERVICES
   /* Configure LED2 */
   BSP_LED_Init(LED2);
-#endif
 
   /* Configure the User Button in GPIO Mode */
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
@@ -253,8 +272,38 @@ int main(void)
   /* Set output power level */
   ret = aci_hal_set_tx_power_level(1,4);
 
+  /* Initialize all sensors */
+  initializeAllSensors();
+  /* Enable all sensors */
+  enableAllSensors();
+  /* Enable 6D orientation */
+  BSP_ACCELERO_Enable_6D_Orientation_Ext( LSM6DSL_X_0_handle, INT1_PIN );
+
   while(1)
   {
+
+	if ( mems_event_detected != 0 )
+	{
+	  mems_event_detected = 0;
+
+	  if ( BSP_ACCELERO_Get_Event_Status_Ext( LSM6DSL_X_0_handle, &status ) == COMPONENT_OK )
+	  {
+		if ( status.D6DOrientationStatus != 0 )
+		{
+		  sendOrientation(huart2);
+		  BSP_LED_On( LED2 );
+		  HAL_Delay( ORIENTATION_CHANGE_INDICATION_DELAY );
+		  BSP_LED_Off( LED2 );
+		}
+	  }
+	}
+
+	if ( send_orientation_request != 0 )
+	{
+	  sendOrientation(huart2);
+	  send_orientation_request = 0;
+	}
+
     HCI_Process();
     User_Process(&axes_data);
 #if NEW_SERVICES
@@ -321,19 +370,24 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-/** NVIC Configuration
-*/
-static void MX_NVIC_Init(void)
+/* I2C1 init function */
+static void MX_I2C1_Init(void)
 {
-  /* EXTI15_10_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-  /* RCC_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(RCC_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(RCC_IRQn);
-  /* SPI1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SPI1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(SPI1_IRQn);
+
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
 }
 
 /* SPI1 init function */
@@ -353,6 +407,25 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi1.Init.CRCPolynomial = 10;
   if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/* USART1 init function */
+static void MX_USART1_UART_Init(void)
+{
+
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 4800;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -405,16 +478,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_BUTTON_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PC3 */
-  GPIO_InitStruct.Pin = GPIO_PIN_3;
+  /*Configure GPIO pin : M_INT2_O_Pin */
+  GPIO_InitStruct.Pin = M_INT2_O_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(M_INT2_O_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BNRG_SPI_IRQ_Pin */
   GPIO_InitStruct.Pin = BNRG_SPI_IRQ_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BNRG_SPI_IRQ_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BNRG_SPI_CS_Pin */
@@ -431,9 +504,27 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : LPS22H_INT1_O_Pin LSM6DSL_INT2_O_Pin LSM6DSL_INT1_O_Pin */
+  GPIO_InitStruct.Pin = LPS22H_INT1_O_Pin|LSM6DSL_INT2_O_Pin|LSM6DSL_INT1_O_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
@@ -470,6 +561,187 @@ void User_Process(AxesRaw_t* p_axes)
     }
   }
 }
+
+
+/**
+ * @brief  Initialize all sensors
+ * @param  None
+ * @retval None
+ */
+static void initializeAllSensors( void )
+{
+
+  if(BSP_ACCELERO_Init( LSM6DSL_X_0, &LSM6DSL_X_0_handle ) == COMPONENT_ERROR)
+  {
+    /* LSM6DSL not detected, switch on LED2 and go to infinity loop */
+    BSP_LED_On( LED2 );
+    while (1)
+    {}
+  }
+}
+
+/**
+ * @brief  Enable all sensors
+ * @param  None
+ * @retval None
+ */
+static void enableAllSensors( void )
+{
+
+  BSP_ACCELERO_Sensor_Enable( LSM6DSL_X_0_handle );
+}
+
+
+
+/**
+ * @brief  Send actual 6D orientation to UART
+ * @param  None
+ * @retval None
+ */
+static void sendOrientation(UART_HandleTypeDef UartHandle )
+{
+
+  uint8_t xl = 0;
+  uint8_t xh = 0;
+  uint8_t yl = 0;
+  uint8_t yh = 0;
+  uint8_t zl = 0;
+  uint8_t zh = 0;
+  uint8_t instance;
+
+  BSP_ACCELERO_Get_Instance( LSM6DSL_X_0_handle, &instance );
+
+  if ( BSP_ACCELERO_Get_6D_Orientation_XL_Ext( LSM6DSL_X_0_handle, &xl ) == COMPONENT_ERROR )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "Error getting 6D orientation XL axis from LSM6DSL - accelerometer[%d].\r\n", instance );
+    HAL_UART_Transmit( &UartHandle, ( uint8_t* )dataOut, strlen( dataOut ), 5000 );
+    return;
+  }
+  if ( BSP_ACCELERO_Get_6D_Orientation_XH_Ext( LSM6DSL_X_0_handle, &xh ) == COMPONENT_ERROR )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "Error getting 6D orientation XH axis from LSM6DSL - accelerometer[%d].\r\n", instance );
+    HAL_UART_Transmit( &UartHandle, ( uint8_t* )dataOut, strlen( dataOut ), 5000 );
+    return;
+  }
+  if ( BSP_ACCELERO_Get_6D_Orientation_YL_Ext( LSM6DSL_X_0_handle, &yl ) == COMPONENT_ERROR )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "Error getting 6D orientation YL axis from LSM6DSL - accelerometer[%d].\r\n", instance );
+    HAL_UART_Transmit( &UartHandle, ( uint8_t* )dataOut, strlen( dataOut ), 5000 );
+    return;
+  }
+  if ( BSP_ACCELERO_Get_6D_Orientation_YH_Ext( LSM6DSL_X_0_handle, &yh ) == COMPONENT_ERROR )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "Error getting 6D orientation YH axis from LSM6DSL - accelerometer[%d].\r\n", instance );
+    HAL_UART_Transmit( &UartHandle, ( uint8_t* )dataOut, strlen( dataOut ), 5000 );
+    return;
+  }
+  if ( BSP_ACCELERO_Get_6D_Orientation_ZL_Ext( LSM6DSL_X_0_handle, &zl ) == COMPONENT_ERROR )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "Error getting 6D orientation ZL axis from LSM6DSL - accelerometer[%d].\r\n", instance );
+    HAL_UART_Transmit( &UartHandle, ( uint8_t* )dataOut, strlen( dataOut ), 5000 );
+    return;
+  }
+  if ( BSP_ACCELERO_Get_6D_Orientation_ZH_Ext( LSM6DSL_X_0_handle, &zh ) == COMPONENT_ERROR )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "Error getting 6D orientation ZH axis from LSM6DSL - accelerometer[%d].\r\n", instance );
+    HAL_UART_Transmit( &UartHandle, ( uint8_t* )dataOut, strlen( dataOut ), 5000 );
+    return;
+  }
+
+  if ( xl == 0 && yl == 0 && zl == 0 && xh == 0 && yh == 1 && zh == 0 )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "\r\n  ________________  " \
+             "\r\n |                | " \
+             "\r\n |  *             | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |________________| \r\n" );
+  }
+
+  else if ( xl == 1 && yl == 0 && zl == 0 && xh == 0 && yh == 0 && zh == 0 )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "\r\n  ________________  " \
+             "\r\n |                | " \
+             "\r\n |             *  | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |________________| \r\n" );
+  }
+
+  else if ( xl == 0 && yl == 0 && zl == 0 && xh == 1 && yh == 0 && zh == 0 )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "\r\n  ________________  " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |  *             | " \
+             "\r\n |________________| \r\n" );
+  }
+
+  else if ( xl == 0 && yl == 1 && zl == 0 && xh == 0 && yh == 0 && zh == 0 )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "\r\n  ________________  " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |                | " \
+             "\r\n |             *  | " \
+             "\r\n |________________| \r\n" );
+  }
+
+  else if ( xl == 0 && yl == 0 && zl == 0 && xh == 0 && yh == 0 && zh == 1 )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "\r\n  __*_____________  " \
+             "\r\n |________________| \r\n" );
+  }
+
+  else if ( xl == 0 && yl == 0 && zl == 1 && xh == 0 && yh == 0 && zh == 0 )
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "\r\n  ________________  " \
+             "\r\n |________________| " \
+             "\r\n    *               \r\n" );
+  }
+
+  else
+  {
+    snprintf( dataOut, MAX_BUF_SIZE, "None of the 6D orientation axes is set in LSM6DSL - accelerometer[%d].\r\n", instance );
+  }
+
+  HAL_UART_Transmit( &UartHandle, ( uint8_t* )dataOut, strlen( dataOut ), 5000 );
+}
+
+/**
+ * @brief  EXTI line detection callback.
+ * @param  Specifies the pins connected EXTI line
+ * @retval None
+ */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  HCI_Isr();
+  /* User button. */
+  if(GPIO_Pin == USER_BUTTON_Pin)
+  {
+    if ( BSP_PB_GetState( BUTTON_KEY ) == GPIO_PIN_RESET )
+    {
+      /* Request to send actual 6D orientation to UART (available only for LSM6DSL sensor). */
+      send_orientation_request = 1;
+    }
+  }
+
+  /* 6D orientation (available only for LSM6DSL sensor). */
+  else if ( GPIO_Pin == LSM6DSL_INT1_O_PIN )
+  {
+    mems_event_detected = 1;
+  }
+}
+
 /* USER CODE END 4 */
 
 /**
