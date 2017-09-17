@@ -2,15 +2,21 @@
 
 %text
 \usepackage[utf8]{inputenc}
+\usepackage[numbers,super]{natbib}
 \usepackage{lipsum}
 \usepackage{amssymb,amsmath}
-\usepackage[linktocpage=true]{hyperref}
 \usepackage{listings}
 
 %graphics
 \usepackage{graphicx, xcolor}
 \usepackage{rotating}
 \usepackage{subfig}
+
+% links
+\usepackage{color}
+\usepackage[linktocpage=true, colorlinks=true, allcolors=blue]{hyperref}
+\usepackage[all]{hypcap}
+\usepackage[hypcap]{caption}
 
 %layout
 \usepackage{multicol}
@@ -96,5 +102,10 @@
 
 \clearpage
 \section{Software Design}
+\chapterauthor{Sjölund, Johannes (no one)}
+\input{software_design.tex}
+
+\clearpage
+\input{references.tex}
 
 \end{document}

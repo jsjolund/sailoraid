@@ -45,8 +45,6 @@
 
 void Hal_Write_Serial(const void* data1, const void* data2, int32_t n_bytes1,
                       int32_t n_bytes2);
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
-
 
 #endif //__BLUENRG_INTERFACE_H_
 
