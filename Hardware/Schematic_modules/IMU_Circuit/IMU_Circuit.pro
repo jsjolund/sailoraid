@@ -1,4 +1,4 @@
-update=lör 16 sep 2017 18:18:58
+update=2017-09-18 00:56:59
 version=1
 last_client=kicad
 [pcbnew]
@@ -27,7 +27,7 @@ NetIExt=net
 version=1
 [eeschema]
 version=1
-LibDir=/home/giantnoodlemonster/Dropbox/E7025E/Git_Project_Sailoraid/sailoraid/Hardware/LIBRARIES/CUSTOMS
+LibDir=../../LIBRARIES/CUSTOMS;../../LIBRARIES
 [eeschema/libraries]
 LibName1=power
 LibName2=device
@@ -61,4 +61,15 @@ LibName29=opto
 LibName30=atmel
 LibName31=contrib
 LibName32=valves
-LibName33=misc_rfcom
+LibName33=IMU_Circuit
+LibName34=DCDCconv
+LibName35=ft232rl
+LibName36=lm1117
+LibName37=max3485e
+LibName38=stm32
+LibName39=stm32f4
+LibName40=stm32f100
+LibName41=A2235-H
+LibName42=misc_rfcom
+LibName43=MOSFET_depleted
+LibName44=PowerSupply
