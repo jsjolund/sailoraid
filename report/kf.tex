@@ -4,7 +4,7 @@ The GPS's accuracy is not uniform since it might be buildings reflections, atmos
 
 
 \subsection{Kalman Filter}
-A popular filter to use when doing sensor fusion is to use a Kalman filter, (KF). The Kalman Filter is a recursive filtering method for discrete data, the algorithm was developed by an Hungarian mathematician Rudolf (Rudi) Emil K·lm·n in 1960. Since everything is nonlinear in the universe, many systems cannot be seen as linear and therefore Extended Kalman, (EKF) Filter has to be applied. The EKF linearizes the system around its working points. The KF is widely used due to its efficiency when calculating the estimations. When estimating the position and velocity there will be equation which are nonlinear, hence a EKF will be applied. Where the EKF algorithm is.
+A popular filter to use when doing sensor fusion is to use a Kalman filter, (KF). The Kalman Filter is a recursive filtering method for discrete data, the algorithm was developed by an Hungarian mathematician Rudolf (Rudi) Emil K√°lm√°n in 1960. Since everything is nonlinear in the universe, many systems cannot be seen as linear and therefore Extended Kalman, (EKF) Filter has to be applied. The EKF linearizes the system around its working points. The KF is widely used due to its efficiency when calculating the estimations. When estimating the position and velocity there will be equation which are nonlinear, hence a EKF will be applied. Where the EKF algorithm is.
 \begin{align}
 &\textrm{State equation} \qquad x_k=F_{k-1}x_{k-1}+v_k\\
 & \textrm{Observation equation} \qquad z_k=H(x_k)+w_k
