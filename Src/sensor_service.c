@@ -155,11 +155,11 @@ tBleStatus Add_Acc_Service(void)
                            16, 0, &accCharHandle);
   if (ret != BLE_STATUS_SUCCESS) goto fail;
   
-  PRINTF("Service ACC added. Handle 0x%04X, Free fall Charac handle: 0x%04X, Acc Charac handle: 0x%04X\n",accServHandle, freeFallCharHandle, accCharHandle);	
+  printf("Service ACC added. Handle 0x%04X, Free fall Charac handle: 0x%04X, Acc Charac handle: 0x%04X\n",accServHandle, freeFallCharHandle, accCharHandle);
   return BLE_STATUS_SUCCESS; 
   
 fail:
-  PRINTF("Error while adding ACC service.\n");
+  printf("Error while adding ACC service.\n");
   return BLE_STATUS_ERROR ;
     
 }
@@ -180,7 +180,7 @@ tBleStatus Free_Fall_Notify(void)
                                    &val);
 	
   if (ret != BLE_STATUS_SUCCESS){
-    PRINTF("Error while updating FFall characteristic.\n") ;
+    printf("Error while updating FFall characteristic.\n") ;
     return BLE_STATUS_ERROR ;
   }
   return BLE_STATUS_SUCCESS;	
@@ -204,7 +204,7 @@ tBleStatus Acc_Update(AxesRaw_t *data)
   ret = aci_gatt_update_char_value(accServHandle, accCharHandle, 0, 6, buff);
 	
   if (ret != BLE_STATUS_SUCCESS){
-    PRINTF("Error while updating ACC characteristic.\n") ;
+    printf("Error while updating ACC characteristic.\n") ;
     return BLE_STATUS_ERROR ;
   }
   return BLE_STATUS_SUCCESS;	
@@ -324,11 +324,11 @@ tBleStatus Add_Environmental_Sensor_Service(void)
                                  &descHandle);
     if (ret != BLE_STATUS_SUCCESS) goto fail;
   } 
-  PRINTF("Service ENV_SENS added. Handle 0x%04X, TEMP Charac handle: 0x%04X, PRESS Charac handle: 0x%04X, HUMID Charac handle: 0x%04X\n",envSensServHandle, tempCharHandle, pressCharHandle, humidityCharHandle);	
+  printf("Service ENV_SENS added. Handle 0x%04X, TEMP Charac handle: 0x%04X, PRESS Charac handle: 0x%04X, HUMID Charac handle: 0x%04X\n",envSensServHandle, tempCharHandle, pressCharHandle, humidityCharHandle);
   return BLE_STATUS_SUCCESS; 
   
 fail:
-  PRINTF("Error while adding ENV_SENS service.\n");
+  printf("Error while adding ENV_SENS service.\n");
   return BLE_STATUS_ERROR ;
   
 }
@@ -346,7 +346,7 @@ tBleStatus Temp_Update(int16_t temp)
                                    (uint8_t*)&temp);
   
   if (ret != BLE_STATUS_SUCCESS){
-    PRINTF("Error while updating TEMP characteristic.\n") ;
+    printf("Error while updating TEMP characteristic.\n") ;
     return BLE_STATUS_ERROR ;
   }
   return BLE_STATUS_SUCCESS;
@@ -366,7 +366,7 @@ tBleStatus Press_Update(int32_t press)
                                    (uint8_t*)&press);
   
   if (ret != BLE_STATUS_SUCCESS){
-    PRINTF("Error while updating TEMP characteristic.\n") ;
+    printf("Error while updating TEMP characteristic.\n") ;
     return BLE_STATUS_ERROR ;
   }
   return BLE_STATUS_SUCCESS;
@@ -386,7 +386,7 @@ tBleStatus Humidity_Update(uint16_t humidity)
                                    (uint8_t*)&humidity);
   
   if (ret != BLE_STATUS_SUCCESS){
-    PRINTF("Error while updating TEMP characteristic.\n") ;
+    printf("Error while updating TEMP characteristic.\n") ;
     return BLE_STATUS_ERROR ;
   }
   return BLE_STATUS_SUCCESS;
@@ -421,12 +421,12 @@ void setConnectable(void)
   
   /* disable scan response */
   hci_le_set_scan_resp_data(0,NULL);
-  PRINTF("General Discoverable Mode.\n");
+  printf("General Discoverable Mode.\n");
   
   ret = aci_gap_set_discoverable(ADV_IND, 0, 0, PUBLIC_ADDR, NO_WHITE_LIST_USE,
                                  sizeof(local_name), local_name, 0, NULL, 0, 0);
   if (ret != BLE_STATUS_SUCCESS) {
-    PRINTF("Error while setting discoverable mode (%d)\n", ret);    
+    printf("Error while setting discoverable mode (%d)\n", ret);
   }  
 }
 
@@ -441,11 +441,11 @@ void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle)
   connected = TRUE;
   connection_handle = handle;
   
-  PRINTF("Connected to device:");
+  printf("Connected to device:");
   for(int i = 5; i > 0; i--){
-    PRINTF("%02X-", addr[i]);
+    printf("%02X-", addr[i]);
   }
-  PRINTF("%02X\n", addr[0]);
+  printf("%02X\n", addr[0]);
 }
 
 /**
@@ -456,7 +456,7 @@ void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle)
 void GAP_DisconnectionComplete_CB(void)
 {
   connected = FALSE;
-  PRINTF("Disconnected\n");
+  printf("Disconnected\n");
   /* Make the device connectable again. */
   set_connectable = TRUE;
   notification_enabled = FALSE;
@@ -623,12 +623,12 @@ tBleStatus Add_Time_Service(void)
                           16, 1, &minuteCharHandle);
   if (ret != BLE_STATUS_SUCCESS) goto fail;
   
-  PRINTF("Service TIME added. Handle 0x%04X, TIME Charac handle: 0x%04X\n",timeServHandle, secondsCharHandle);	
+  printf("Service TIME added. Handle 0x%04X, TIME Charac handle: 0x%04X\n",timeServHandle, secondsCharHandle);
   return BLE_STATUS_SUCCESS; 
   
   /* return BLE_STATUS_ERROR if we reach this tag */
 fail:
-  PRINTF("Error while adding Time service.\n");
+  printf("Error while adding Time service.\n");
   return BLE_STATUS_ERROR ;    
 }
 
@@ -658,7 +658,7 @@ tBleStatus Seconds_Update(void)
                                    time);
 	
   if (ret != BLE_STATUS_SUCCESS){
-    PRINTF("Error while updating TIME characteristic.\n") ;
+    printf("Error while updating TIME characteristic.\n") ;
     return BLE_STATUS_ERROR ;
   }
   return BLE_STATUS_SUCCESS;		
@@ -696,7 +696,7 @@ tBleStatus Minutes_Notify(void)
     ret = aci_gatt_update_char_value(timeServHandle, minuteCharHandle, 0, 4,
                                      time);          
     if (ret != BLE_STATUS_SUCCESS){
-      PRINTF("Error while updating TIME characteristic.\n") ;
+      printf("Error while updating TIME characteristic.\n") ;
       return BLE_STATUS_ERROR ;
     }
   }
@@ -750,11 +750,11 @@ tBleStatus Add_LED_Service(void)
                            16, 1, &ledButtonCharHandle);
   if (ret != BLE_STATUS_SUCCESS) goto fail;  
   
-  PRINTF("Service LED BUTTON added. Handle 0x%04X, LED button Charac handle: 0x%04X\n",ledServHandle, ledButtonCharHandle);	
+  printf("Service LED BUTTON added. Handle 0x%04X, LED button Charac handle: 0x%04X\n",ledServHandle, ledButtonCharHandle);
   return BLE_STATUS_SUCCESS; 
   
 fail:
-  PRINTF("Error while adding LED service.\n");
+  printf("Error while adding LED service.\n");
   return BLE_STATUS_ERROR;
 }
 

@@ -103,7 +103,7 @@ void set_irq_as_input(void);
  */
 void print_csv_time(void){
 //  uint32_t ms = ms_counter;
-  PRINT_CSV("%02d:%02d:%02d.%03d", ms/(60*60*1000)%24, ms/(60*1000)%60, (ms/1000)%60, ms%1000);
+//  PRINT_CSV("%02d:%02d:%02d.%03d", ms/(60*60*1000)%24, ms/(60*1000)%60, (ms/1000)%60, ms%1000);
 }
 
 /**

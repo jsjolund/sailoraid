@@ -38,10 +38,9 @@
 /* USER CODE BEGIN 0 */
 #include "stm32_bluenrg_ble.h"
 #include "sensor_service.h"
+
 volatile uint32_t ms_counter = 0;
 volatile int button_event = 0;
-/* SPI handler declared in "main.c" file */
-extern SPI_HandleTypeDef SpiHandle;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
