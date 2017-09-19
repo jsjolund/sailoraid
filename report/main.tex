@@ -6,11 +6,12 @@
 \usepackage{lipsum}
 \usepackage{amssymb,amsmath}
 \usepackage{listings}
-
+\usepackage{amsfonts}
 %graphics
 \usepackage{graphicx, xcolor}
 \usepackage{rotating}
 \usepackage{subfig}
+\usepackage{float}
 
 % links
 \usepackage{color}
@@ -52,6 +53,8 @@
 \pagestyle{fancy}
 \lhead{Project SailorAid}
 \chead{}
+
+
 \rhead{\today}
 \lfoot{}
 \cfoot{\thepage~of~\pageref{LastPage}}
@@ -104,6 +107,12 @@
 \section{Software Design}
 \chapterauthor{Sjölund, Johannes (no one)}
 \input{software_design.tex}
+
+\clearpage
+\section{Kalman filter}
+\chapterauthor{Axelsson, Oskar (no one)}
+\input{kf.tex}
+
 
 \clearpage
 \input{references.tex}
