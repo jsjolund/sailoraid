@@ -1,40 +1,40 @@
 /**
-  ******************************************************************************
-  * File Name          : main.c
-  * Description        : Main program body
-  ******************************************************************************
-  ** This notice applies to any and all portions of this file
-  * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether
-  * inserted by the user or by software development tools
-  * are owned by their respective copyright owners.
-  *
-  * COPYRIGHT(c) 2017 STMicroelectronics
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * File Name          : main.c
+ * Description        : Main program body
+ ******************************************************************************
+ ** This notice applies to any and all portions of this file
+ * that are not between comment pairs USER CODE BEGIN and
+ * USER CODE END. Other portions of this file, whether
+ * inserted by the user or by software development tools
+ * are owned by their respective copyright owners.
+ *
+ * COPYRIGHT(c) 2017 STMicroelectronics
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *   1. Redistributions of source code must retain the above copyright notice,
+ *      this list of conditions and the following disclaimer.
+ *   2. Redistributions in binary form must reproduce the above copyright notice,
+ *      this list of conditions and the following disclaimer in the documentation
+ *      and/or other materials provided with the distribution.
+ *   3. Neither the name of STMicroelectronics nor the names of its contributors
+ *      may be used to endorse or promote products derived from this software
+ *      without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************
+ */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
@@ -128,6 +128,7 @@ int main(void)
   SensorAxes_t ACC_Value; /*!< Acceleration Value */
   SensorAxes_t GYR_Value; /*!< Gyroscope Value */
   SensorAxes_t MAG_Value; /*!< Magnetometer Value */
+  AxesRaw_t EUL_Value; /*!< Euler Angles Value */
   float PRESSURE_Value; /*!< Pressure Value */
   float HUMIDITY_Value; /*!< Humidity Value */
   float TEMPERATURE_Value; /*!< Temperature Value */
@@ -307,18 +308,24 @@ int main(void)
   HAL_TIM_Base_Init(&htim2);
   HAL_TIM_Base_Start(&htim2);
 
-  int serialDebugRate = 100;
-  int imuSampleRate = 416;
+  int serialDebugRate = 50;
+  int btUpdateRate = 10;
+  int imuSampleRate = 100;
   int envSensorRate = 10;
 
   MadgwickInit(imuSampleRate);
 
   uint32_t imuPeriod = 1000000 / imuSampleRate;
   uint32_t imuPrevious = htim2.Instance->CNT;
+
   uint32_t envSensorPeriod = 1000000 / envSensorRate;
   uint32_t envSensorPrevious = htim2.Instance->CNT;
+
   uint32_t serialPeriod = 1000000 / serialDebugRate;
   uint32_t serialPrevious = htim2.Instance->CNT;
+
+  uint32_t btUpdatePeriod = 1000000 / btUpdateRate;
+  uint32_t btUpdatePrevious = htim2.Instance->CNT;
 
   float ax = 0, ay = 0, az = 0, gx = 0, gy = 0, gz = 0, mx = 0, my = 0, mz = 0, yaw = 0, pitch = 0, roll = 0;
 
@@ -332,31 +339,34 @@ int main(void)
 #endif
 
     uint32_t microsNow = htim2.Instance->CNT;
-
     if (microsNow - imuPrevious >= imuPeriod)
     {
       Accelero_Sensor_Handler(&ACC_Value);
       Gyro_Sensor_Handler(&GYR_Value);
       Magneto_Sensor_Handler(&MAG_Value);
-      gx = ((float) GYR_Value.AXIS_X)/1000;
-      gy = ((float) GYR_Value.AXIS_Y)/1000;
-      gz = ((float) GYR_Value.AXIS_Z)/1000;
-      ax = ((float) ACC_Value.AXIS_X)/1000;
-      ay = ((float) ACC_Value.AXIS_Y)/1000;
-      az = ((float) ACC_Value.AXIS_Z)/1000;
-      mx = ((float) MAG_Value.AXIS_X)/1000;
-      my = ((float) MAG_Value.AXIS_Y)/1000;
-      mz = ((float) MAG_Value.AXIS_Z)/1000;
-      MadgwickUpdate(gx, gy, gz, ax, ay, az, mx, my, mz);
+      gx = ((float) GYR_Value.AXIS_X) / 1000;
+      gy = ((float) GYR_Value.AXIS_Y) / 1000;
+      gz = ((float) GYR_Value.AXIS_Z) / 1000;
+      ax = ((float) ACC_Value.AXIS_X) / 1000;
+      ay = ((float) ACC_Value.AXIS_Y) / 1000;
+      az = ((float) ACC_Value.AXIS_Z) / 1000;
+      mx = ((float) MAG_Value.AXIS_X) / 1000;
+      my = ((float) MAG_Value.AXIS_Y) / 1000;
+      mz = ((float) MAG_Value.AXIS_Z) / 1000;
+//      MadgwickUpdate(gx, gy, gz, ax, ay, az, mx, my, mz);
+      MadgwickUpdateIMU(gx, gy, gz, ax, ay, az);
       imuPrevious += imuPeriod;
     }
     if (microsNow - serialPrevious >= serialPeriod)
     {
       roll = MadgwickGetRoll();
-      pitch = MadgwickGetPitch();
-      yaw = MadgwickGetYaw();
+      pitch = -MadgwickGetPitch();
+      yaw = -MadgwickGetYaw();
 //      printf("%3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f\r\n", roll, pitch, yaw, gx, gy, gz, ax, ay, az, mx, my, mz);
       printf("%3.4f %3.4f %3.4f\r\n", roll, pitch, yaw);
+      EUL_Value.AXIS_X = (int) roll * 10;
+      EUL_Value.AXIS_Y = (int) pitch * 10;
+      EUL_Value.AXIS_Z = (int) yaw;
       serialPrevious += serialPeriod;
     }
     if (microsNow - envSensorPrevious >= envSensorPeriod)
@@ -366,27 +376,36 @@ int main(void)
       Temperature_Sensor_Handler(&TEMPERATURE_Value);
       envSensorPrevious += envSensorPeriod;
     }
+    if (microsNow - btUpdatePrevious >= btUpdatePeriod)
+    {
+      Acc_Update(&EUL_Value);
+      Temp_Update(TEMPERATURE_Value);
+      Humidity_Update(HUMIDITY_Value);
+      Press_Update(PRESSURE_Value);
+      btUpdatePrevious += btUpdatePeriod;
+    }
   }
   /* USER CODE END 3 */
 
 }
 
 /** System Clock Configuration
-*/
+ */
 void SystemClock_Config(void)
 {
 
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
-    /**Configure the main internal regulator output voltage
-    */
-  __HAL_RCC_PWR_CLK_ENABLE();
+  /**Configure the main internal regulator output voltage
+   */
+  __HAL_RCC_PWR_CLK_ENABLE()
+  ;
 
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-    /**Initializes the CPU, AHB and APB busses clocks
-    */
+  /**Initializes the CPU, AHB and APB busses clocks
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -400,10 +419,9 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Initializes the CPU, AHB and APB busses clocks
-    */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  /**Initializes the CPU, AHB and APB busses clocks
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -414,12 +432,12 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure the Systick interrupt time
-    */
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+  /**Configure the Systick interrupt time
+   */
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
 
-    /**Configure the Systick
-    */
+  /**Configure the Systick
+   */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* SysTick_IRQn interrupt configuration */
@@ -540,25 +558,29 @@ static void MX_USART2_UART_Init(void)
 }
 
 /** Configure pins as 
-        * Analog
-        * Input
-        * Output
-        * EVENT_OUT
-        * EXTI
-*/
+ * Analog
+ * Input
+ * Output
+ * EVENT_OUT
+ * EXTI
+ */
 static void MX_GPIO_Init(void)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct;
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE()
+  ;
+  __HAL_RCC_GPIOH_CLK_ENABLE()
+  ;
+  __HAL_RCC_GPIOA_CLK_ENABLE()
+  ;
+  __HAL_RCC_GPIOB_CLK_ENABLE()
+  ;
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, BNRG_SPI_CS_Pin|LED2_Pin|BNRG_SPI_RESET_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, BNRG_SPI_CS_Pin | LED2_Pin | BNRG_SPI_RESET_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : USER_BUTTON_Pin */
   GPIO_InitStruct.Pin = USER_BUTTON_Pin;
@@ -586,14 +608,14 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(BNRG_SPI_CS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED2_Pin BNRG_SPI_RESET_Pin */
-  GPIO_InitStruct.Pin = LED2_Pin|BNRG_SPI_RESET_Pin;
+  GPIO_InitStruct.Pin = LED2_Pin | BNRG_SPI_RESET_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LPS22H_INT1_O_Pin LSM6DSL_INT2_O_Pin LSM6DSL_INT1_O_Pin */
-  GPIO_InitStruct.Pin = LPS22H_INT1_O_Pin|LSM6DSL_INT2_O_Pin|LSM6DSL_INT1_O_Pin;
+  GPIO_InitStruct.Pin = LPS22H_INT1_O_Pin | LSM6DSL_INT2_O_Pin | LSM6DSL_INT1_O_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -630,25 +652,6 @@ void User_Process(AxesRaw_t* p_axes)
   {
     setConnectable();
     set_connectable = FALSE;
-  }
-
-  /* Check if the user has pushed the button */
-  if (BSP_PB_GetState(BUTTON_KEY) == RESET)
-  {
-    while (BSP_PB_GetState(BUTTON_KEY) == RESET)
-      ;
-
-    //BSP_LED_Toggle(LED2); //used for debugging (BSP_LED_Init() above must be also enabled)
-
-    if (connected)
-    {
-      /* Update acceleration data */
-      p_axes->AXIS_X += 100;
-      p_axes->AXIS_Y += 100;
-      p_axes->AXIS_Z += 100;
-      //printf("ACC: X=%6d Y=%6d Z=%6d\r\n", p_axes->AXIS_X, p_axes->AXIS_Y, p_axes->AXIS_Z);
-      Acc_Update(p_axes);
-    }
   }
 }
 
@@ -820,10 +823,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @param  None
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @param  None
+ * @retval None
+ */
 void _Error_Handler(char * file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -833,12 +836,12 @@ void _Error_Handler(char * file, int line)
 #ifdef USE_FULL_ASSERT
 
 /**
-   * @brief Reports the name of the source file and the source line number
-   * where the assert_param error has occurred.
-   * @param file: pointer to the source file name
-   * @param line: assert_param error line source number
-   * @retval None
-   */
+ * @brief Reports the name of the source file and the source line number
+ * where the assert_param error has occurred.
+ * @param file: pointer to the source file name
+ * @param line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t* file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
@@ -849,11 +852,11 @@ void assert_failed(uint8_t* file, uint32_t line)
 #endif
 
 /**
-  * @}
-  */
+ * @}
+ */
 
 /**
-  * @}
-*/
+ * @}
+ */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -116,6 +116,9 @@ typedef struct {
  */
 tBleStatus Add_Acc_Service(void);
 tBleStatus Acc_Update(AxesRaw_t *data);
+tBleStatus Temp_Update(int16_t temp);
+tBleStatus Press_Update(int32_t press);
+tBleStatus Humidity_Update(uint16_t humidity);
 tBleStatus Add_Environmental_Sensor_Service(void);
 void       setConnectable(void);
 void       enableNotification(void);
