@@ -53,6 +53,7 @@
 #include "x_nucleo_iks01a2_accelero.h"
 #include "x_nucleo_iks01a2_magneto.h"
 #include "com.h"
+#include "MadgwickAHRS.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -81,7 +82,7 @@ typedef enum demoFifoStatus
 #define FIFO_WATERMARK   11 /*!< FIFO size limit */
 #define SAMPLE_LIST_MAX  10 /*!< Max. number of values (X,Y,Z) to be printed to UART */
 #define LSM6DSL_SAMPLE_ODR    ODR_LOW /*!< Sample Output Data Rate [Hz] */
-#define LSM6DSL_FIFO_MAX_ODR  6600    /*!< LSM6DSL FIFO maximum ODR */
+#define LSM6DSL_FIFO_MAX_ODR  416    /*!< LSM6DSL FIFO maximum ODR */
 #define FIFO_INDICATION_DELAY  100 /*!< When FIFO event ocurs, LED is ON for at least this period [ms] */
 #define PATTERN_GYR_X_AXIS  0 /*!< Pattern of gyro X axis */
 #define PATTERN_GYR_Y_AXIS  1 /*!< Pattern of gyro Y axis */
@@ -117,8 +118,8 @@ static DrvStatusTypeDef Init_All_Sensors(void);
 static DrvStatusTypeDef Enable_All_Sensors(void);
 static DrvStatusTypeDef LSM6DSL_FIFO_Set_Bypass_Mode(void);
 static DrvStatusTypeDef LSM6DSL_FIFO_Set_Continuous_Mode(void);
-static DrvStatusTypeDef LSM6DSL_Read_All_FIFO_Data(void);
-static DrvStatusTypeDef LSM6DSL_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIndex);
+static DrvStatusTypeDef LSM6DSL_Read_All_FIFO_Data(SensorAxes_t *gyro, SensorAxes_t *acc, SensorAxes_t *mag);
+static DrvStatusTypeDef LSM6DSL_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIndex, SensorAxes_t *acc, SensorAxes_t *gyro, SensorAxes_t *mag);
 static DrvStatusTypeDef LSM6DSL_FIFO_Demo_Config(void);
 static void LSM303AGR_Read_Magnometer(SensorAxes_t *MAG_Value);
 /* USER CODE END PFP */
@@ -139,14 +140,16 @@ int main(void)
   uint16_t fwVersion;
 
   int ret;
+  MadgwickInit(LSM6DSL_FIFO_MAX_ODR);
 
   uint8_t fifo_full_status = 0;
   uint16_t samplesInFIFO = 0;
   uint16_t oldSamplesInFIFO = 0;
-  SensorAxes_t MAG_Value;
+  SensorAxes_t gyro, acc, mag;
+
   /* USER CODE END 1 */
 
-  /* MCU Configuration----------------------------------------------------------*/
+  /* MCU Configuration-------------------------------u _printf_float----------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
@@ -388,7 +391,7 @@ int main(void)
       {
         BSP_LED_On(LED2);
 
-        if (LSM6DSL_Read_All_FIFO_Data() == COMPONENT_ERROR)
+        if (LSM6DSL_Read_All_FIFO_Data(&gyro, &acc, &mag) == COMPONENT_ERROR)
         {
           printf("Error reading all FIFO data\n");
         }
@@ -819,7 +822,7 @@ static DrvStatusTypeDef LSM6DSL_FIFO_Set_Continuous_Mode(void)
  * @retval COMPONENT_OK
  * @retval COMPONENT_ERROR
  */
-static DrvStatusTypeDef LSM6DSL_Read_All_FIFO_Data(void)
+static DrvStatusTypeDef LSM6DSL_Read_All_FIFO_Data(SensorAxes_t *gyro, SensorAxes_t *acc, SensorAxes_t *mag)
 {
   uint16_t gSamplesToRead = 0;
   uint16_t aSamplesToRead = 0;
@@ -848,7 +851,7 @@ static DrvStatusTypeDef LSM6DSL_Read_All_FIFO_Data(void)
 
   for (i = 0; i < gSamplesToRead; i++)
   {
-    if (LSM6DSL_Read_Single_FIFO_Pattern_Cycle(i) == COMPONENT_ERROR)
+    if (LSM6DSL_Read_Single_FIFO_Pattern_Cycle(i, gyro, acc, mag) == COMPONENT_ERROR)
     {
       return COMPONENT_ERROR;
     }
@@ -862,17 +865,21 @@ static DrvStatusTypeDef LSM6DSL_Read_All_FIFO_Data(void)
   return COMPONENT_OK;
 }
 
+#define INT32_T_TO_FLOAT(n)                    \
+    (float)( (n ) )
+
 /**
  * @brief  Read single FIFO pattern cycle
  * @param  sampleIndex Current sample index.
  * @retval COMPONENT_OK
  * @retval COMPONENT_ERROR
  */
-static DrvStatusTypeDef LSM6DSL_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIndex)
+static DrvStatusTypeDef LSM6DSL_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIndex,  SensorAxes_t *gyro, SensorAxes_t *acc, SensorAxes_t *mag )
 {
   uint16_t pattern = 0;
+  int32_t acceleration = 0;
   int32_t angular_velocity = 0;
-  int32_t gyr_x = 0, gyr_y = 0, gyr_z = 0;
+  float gx,gy,gz,ax,ay,az,mx,my,mz;
   int i = 0;
 
   /* Read one whole FIFO pattern cycle. Pattern: Gx, Gy, Gz */
@@ -894,23 +901,21 @@ static DrvStatusTypeDef LSM6DSL_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIn
     switch (pattern)
     {
     case PATTERN_GYR_X_AXIS:
-      gyr_x = angular_velocity;
+      gyro->AXIS_X = angular_velocity;
       break;
 
     case PATTERN_GYR_Y_AXIS:
-      gyr_y = angular_velocity;
+    	gyro->AXIS_Y = angular_velocity;
       break;
 
     case PATTERN_GYR_Z_AXIS:
-      gyr_z = angular_velocity;
+    	gyro->AXIS_Z = angular_velocity;
       break;
 
     default:
       return COMPONENT_ERROR;
     }
   }
-  int32_t acceleration = 0;
-  int32_t acc_x = 0, acc_y = 0, acc_z = 0;
 
   /* Read one whole FIFO pattern cycle. Pattern: XLx, XLy, XLz */
   for (i = 0; i <= 2; i++)
@@ -931,24 +936,54 @@ static DrvStatusTypeDef LSM6DSL_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIn
     switch (pattern)
     {
     case PATTERN_ACC_X_AXIS:
-      acc_x = acceleration;
+      acc->AXIS_X = acceleration;
       break;
 
     case PATTERN_ACC_Y_AXIS:
-      acc_y = acceleration;
+      acc->AXIS_Y = acceleration;
       break;
 
     case PATTERN_ACC_Z_AXIS:
-      acc_z = acceleration;
+      acc->AXIS_Z = acceleration;
       break;
 
     default:
       return COMPONENT_ERROR;
     }
   }
+
+  LSM303AGR_Read_Magnometer(mag);
+  mx = mag->AXIS_X;
+  my = mag->AXIS_Y;
+  mz = mag->AXIS_Z;
+
+  gx = gyro->AXIS_X;
+  gy = gyro->AXIS_Y;
+  gz = gyro->AXIS_Z;
+
+  ax = acc->AXIS_X;
+  ay = acc->AXIS_Y;
+  az = acc->AXIS_Z;
+
+
+  MadgwickUpdate(gx,gy,gz,ax,ay,az,mx,my,mz);
+
+float yaw = MadgwickGetYaw();
+float pitch = MadgwickGetPitch();
+float roll = MadgwickGetRoll();
+
   if (sampleIndex < SAMPLE_LIST_MAX)
   {
-    printf("[DATA %02d]  %8ld  %8ld  %8ld  %8ld  %8ld  %8ld\r\n", sampleIndex + 1, gyr_x, gyr_y, gyr_z, acc_x, acc_y, acc_z);
+//    printf("%d %d %d %d %d %d %d %d %d %d %d %d\r\n",
+////    		"%.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\r\n",
+//			roll, pitch, yaw,
+//			gyr_x, gyr_y, gyr_z,
+//			acc_x, acc_y, acc_z,
+//			mag_x, mag_y, mag_z
+//    	);
+	printf(
+			"%3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f\r\n",
+			roll, pitch, yaw, ax, ay, az, gx, gy, gz, mx, my, mz);
   }
 
   return COMPONENT_OK;
@@ -962,7 +997,7 @@ static DrvStatusTypeDef LSM6DSL_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIn
 static void LSM303AGR_Read_Magnometer(SensorAxes_t *MAG_Value)
 {
 //  SensorAxes_t MAG_Value;
-  int32_t data[3];
+//  int32_t data[3];
   uint8_t status = 0;
   uint8_t drdy = 0;
 
@@ -973,14 +1008,14 @@ static void LSM303AGR_Read_Magnometer(SensorAxes_t *MAG_Value)
     if (drdy != 0)
     {
 
-      BSP_MAGNETO_Get_Axes(LSM303AGR_M_0_handle, &MAG_Value);
+      BSP_MAGNETO_Get_Axes(LSM303AGR_M_0_handle, MAG_Value);
 
-      data[0] = MAG_Value.AXIS_X;
-      data[1] = MAG_Value.AXIS_Y;
-      data[2] = MAG_Value.AXIS_Z;
+//      data[0] = MAG_Value->AXIS_X;
+//      data[1] = MAG_Value->AXIS_Y;
+//      data[2] = MAG_Value->AXIS_Z;
 
-      snprintf(dataOut, MAX_BUF_SIZE, "MAG_X: %d, MAG_Y: %d, MAG_Z: %d\r\n", (int) data[0], (int) data[1], (int) data[2]);
-      HAL_UART_Transmit(&UartHandle, (uint8_t*) dataOut, strlen(dataOut), 5000);
+//      snprintf(dataOut, MAX_BUF_SIZE, "MAG_X: %d, MAG_Y: %d, MAG_Z: %d\r\n", (int) data[0], (int) data[1], (int) data[2]);
+//      HAL_UART_Transmit(&UartHandle, (uint8_t*) dataOut, strlen(dataOut), 5000);
 
     }
   }
