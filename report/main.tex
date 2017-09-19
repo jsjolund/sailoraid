@@ -2,15 +2,22 @@
 
 %text
 \usepackage[utf8]{inputenc}
+\usepackage[numbers,super]{natbib}
 \usepackage{lipsum}
 \usepackage{amssymb,amsmath}
-\usepackage[linktocpage=true]{hyperref}
 \usepackage{listings}
-
+\usepackage{amsfonts}
 %graphics
 \usepackage{graphicx, xcolor}
 \usepackage{rotating}
 \usepackage{subfig}
+\usepackage{float}
+
+% links
+\usepackage{color}
+\usepackage[linktocpage=true, colorlinks=true, allcolors=blue]{hyperref}
+\usepackage[all]{hypcap}
+\usepackage[hypcap]{caption}
 
 %layout
 \usepackage{multicol}
@@ -46,6 +53,8 @@
 \pagestyle{fancy}
 \lhead{Project SailorAid}
 \chead{}
+
+
 \rhead{\today}
 \lfoot{}
 \cfoot{\thepage~of~\pageref{LastPage}}
@@ -90,7 +99,22 @@
 \clearpage
 \section{Hardware Design}
 
+\section{Sensors}
+\label{sec:sensors}
+\input{sensors.tex}
+
 \clearpage
 \section{Software Design}
+\chapterauthor{Sjölund, Johannes (no one)}
+\input{software_design.tex}
+
+\clearpage
+\section{Kalman filter}
+\chapterauthor{Axelsson, Oskar (no one)}
+\input{kf.tex}
+
+
+\clearpage
+\input{references.tex}
 
 \end{document}

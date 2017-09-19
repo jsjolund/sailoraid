@@ -1,0 +1,49 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP BTM112
+D BTM112, Bluetooth SPP Module, UART, Class 2
+K Bluetooth BT SPP Module
+$ENDCMP
+#
+$CMP BTM222
+D BTM222, Bluetooth SPP Module, UART, Class 1
+K Bluetooth BT SPP Module
+$ENDCMP
+#
+$CMP NEO-7M
+D NEO-7M, Low Power GPS/GLONASS Receiver, SPI, I2C, UART, USB, ROM
+K GPS GLONASS Module
+F http://versalogic.com/support/Downloads/MPEu-G2/NEO-7_DataSheet_(GPS.G7-HW-11004).pdf
+$ENDCMP
+#
+$CMP NEO-7N
+D NEO-7N, Low Power GPS/GLONASS Receiver, SPI, I2C, UART, USB, Flash programmable
+K GPS GLONASS Module
+F http://versalogic.com/support/Downloads/MPEu-G2/NEO-7_DataSheet_(GPS.G7-HW-11004).pdf
+$ENDCMP
+#
+$CMP RN42
+D RN42, Class 2 Bluetooth Module with On-Board Antenna
+K Bluetooth Module
+F http://ww1.microchip.com/downloads/en/DeviceDoc/rn-42-ds-v2.32r.pdf
+$ENDCMP
+#
+$CMP RN42N
+D RN42N, Class 2 Bluetooth Module
+K Bluetooth Module
+F http://ww1.microchip.com/downloads/en/DeviceDoc/rn-42-ds-v2.32r.pdf
+$ENDCMP
+#
+$CMP SIM900
+D SIM900, GSM Quad-Band Communication Module, GPRS, Audio Engine, AT Command Set
+K GSM GPRS Quad-Band SMS FAX
+F http://www.simcom.us/act_admin/supportfile/SIM900_HD_V1.01(091226).pdf
+$ENDCMP
+#
+$CMP SPBTLE-RF
+D SPBTLE-RF, Very Low Power Bluetooth Module, BLE 4.1, SPI
+K Bluetooth BLE Module
+F http://www.st.com/content/ccc/resource/technical/document/datasheet/48/74/89/26/50/8d/4e/33/DM00184006.pdf/files/DM00184006.pdf/jcr:content/translations/en.DM00184006.pdf
+$ENDCMP
+#
+#End Doc Library

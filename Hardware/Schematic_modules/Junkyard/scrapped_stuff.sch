@@ -1,0 +1,476 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:DCDCconv
+LIBS:ft232rl
+LIBS:lm1117
+LIBS:max3485e
+LIBS:stm32
+LIBS:stm32f4
+LIBS:stm32f100
+LIBS:A2235-H
+LIBS:IMU_Circuit
+LIBS:misc_rfcom
+LIBS:MOSFET_depleted
+LIBS:PowerSupply
+LIBS:scrapped_stuff-cache
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L C C?
+U 1 1 59BF0136
+P 2100 1750
+F 0 "C?" H 2125 1850 50  0000 L CNN
+F 1 "100n" H 2125 1650 50  0000 L CNN
+F 2 "Capacitors_ThroughHole:C_Axial_L3.8mm_D2.6mm_P7.50mm_Horizontal" H 2138 1600 50  0001 C CNN
+F 3 "" H 2100 1750 50  0000 C CNN
+	1    2100 1750
+	1    0    0    -1  
+$EndComp
+$Comp
+L CP1 C?
+U 1 1 59BF0137
+P 2350 1750
+F 0 "C?" H 2375 1850 50  0000 L CNN
+F 1 "10u" H 2375 1650 50  0000 L CNN
+F 2 "Capacitors_ThroughHole:CP_Axial_L10.0mm_D4.5mm_P15.00mm_Horizontal" H 2350 1750 50  0001 C CNN
+F 3 "" H 2350 1750 50  0000 C CNN
+	1    2350 1750
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C?
+U 1 1 59BF0138
+P 2650 1750
+F 0 "C?" H 2675 1850 50  0000 L CNN
+F 1 "100n" H 2675 1650 50  0000 L CNN
+F 2 "Capacitors_ThroughHole:C_Axial_L3.8mm_D2.6mm_P7.50mm_Horizontal" H 2688 1600 50  0001 C CNN
+F 3 "" H 2650 1750 50  0000 C CNN
+	1    2650 1750
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 59BF0139
+P 2350 2000
+F 0 "#PWR?" H 2350 1750 50  0001 C CNN
+F 1 "GND" H 2350 1850 50  0000 C CNN
+F 2 "" H 2350 2000 50  0000 C CNN
+F 3 "" H 2350 2000 50  0000 C CNN
+	1    2350 2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L CP1 C?
+U 1 1 59BF013A
+P 4700 1400
+F 0 "C?" H 4725 1500 50  0000 L CNN
+F 1 "10u" H 4725 1300 50  0000 L CNN
+F 2 "Capacitors_ThroughHole:CP_Axial_L10.0mm_D4.5mm_P15.00mm_Horizontal" H 4700 1400 50  0001 C CNN
+F 3 "" H 4700 1400 50  0000 C CNN
+	1    4700 1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 59BF013B
+P 4550 1550
+F 0 "#PWR?" H 4550 1300 50  0001 C CNN
+F 1 "GND" H 4550 1400 50  0000 C CNN
+F 2 "" H 4550 1550 50  0000 C CNN
+F 3 "" H 4550 1550 50  0000 C CNN
+	1    4550 1550
+	1    0    0    -1  
+$EndComp
+$Comp
+L +5V #PWR?
+U 1 1 59BF0143
+P 7400 1400
+F 0 "#PWR?" H 7400 1250 50  0001 C CNN
+F 1 "+5V" H 7400 1540 50  0000 C CNN
+F 2 "" H 7400 1400 50  0000 C CNN
+F 3 "" H 7400 1400 50  0000 C CNN
+	1    7400 1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 59BF0144
+P 6000 1400
+F 0 "#PWR?" H 6000 1150 50  0001 C CNN
+F 1 "GND" H 6000 1250 50  0000 C CNN
+F 2 "" H 6000 1400 50  0000 C CNN
+F 3 "" H 6000 1400 50  0000 C CNN
+	1    6000 1400
+	0    1    1    0   
+$EndComp
+Text Label 7400 2100 0    60   ~ 0
+VDD5EXT
+Text Label 7400 2000 0    60   ~ 0
+GNDEXT
+$Comp
+L C C?
+U 1 1 59BF0145
+P 8050 2050
+F 0 "C?" H 8075 2150 50  0000 L CNN
+F 1 "100n" H 8075 1950 50  0000 L CNN
+F 2 "Capacitors_ThroughHole:C_Axial_L3.8mm_D2.6mm_P7.50mm_Horizontal" H 8088 1900 50  0001 C CNN
+F 3 "" H 8050 2050 50  0000 C CNN
+	1    8050 2050
+	-1   0    0    1   
+$EndComp
+$Comp
+L C C?
+U 1 1 59BF0146
+P 8300 2050
+F 0 "C?" H 8325 2150 50  0000 L CNN
+F 1 "100n" H 8325 1950 50  0000 L CNN
+F 2 "Capacitors_ThroughHole:C_Axial_L3.8mm_D2.6mm_P7.50mm_Horizontal" H 8338 1900 50  0001 C CNN
+F 3 "" H 8300 2050 50  0000 C CNN
+	1    8300 2050
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 59BF0147
+P 3800 1600
+F 0 "#PWR?" H 3800 1350 50  0001 C CNN
+F 1 "GND" H 3800 1450 50  0000 C CNN
+F 2 "" H 3800 1600 50  0000 C CNN
+F 3 "" H 3800 1600 50  0000 C CNN
+	1    3800 1600
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_01X02 P?
+U 1 1 59BF0148
+P 1350 1800
+F 0 "P?" H 1350 1950 50  0000 C CNN
+F 1 "CONN_01X02" V 1450 1800 50  0000 C CNN
+F 2 "Connect:AK300-2" H 1350 1800 50  0001 C CNN
+F 3 "" H 1350 1800 50  0000 C CNN
+	1    1350 1800
+	-1   0    0    1   
+$EndComp
+$Comp
+L +12V #PWR?
+U 1 1 59BF0149
+P 1600 1750
+F 0 "#PWR?" H 1600 1600 50  0001 C CNN
+F 1 "+12V" H 1600 1890 50  0000 C CNN
+F 2 "" H 1600 1750 50  0000 C CNN
+F 3 "" H 1600 1750 50  0000 C CNN
+	1    1600 1750
+	1    0    0    -1  
+$EndComp
+$Comp
+L +5V #PWR?
+U 1 1 59BF014A
+P 4700 1250
+F 0 "#PWR?" H 4700 1100 50  0001 C CNN
+F 1 "+5V" H 4700 1390 50  0000 C CNN
+F 2 "" H 4700 1250 50  0000 C CNN
+F 3 "" H 4700 1250 50  0000 C CNN
+	1    4700 1250
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 59BF014B
+P 3800 2350
+F 0 "#PWR?" H 3800 2100 50  0001 C CNN
+F 1 "GND" H 3800 2200 50  0000 C CNN
+F 2 "" H 3800 2350 50  0000 C CNN
+F 3 "" H 3800 2350 50  0000 C CNN
+	1    3800 2350
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C?
+U 1 1 59BF014C
+P 4350 2150
+F 0 "C?" H 4375 2250 50  0000 L CNN
+F 1 "100n" H 4375 2050 50  0000 L CNN
+F 2 "Capacitors_ThroughHole:C_Axial_L3.8mm_D2.6mm_P7.50mm_Horizontal" H 4388 2000 50  0001 C CNN
+F 3 "" H 4350 2150 50  0000 C CNN
+	1    4350 2150
+	1    0    0    -1  
+$EndComp
+$Comp
+L CP1 C?
+U 1 1 59BF014D
+P 4700 2150
+F 0 "C?" H 4725 2250 50  0000 L CNN
+F 1 "10u" H 4725 2050 50  0000 L CNN
+F 2 "Capacitors_ThroughHole:CP_Axial_L10.0mm_D4.5mm_P15.00mm_Horizontal" H 4700 2150 50  0001 C CNN
+F 3 "" H 4700 2150 50  0000 C CNN
+	1    4700 2150
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 59BF014E
+P 4550 2300
+F 0 "#PWR?" H 4550 2050 50  0001 C CNN
+F 1 "GND" H 4550 2150 50  0000 C CNN
+F 2 "" H 4550 2300 50  0000 C CNN
+F 3 "" H 4550 2300 50  0000 C CNN
+	1    4550 2300
+	1    0    0    -1  
+$EndComp
+$Comp
+L +3V3 #PWR?
+U 1 1 59BF014F
+P 4700 2000
+F 0 "#PWR?" H 4700 1850 50  0001 C CNN
+F 1 "+3V3" H 4700 2140 50  0000 C CNN
+F 2 "" H 4700 2000 50  0000 C CNN
+F 3 "" H 4700 2000 50  0000 C CNN
+	1    4700 2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R?
+U 1 1 59BF0150
+P 1600 2250
+F 0 "R?" V 1680 2250 50  0000 C CNN
+F 1 "1k" V 1600 2250 50  0000 C CNN
+F 2 "Resistors_ThroughHole:R_Axial_DIN0204_L3.6mm_D1.6mm_P5.08mm_Horizontal" V 1530 2250 50  0001 C CNN
+F 3 "" H 1600 2250 50  0000 C CNN
+	1    1600 2250
+	0    1    1    0   
+$EndComp
+$Comp
+L +12V #PWR?
+U 1 1 59BF0151
+P 1450 2250
+F 0 "#PWR?" H 1450 2100 50  0001 C CNN
+F 1 "+12V" H 1450 2390 50  0000 C CNN
+F 2 "" H 1450 2250 50  0000 C CNN
+F 3 "" H 1450 2250 50  0000 C CNN
+	1    1450 2250
+	0    -1   -1   0   
+$EndComp
+$Comp
+L D D?
+U 1 1 59BF0152
+P 1850 1600
+F 0 "D?" H 1850 1700 50  0000 C CNN
+F 1 "D" H 1850 1500 50  0000 C CNN
+F 2 "Diodes_ThroughHole:D_5W_P5.08mm_Vertical_AnodeUp" H 1850 1600 50  0001 C CNN
+F 3 "" H 1850 1600 50  0000 C CNN
+	1    1850 1600
+	-1   0    0    1   
+$EndComp
+$Comp
+L C C?
+U 1 1 59BF015A
+P 4350 1400
+F 0 "C?" H 4375 1500 50  0000 L CNN
+F 1 "100n" H 4375 1300 50  0000 L CNN
+F 2 "Capacitors_ThroughHole:C_Axial_L3.8mm_D2.6mm_P7.50mm_Horizontal" H 4388 1250 50  0001 C CNN
+F 3 "" H 4350 1400 50  0000 C CNN
+	1    4350 1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L LT1129CST-3.3 U?
+U 1 1 59BF015B
+P 3800 2050
+F 0 "U?" H 3550 2250 50  0000 C CNN
+F 1 "UA78M33CDCY" H 3950 2250 50  0000 C CNN
+F 2 "TO_SOT_Packages_SMD:SOT-223" H 3800 2150 50  0000 C CIN
+F 3 "" H 3800 2050 50  0000 C CNN
+	1    3800 2050
+	1    0    0    -1  
+$EndComp
+$Comp
+L LT1129CST-5 U?
+U 1 1 59BF015C
+P 3800 1300
+F 0 "U?" H 3550 1500 50  0000 C CNN
+F 1 "UA78M05IDCY" H 3950 1500 50  0000 C CNN
+F 2 "TO_SOT_Packages_SMD:SOT-223" H 3800 1400 50  0000 C CIN
+F 3 "" H 3800 1300 50  0000 C CNN
+	1    3800 1300
+	1    0    0    -1  
+$EndComp
+Text Notes 1050 1300 0    60   ~ 0
+12V DC Battery
+Text Notes 4850 1900 0    60   ~ 0
+Max 0.5A
+Text Notes 4850 1150 0    60   ~ 0
+Max 0.5A
+NoConn ~ 6000 2100
+NoConn ~ 6000 2000
+Text Notes 5800 2550 0    60   ~ 0
+DC/DC converter
+$Comp
+L TRACO_POWER_TEL_2-0511 U?
+U 1 1 59BF0161
+P 6700 2000
+F 0 "U?" H 6150 2900 50  0000 L CNN
+F 1 "TRACO_POWER_TEL_2-0511" H 6200 1600 50  0000 L CNN
+F 2 "LIBRARIES:TRACO_POWER_TEX_2-0511" H 6700 2000 50  0001 C CIN
+F 3 "" H 6700 1750 50  0000 C CNN
+	1    6700 2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C?
+U 1 1 59BF0164
+P 2900 1750
+F 0 "C?" H 2925 1850 50  0000 L CNN
+F 1 "100n" H 2925 1650 50  0000 L CNN
+F 2 "Capacitors_ThroughHole:C_Axial_L3.8mm_D2.6mm_P7.50mm_Horizontal" H 2938 1600 50  0001 C CNN
+F 3 "" H 2900 1750 50  0000 C CNN
+	1    2900 1750
+	1    0    0    -1  
+$EndComp
+Text Notes 7700 1600 0    60   ~ 0
+DC/DC Converter\nfor digital current\npower planes.\n\nPS. Also good for\n keeping batteries \n constant! (maybe)
+$Comp
+L LED_ALT D?
+U 1 1 59BF016D
+P 1950 2250
+F 0 "D?" H 1950 2350 50  0000 C CNN
+F 1 "Power_On_LED" H 1950 2150 50  0000 C CNN
+F 2 "LEDs:LED_D5.0mm" H 1950 2250 50  0001 C CNN
+F 3 "" H 1950 2250 50  0001 C CNN
+	1    1950 2250
+	-1   0    0    1   
+$EndComp
+NoConn ~ 3900 1600
+NoConn ~ 3900 2350
+Text Notes 1000 1100 0    60   ~ 0
+Battery power example, please edit if necessary.
+Wire Notes Line
+	3300 1150 3300 1050
+Wire Notes Line
+	950  1150 3300 1150
+Wire Notes Line
+	950  1200 950  1150
+Wire Notes Line
+	5450 2600 5450 950 
+Wire Notes Line
+	950  2600 5450 2600
+Wire Notes Line
+	950  950  950  2600
+Wire Notes Line
+	5450 950  950  950 
+Connection ~ 2200 2000
+Wire Wire Line
+	2200 2000 2200 2250
+Wire Wire Line
+	2200 2250 2100 2250
+Wire Wire Line
+	1750 2250 1800 2250
+Wire Notes Line
+	5650 2600 5650 950 
+Wire Notes Line
+	8500 2600 5650 2600
+Wire Notes Line
+	8500 1700 8500 2600
+Wire Notes Line
+	7650 1750 8500 1750
+Wire Notes Line
+	7650 950  7650 1750
+Wire Notes Line
+	5650 950  7650 950 
+Wire Wire Line
+	7400 2100 7400 2200
+Wire Wire Line
+	7400 1900 7400 2000
+Connection ~ 2900 1600
+Connection ~ 2650 2000
+Wire Wire Line
+	2900 2000 2900 1900
+Connection ~ 1600 1750
+Wire Wire Line
+	1700 2000 2900 2000
+Connection ~ 2100 1600
+Connection ~ 2350 1600
+Connection ~ 2650 1600
+Wire Wire Line
+	2350 2000 2350 1900
+Connection ~ 2100 2000
+Wire Wire Line
+	2650 2000 2650 1900
+Connection ~ 2350 2000
+Wire Wire Line
+	4350 1550 4700 1550
+Connection ~ 4550 1550
+Wire Wire Line
+	2100 2000 2100 1900
+Wire Wire Line
+	7400 1900 8300 1900
+Connection ~ 8050 1900
+Wire Wire Line
+	7400 2200 8300 2200
+Connection ~ 8050 2200
+Wire Wire Line
+	1550 1750 1700 1750
+Wire Wire Line
+	1700 2000 1700 1850
+Wire Wire Line
+	1700 1850 1550 1850
+Wire Wire Line
+	4350 2300 4700 2300
+Connection ~ 4550 2300
+Wire Wire Line
+	2000 1600 3150 1600
+Wire Wire Line
+	1700 1750 1700 1600
+Wire Wire Line
+	4250 1250 4700 1250
+Wire Wire Line
+	4250 2000 4700 2000
+Connection ~ 3150 1600
+Wire Wire Line
+	3150 2000 3350 2000
+Wire Wire Line
+	3150 1250 3150 2000
+Wire Wire Line
+	3150 1250 3350 1250
+Connection ~ 4350 1250
+Connection ~ 4350 2000
+$EndSCHEMATC

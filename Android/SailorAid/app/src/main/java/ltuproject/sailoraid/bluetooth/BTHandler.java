@@ -3,8 +3,10 @@ package ltuproject.sailoraid.bluetooth;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.content.Context;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.support.v7.app.AlertDialog;
@@ -36,17 +38,24 @@ public class BTHandler {
     private ArrayList<BluetoothDevice> newDeviceList;
     private ArrayList<BluetoothDevice> leDeviceList;
     private BluetoothDevice newDevice;
-
+    private BluetoothGatt mBluetoothGatt;
+    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics;
+    private BluetoothGattCharacteristic characteristic;
+    private BluetoothGattCharacteristic mNotifyCharacteristic;
+    private BTLEConnection btLEConnection;
     private BTConnection btConnection;
 
     private boolean mScanning;
     private Handler mHandler;
 
-    public BTHandler(BluetoothAdapter btAdapter){
-        this.btAdapter = btAdapter;
+    private Context contx;
+
+    public BTHandler(Context contx){
+        this.btAdapter = BluetoothAdapter.getDefaultAdapter();
         newDeviceList = new ArrayList<BluetoothDevice>();
         leDeviceList = new ArrayList<BluetoothDevice>();
         mHandler = new Handler();
+        this.contx = contx;
     }
 
     public BluetoothDevice getDevice(String name, String address){
@@ -101,6 +110,51 @@ public class BTHandler {
         btConnection = new BTConnection(newDevice, btAdapter);
     }
 
+    public void startNewBTLEConnection(){
+        btLEConnection = new BTLEConnection(contx, btAdapter);
+    }
+    public void connectToLEDevice(final BluetoothDevice device) {
+        Handler handler = new Handler(contx.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+
+                if (device != null) {
+                    mBluetoothGatt = device.connectGatt(contx, false, btLEConnection.getGattCallback());
+                }
+            }
+        });
+    }
+
+    public void setmGattCharacteristics(ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics){
+        this.mGattCharacteristics = mGattCharacteristics;
+    }
+    public void registerGattNotifications(){
+        BluetoothGattCharacteristic characteristic = null;
+        for (int i=0; i<mGattCharacteristics.size(); i++){
+            ArrayList<BluetoothGattCharacteristic> tmp = mGattCharacteristics.get(i);
+            for (int j=0; j<tmp.size(); j++) {
+                characteristic = tmp.get(j);
+                btLEConnection.setCharacteristicNotification(characteristic, true);
+                final int charaProp = characteristic.getProperties();
+                if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+                    // If there is an active notification on a characteristic, clear
+                    // it first so it doesn't update the data field on the user interface.
+                    if (mNotifyCharacteristic != null) {
+                        btLEConnection.setCharacteristicNotification(
+                                mNotifyCharacteristic, false);
+                        mNotifyCharacteristic = null;
+                    }
+                    btLEConnection.readCharacteristic(characteristic);
+                }
+                if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+                    mNotifyCharacteristic = characteristic;
+                    btLEConnection.setCharacteristicNotification(
+                            characteristic, true);
+                }
+            }
+        }
+    }
 
     public boolean deviceExists(ArrayList<BluetoothDevice> list, BluetoothDevice device){
         boolean exists = false;
@@ -111,6 +165,14 @@ public class BTHandler {
             }
         }
         return exists;
+    }
+
+    public void closeGatt() {
+        if (mBluetoothGatt == null) {
+            return;
+        }
+        mBluetoothGatt.close();
+        mBluetoothGatt = null;
     }
 
     /*
@@ -159,6 +221,9 @@ public class BTHandler {
         return  leDeviceList;
     }
 
+    public BTLEConnection getBtLEConnection(){
+        return btLEConnection;
+    }
     public void clearLeList(){
         leDeviceList.clear();
     }
