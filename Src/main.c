@@ -1,40 +1,40 @@
 /**
- ******************************************************************************
- * File Name          : main.c
- * Description        : Main program body
- ******************************************************************************
- ** This notice applies to any and all portions of this file
- * that are not between comment pairs USER CODE BEGIN and
- * USER CODE END. Other portions of this file, whether
- * inserted by the user or by software development tools
- * are owned by their respective copyright owners.
- *
- * COPYRIGHT(c) 2017 STMicroelectronics
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *   1. Redistributions of source code must retain the above copyright notice,
- *      this list of conditions and the following disclaimer.
- *   2. Redistributions in binary form must reproduce the above copyright notice,
- *      this list of conditions and the following disclaimer in the documentation
- *      and/or other materials provided with the distribution.
- *   3. Neither the name of STMicroelectronics nor the names of its contributors
- *      may be used to endorse or promote products derived from this software
- *      without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- ******************************************************************************
- */
+  ******************************************************************************
+  * File Name          : main.c
+  * Description        : Main program body
+  ******************************************************************************
+  ** This notice applies to any and all portions of this file
+  * that are not between comment pairs USER CODE BEGIN and
+  * USER CODE END. Other portions of this file, whether
+  * inserted by the user or by software development tools
+  * are owned by their respective copyright owners.
+  *
+  * COPYRIGHT(c) 2017 STMicroelectronics
+  *
+  * Redistribution and use in source and binary forms, with or without modification,
+  * are permitted provided that the following conditions are met:
+  *   1. Redistributions of source code must retain the above copyright notice,
+  *      this list of conditions and the following disclaimer.
+  *   2. Redistributions in binary form must reproduce the above copyright notice,
+  *      this list of conditions and the following disclaimer in the documentation
+  *      and/or other materials provided with the distribution.
+  *   3. Neither the name of STMicroelectronics nor the names of its contributors
+  *      may be used to endorse or promote products derived from this software
+  *      without specific prior written permission.
+  *
+  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  *
+  ******************************************************************************
+  */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
@@ -46,20 +46,27 @@
 #include "stm32_bluenrg_ble.h"
 #include "bluenrg_utils.h"
 
-#include "accelerometer.h"
 #include "stm32f4xx_nucleo.h"
+
+#include "sensor.h"
 #include "x_nucleo_iks01a2.h"
 #include "x_nucleo_iks01a2_gyro.h"
 #include "x_nucleo_iks01a2_accelero.h"
 #include "x_nucleo_iks01a2_magneto.h"
-#include "com.h"
+#include "x_nucleo_iks01a2_humidity.h"
+#include "x_nucleo_iks01a2_pressure.h"
+#include "x_nucleo_iks01a2_temperature.h"
 #include "MadgwickAHRS.h"
+
+#include "com.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
 
 SPI_HandleTypeDef hspi1;
+
+TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
@@ -71,36 +78,12 @@ extern volatile int connected;
 extern AxesRaw_t axes_data;
 uint8_t bnrg_expansion_board = IDB04A1; /* at startup, suppose the X-NUCLEO-IDB04A1 is used */
 
-/**
- * @brief  Handle DEMO State Machine
- */
-typedef enum demoFifoStatus
-{
-  DEMO_STATUS_IDLE, DEMO_STATUS_SET_FIFO_CONTINUOUS_MODE, DEMO_STATUS_FIFO_RUN, DEMO_STATUS_FIFO_DOWNLOAD, DEMO_STATUS_SET_FIFO_BYPASS_MODE
-} DEMO_FIFO_STATUS;
-
-#define FIFO_WATERMARK   11 /*!< FIFO size limit */
-#define SAMPLE_LIST_MAX  10 /*!< Max. number of values (X,Y,Z) to be printed to UART */
-#define LSM6DSL_SAMPLE_ODR    ODR_LOW /*!< Sample Output Data Rate [Hz] */
-#define LSM6DSL_FIFO_MAX_ODR  416    /*!< LSM6DSL FIFO maximum ODR */
-#define FIFO_INDICATION_DELAY  100 /*!< When FIFO event ocurs, LED is ON for at least this period [ms] */
-#define PATTERN_GYR_X_AXIS  0 /*!< Pattern of gyro X axis */
-#define PATTERN_GYR_Y_AXIS  1 /*!< Pattern of gyro Y axis */
-#define PATTERN_GYR_Z_AXIS  2 /*!< Pattern of gyro Z axis */
-#define PATTERN_ACC_X_AXIS  0 /*!< Pattern of accelero X axis */
-#define PATTERN_ACC_Y_AXIS  1 /*!< Pattern of accelero Y axis */
-#define PATTERN_ACC_Z_AXIS  2 /*!< Pattern of accelero Z axis */
-#define UART_TRANSMIT_TIMEOUT  5000
-#define MAX_BUF_SIZE 256
-/* This variable MUST be volatile because it could change into a ISR */
-static volatile uint8_t memsIntDetected = 0;
-static char dataOut[MAX_BUF_SIZE];
-static void *LSM6DSL_G_0_handle = NULL;
-static void *LSM6DSL_X_0_handle = NULL;
-static void *LSM303AGR_M_0_handle = NULL;
-/* This variable MUST be volatile because it could change into a ISR */
-static volatile DEMO_FIFO_STATUS demoFifoStatus = DEMO_STATUS_SET_FIFO_BYPASS_MODE;
-
+void *ACCELERO_handle = NULL;
+void *GYRO_handle = NULL;
+void *MAGNETO_handle = NULL;
+void *HUMIDITY_handle = NULL;
+void *TEMPERATURE_handle = NULL;
+void *PRESSURE_handle = NULL;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -110,18 +93,19 @@ static void MX_USART2_UART_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM2_Init(void);
 
 /* USER CODE BEGIN PFP */
 void User_Process(AxesRaw_t* p_axes);
 
-static DrvStatusTypeDef Init_All_Sensors(void);
-static DrvStatusTypeDef Enable_All_Sensors(void);
-static DrvStatusTypeDef LSM6DSL_FIFO_Set_Bypass_Mode(void);
-static DrvStatusTypeDef LSM6DSL_FIFO_Set_Continuous_Mode(void);
-static DrvStatusTypeDef LSM6DSL_Read_All_FIFO_Data(SensorAxes_t *gyro, SensorAxes_t *acc, SensorAxes_t *mag);
-static DrvStatusTypeDef LSM6DSL_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIndex, SensorAxes_t *acc, SensorAxes_t *gyro, SensorAxes_t *mag);
-static DrvStatusTypeDef LSM6DSL_FIFO_Demo_Config(void);
-static void LSM303AGR_Read_Magnometer(SensorAxes_t *MAG_Value);
+void enableDisableSensors(void);
+void initializeAllSensors(void);
+void Temperature_Sensor_Handler(float *TEMPERATURE_Value);
+void Humidity_Sensor_Handler(float *HUMIDITY_Value);
+void Pressure_Sensor_Handler(float *PRESSURE_Value);
+void Accelero_Sensor_Handler(SensorAxes_t *ACC_Value);
+void Magneto_Sensor_Handler(SensorAxes_t *MAG_Value);
+void Gyro_Sensor_Handler(SensorAxes_t *GYR_Value);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -140,16 +124,17 @@ int main(void)
   uint16_t fwVersion;
 
   int ret;
-  MadgwickInit(LSM6DSL_FIFO_MAX_ODR);
 
-  uint8_t fifo_full_status = 0;
-  uint16_t samplesInFIFO = 0;
-  uint16_t oldSamplesInFIFO = 0;
-  SensorAxes_t gyro, acc, mag;
+  SensorAxes_t ACC_Value; /*!< Acceleration Value */
+  SensorAxes_t GYR_Value; /*!< Gyroscope Value */
+  SensorAxes_t MAG_Value; /*!< Magnetometer Value */
+  float PRESSURE_Value; /*!< Pressure Value */
+  float HUMIDITY_Value; /*!< Humidity Value */
+  float TEMPERATURE_Value; /*!< Temperature Value */
 
   /* USER CODE END 1 */
 
-  /* MCU Configuration-------------------------------u _printf_float----------------------------*/
+  /* MCU Configuration----------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
@@ -169,6 +154,7 @@ int main(void)
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   MX_I2C1_Init();
+  MX_TIM2_Init();
 
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
@@ -315,132 +301,92 @@ int main(void)
   ret = aci_hal_set_tx_power_level(1, 4);
 
   /* IMU */
-  if (Init_All_Sensors() == COMPONENT_ERROR)
-  {
-    printf("Error initiating sensors\n");
-  }
+  initializeAllSensors();
+  enableDisableSensors();
 
-  if (Enable_All_Sensors() == COMPONENT_ERROR)
-  {
-    printf("Error enabling sensors\n");
-  }
+  HAL_TIM_Base_Init(&htim2);
+  HAL_TIM_Base_Start(&htim2);
 
-  /* Configure LSM6DSL Sensor for the DEMO application */
-  if (LSM6DSL_FIFO_Demo_Config() == COMPONENT_ERROR)
-  {
-    printf("Error configuring sensors\n");
-  }
+  int serialDebugRate = 100;
+  int imuSampleRate = 416;
+  int envSensorRate = 10;
 
-  printf("\r\n------ LSM6DSL FIFO Continuous Mode DEMO ------\r\n");
+  MadgwickInit(imuSampleRate);
+
+  uint32_t imuPeriod = 1000000 / imuSampleRate;
+  uint32_t imuPrevious = htim2.Instance->CNT;
+  uint32_t envSensorPeriod = 1000000 / envSensorRate;
+  uint32_t envSensorPrevious = htim2.Instance->CNT;
+  uint32_t serialPeriod = 1000000 / serialDebugRate;
+  uint32_t serialPrevious = htim2.Instance->CNT;
+
+  float ax = 0, ay = 0, az = 0, gx = 0, gy = 0, gz = 0, mx = 0, my = 0, mz = 0, yaw = 0, pitch = 0, roll = 0;
 
   while (1)
   {
     HCI_Process();
     User_Process(&axes_data);
+
 #if NEW_SERVICES
     Update_Time_Characteristics();
 #endif
 
-    /* Handle DEMO State Machine */
-    switch (demoFifoStatus)
+    uint32_t microsNow = htim2.Instance->CNT;
+
+    if (microsNow - imuPrevious >= imuPeriod)
     {
-    case DEMO_STATUS_IDLE:
-      break;
-
-    case DEMO_STATUS_SET_FIFO_CONTINUOUS_MODE:
-
-      if (LSM6DSL_FIFO_Set_Continuous_Mode() == COMPONENT_ERROR)
-      {
-        printf("Error setting continuous mode\n");
-      }
-      demoFifoStatus = DEMO_STATUS_FIFO_RUN;
-      break;
-
-    case DEMO_STATUS_FIFO_RUN:
-
-      /* Get num of unread FIFO samples before reading data */
-      if (BSP_GYRO_FIFO_Get_Num_Of_Samples_Ext(LSM6DSL_G_0_handle, &samplesInFIFO) == COMPONENT_ERROR)
-      {
-        return COMPONENT_ERROR;
-      }
-
-//      /* Print dot realtime when each new data is stored in FIFO */
-//      if (samplesInFIFO != oldSamplesInFIFO)
-//      {
-//        oldSamplesInFIFO = samplesInFIFO;
-//        snprintf(dataOut, MAX_BUF_SIZE, ".");
-//        HAL_UART_Transmit(&UartHandle, (uint8_t *) dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-//      }
-
-      if (memsIntDetected)
-      {
-        demoFifoStatus = DEMO_STATUS_FIFO_DOWNLOAD;
-        memsIntDetected = 0;
-      }
-      break;
-
-    case DEMO_STATUS_FIFO_DOWNLOAD:
-
-      /* Print data if FIFO is full */
-      if (BSP_GYRO_FIFO_Get_Full_Status_Ext(LSM6DSL_G_0_handle, &fifo_full_status) == COMPONENT_ERROR)
-      {
-        printf("Error getting full status ext from FIFO\n");
-      }
-
-      if (fifo_full_status == 1)
-      {
-        BSP_LED_On(LED2);
-
-        if (LSM6DSL_Read_All_FIFO_Data(&gyro, &acc, &mag) == COMPONENT_ERROR)
-        {
-          printf("Error reading all FIFO data\n");
-        }
-
-        BSP_LED_Off(LED2);
-
-        demoFifoStatus = DEMO_STATUS_FIFO_RUN;
-      }
-      break;
-
-    case DEMO_STATUS_SET_FIFO_BYPASS_MODE:
-
-      if (LSM6DSL_FIFO_Set_Bypass_Mode() == COMPONENT_ERROR)
-      {
-        printf("Error setting bypass mode\n");
-      }
-
-      memsIntDetected = 0;
-      samplesInFIFO = 0;
-      oldSamplesInFIFO = 0;
-      demoFifoStatus = STATUS_IDLE;
-      break;
-
-    default:
-      break;
+      Accelero_Sensor_Handler(&ACC_Value);
+      Gyro_Sensor_Handler(&GYR_Value);
+      Magneto_Sensor_Handler(&MAG_Value);
+      gx = ((float) GYR_Value.AXIS_X)/1000;
+      gy = ((float) GYR_Value.AXIS_Y)/1000;
+      gz = ((float) GYR_Value.AXIS_Z)/1000;
+      ax = ((float) ACC_Value.AXIS_X)/1000;
+      ay = ((float) ACC_Value.AXIS_Y)/1000;
+      az = ((float) ACC_Value.AXIS_Z)/1000;
+      mx = ((float) MAG_Value.AXIS_X)/1000;
+      my = ((float) MAG_Value.AXIS_Y)/1000;
+      mz = ((float) MAG_Value.AXIS_Z)/1000;
+      MadgwickUpdate(gx, gy, gz, ax, ay, az, mx, my, mz);
+      imuPrevious += imuPeriod;
+    }
+    if (microsNow - serialPrevious >= serialPeriod)
+    {
+      roll = MadgwickGetRoll();
+      pitch = MadgwickGetPitch();
+      yaw = MadgwickGetYaw();
+//      printf("%3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f\r\n", roll, pitch, yaw, gx, gy, gz, ax, ay, az, mx, my, mz);
+      printf("%3.4f %3.4f %3.4f\r\n", roll, pitch, yaw);
+      serialPrevious += serialPeriod;
+    }
+    if (microsNow - envSensorPrevious >= envSensorPeriod)
+    {
+      Pressure_Sensor_Handler(&PRESSURE_Value);
+      Humidity_Sensor_Handler(&HUMIDITY_Value);
+      Temperature_Sensor_Handler(&TEMPERATURE_Value);
+      envSensorPrevious += envSensorPeriod;
     }
   }
-
   /* USER CODE END 3 */
 
 }
 
 /** System Clock Configuration
- */
+*/
 void SystemClock_Config(void)
 {
 
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
-  /**Configure the main internal regulator output voltage
-   */
-  __HAL_RCC_PWR_CLK_ENABLE()
-  ;
+    /**Configure the main internal regulator output voltage
+    */
+  __HAL_RCC_PWR_CLK_ENABLE();
 
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-  /**Initializes the CPU, AHB and APB busses clocks
-   */
+    /**Initializes the CPU, AHB and APB busses clocks
+    */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -454,9 +400,10 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  /**Initializes the CPU, AHB and APB busses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    /**Initializes the CPU, AHB and APB busses clocks
+    */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -467,12 +414,12 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  /**Configure the Systick interrupt time
-   */
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
+    /**Configure the Systick interrupt time
+    */
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
-  /**Configure the Systick
-   */
+    /**Configure the Systick
+    */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* SysTick_IRQn interrupt configuration */
@@ -522,6 +469,38 @@ static void MX_SPI1_Init(void)
 
 }
 
+/* TIM2 init function */
+static void MX_TIM2_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 99;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 0xffffffff;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* USART1 init function */
 static void MX_USART1_UART_Init(void)
 {
@@ -560,30 +539,26 @@ static void MX_USART2_UART_Init(void)
 
 }
 
-/** Configure pins as
- * Analog
- * Input
- * Output
- * EVENT_OUT
- * EXTI
- */
+/** Configure pins as 
+        * Analog
+        * Input
+        * Output
+        * EVENT_OUT
+        * EXTI
+*/
 static void MX_GPIO_Init(void)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct;
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE()
-  ;
-  __HAL_RCC_GPIOH_CLK_ENABLE()
-  ;
-  __HAL_RCC_GPIOA_CLK_ENABLE()
-  ;
-  __HAL_RCC_GPIOB_CLK_ENABLE()
-  ;
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, BNRG_SPI_CS_Pin | LED2_Pin | BNRG_SPI_RESET_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, BNRG_SPI_CS_Pin|LED2_Pin|BNRG_SPI_RESET_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : USER_BUTTON_Pin */
   GPIO_InitStruct.Pin = USER_BUTTON_Pin;
@@ -611,14 +586,14 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(BNRG_SPI_CS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED2_Pin BNRG_SPI_RESET_Pin */
-  GPIO_InitStruct.Pin = LED2_Pin | BNRG_SPI_RESET_Pin;
+  GPIO_InitStruct.Pin = LED2_Pin|BNRG_SPI_RESET_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LPS22H_INT1_O_Pin LSM6DSL_INT2_O_Pin LSM6DSL_INT1_O_Pin */
-  GPIO_InitStruct.Pin = LPS22H_INT1_O_Pin | LSM6DSL_INT2_O_Pin | LSM6DSL_INT1_O_Pin;
+  GPIO_InitStruct.Pin = LPS22H_INT1_O_Pin|LSM6DSL_INT2_O_Pin|LSM6DSL_INT1_O_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -676,317 +651,24 @@ void User_Process(AxesRaw_t* p_axes)
     }
   }
 }
-/**
- * @brief  Initialize all sensors
- * @param  None
- * @retval COMPONENT_OK
- * @retval COMPONENT_ERROR
- */
-static DrvStatusTypeDef Init_All_Sensors(void)
-{
-  if (BSP_ACCELERO_Init(LSM6DSL_X_0, &LSM6DSL_X_0_handle) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-  if (BSP_GYRO_Init(LSM6DSL_G_0, &LSM6DSL_G_0_handle) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-  if (BSP_MAGNETO_Init(LSM303AGR_M_0, &LSM303AGR_M_0_handle) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-  return COMPONENT_OK;
-}
 
 /**
- * @brief  Enable all sensors
- * @param  None
- * @retval COMPONENT_OK
- * @retval COMPONENT_ERROR
+ * @brief  Handles the GYRO axes data getting/sending
+ * @param  Msg the GYRO part of the stream
+ * @retval None
  */
-static DrvStatusTypeDef Enable_All_Sensors(void)
+void Gyro_Sensor_Handler(SensorAxes_t *GYR_Value)
 {
-  if (BSP_GYRO_Sensor_Enable(LSM6DSL_G_0_handle) == COMPONENT_ERROR)
+  uint8_t status = 0;
+  uint8_t drdy = 0;
+  if (BSP_GYRO_IsInitialized(GYRO_handle, &status) == COMPONENT_OK && status == 1)
   {
-    return COMPONENT_ERROR;
-  }
-  if (BSP_ACCELERO_Sensor_Enable(LSM6DSL_X_0_handle) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-  if (BSP_MAGNETO_Sensor_Enable(LSM303AGR_M_0_handle) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-  return COMPONENT_OK;
-}
-
-/**
- * @brief  Configure FIFO
- * @param  None
- * @retval COMPONENT_OK
- * @retval COMPONENT_ERROR
- */
-static DrvStatusTypeDef LSM6DSL_FIFO_Demo_Config(void)
-{
-  if (BSP_GYRO_Set_ODR(LSM6DSL_G_0_handle, LSM6DSL_SAMPLE_ODR) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-
-  /* Set gyro FIFO decimation */
-  if (BSP_GYRO_FIFO_Set_Decimation_Ext(LSM6DSL_G_0_handle, LSM6DSL_ACC_GYRO_DEC_FIFO_G_NO_DECIMATION) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-
-  /* Set FIFO ODR to highest value */
-  if (BSP_GYRO_FIFO_Set_ODR_Value_Ext(LSM6DSL_G_0_handle, LSM6DSL_FIFO_MAX_ODR) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-
-  /* Set FIFO_FULL on INT1 */
-  if (BSP_GYRO_FIFO_Set_INT1_FIFO_Full_Ext(LSM6DSL_G_0_handle, LSM6DSL_ACC_GYRO_INT1_FULL_FLAG_ENABLED) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-
-  /* Set FIFO watermark */
-  if (BSP_GYRO_FIFO_Set_Watermark_Level_Ext(LSM6DSL_G_0_handle, FIFO_WATERMARK) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-
-  /* Set FIFO depth to be limited to watermark threshold level  */
-  if (BSP_GYRO_FIFO_Set_Stop_On_Fth_Ext(LSM6DSL_G_0_handle, LSM6DSL_ACC_GYRO_STOP_ON_FTH_ENABLED) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-
-  return COMPONENT_OK;
-}
-
-/**
- * @brief  Set FIFO bypass mode
- * @param  None
- * @retval COMPONENT_OK
- * @retval COMPONENT_ERROR
- */
-static DrvStatusTypeDef LSM6DSL_FIFO_Set_Bypass_Mode(void)
-{
-  if (BSP_GYRO_FIFO_Set_Mode_Ext(LSM6DSL_G_0_handle, LSM6DSL_ACC_GYRO_FIFO_MODE_BYPASS) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-  if (BSP_ACCELERO_FIFO_Set_Mode_Ext(LSM6DSL_X_0_handle, LSM6DSL_ACC_GYRO_FIFO_MODE_BYPASS) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-
-  snprintf(dataOut, MAX_BUF_SIZE, "\r\nFIFO is stopped in Bypass mode.\r\n");
-  HAL_UART_Transmit(&UartHandle, (uint8_t *) dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-
-  snprintf(dataOut, MAX_BUF_SIZE, "\r\nPress USER button to start the DEMO...\r\n");
-  HAL_UART_Transmit(&UartHandle, (uint8_t *) dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-
-  return COMPONENT_OK;
-}
-
-/**
- * @brief  Set FIFO to Continuous mode
- * @param  None
- * @retval COMPONENT_OK
- * @retval COMPONENT_ERROR
- */
-static DrvStatusTypeDef LSM6DSL_FIFO_Set_Continuous_Mode(void)
-{
-  snprintf(dataOut, MAX_BUF_SIZE, "\r\nLSM6DSL starts to store the data into FIFO...\r\n\r\n");
-  HAL_UART_Transmit(&UartHandle, (uint8_t *) dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-
-  HAL_Delay(1000);
-
-  /* Set FIFO mode to Continuous */
-  if (BSP_GYRO_FIFO_Set_Mode_Ext(LSM6DSL_G_0_handle, LSM6DSL_ACC_GYRO_FIFO_MODE_DYN_STREAM_2) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-
-  return COMPONENT_OK;
-}
-
-/**
- * @brief  Read all unread FIFO data in cycle
- * @param  None
- * @retval COMPONENT_OK
- * @retval COMPONENT_ERROR
- */
-static DrvStatusTypeDef LSM6DSL_Read_All_FIFO_Data(SensorAxes_t *gyro, SensorAxes_t *acc, SensorAxes_t *mag)
-{
-  uint16_t gSamplesToRead = 0;
-  uint16_t aSamplesToRead = 0;
-
-  int i = 0;
-
-  /* Get num of unread FIFO samples before reading data */
-  if (BSP_GYRO_FIFO_Get_Num_Of_Samples_Ext(LSM6DSL_G_0_handle, &gSamplesToRead) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-
-  /* Get num of unread FIFO samples before reading data */
-  if (BSP_ACCELERO_FIFO_Get_Num_Of_Samples_Ext(LSM6DSL_X_0_handle, &aSamplesToRead) == COMPONENT_ERROR)
-  {
-    return COMPONENT_ERROR;
-  }
-
-  /* 'samplesToRead' actually contains number of words in FIFO but each FIFO sample (data set) consists of 3 words
-   so the 'samplesToRead' has to be divided by 3 */
-  gSamplesToRead /= 3;
-
-//  printf("\r\n\r\n%d samples in FIFO.\r\n\r\nStarted downloading data from FIFO...\r\n\r\n", gSamplesToRead);
-
-//  printf("[DATA ##]     GYR_X     GYR_Y     GYR_Z     ACC_X     ACC_Y     ACC_Z\r\n");
-
-  for (i = 0; i < gSamplesToRead; i++)
-  {
-    if (LSM6DSL_Read_Single_FIFO_Pattern_Cycle(i, gyro, acc, mag) == COMPONENT_ERROR)
+    BSP_GYRO_Get_DRDY_Status(GYRO_handle, &drdy);
+    if (drdy != 0)
     {
-      return COMPONENT_ERROR;
+      BSP_GYRO_Get_Axes(GYRO_handle, GYR_Value);
     }
   }
-
-  if (gSamplesToRead > SAMPLE_LIST_MAX)
-  {
-    printf("\r\nSample list limited to: %d\r\n\r\n", SAMPLE_LIST_MAX);
-  }
-
-  return COMPONENT_OK;
-}
-
-#define INT32_T_TO_FLOAT(n)                    \
-    (float)( (n ) )
-
-/**
- * @brief  Read single FIFO pattern cycle
- * @param  sampleIndex Current sample index.
- * @retval COMPONENT_OK
- * @retval COMPONENT_ERROR
- */
-static DrvStatusTypeDef LSM6DSL_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIndex,  SensorAxes_t *gyro, SensorAxes_t *acc, SensorAxes_t *mag )
-{
-  uint16_t pattern = 0;
-  int32_t acceleration = 0;
-  int32_t angular_velocity = 0;
-  float gx,gy,gz,ax,ay,az,mx,my,mz;
-  int i = 0;
-
-  /* Read one whole FIFO pattern cycle. Pattern: Gx, Gy, Gz */
-  for (i = 0; i <= 2; i++)
-  {
-    /* Read FIFO pattern number */
-    if (BSP_GYRO_FIFO_Get_Pattern_Ext(LSM6DSL_G_0_handle, &pattern) == COMPONENT_ERROR)
-    {
-      return COMPONENT_ERROR;
-    }
-
-    /* Read single FIFO data (angular velocity in one axis) */
-    if (BSP_GYRO_FIFO_Get_Axis_Ext(LSM6DSL_G_0_handle, &angular_velocity) == COMPONENT_ERROR)
-    {
-      return COMPONENT_ERROR;
-    }
-
-    /* Decide which axis has been read from FIFO based on pattern number */
-    switch (pattern)
-    {
-    case PATTERN_GYR_X_AXIS:
-      gyro->AXIS_X = angular_velocity;
-      break;
-
-    case PATTERN_GYR_Y_AXIS:
-    	gyro->AXIS_Y = angular_velocity;
-      break;
-
-    case PATTERN_GYR_Z_AXIS:
-    	gyro->AXIS_Z = angular_velocity;
-      break;
-
-    default:
-      return COMPONENT_ERROR;
-    }
-  }
-
-  /* Read one whole FIFO pattern cycle. Pattern: XLx, XLy, XLz */
-  for (i = 0; i <= 2; i++)
-  {
-    /* Read FIFO pattern number */
-    if (BSP_ACCELERO_FIFO_Get_Pattern_Ext(LSM6DSL_X_0_handle, &pattern) == COMPONENT_ERROR)
-    {
-      return COMPONENT_ERROR;
-    }
-
-    /* Read single FIFO data (acceleration in one axis) */
-    if (BSP_ACCELERO_FIFO_Get_Axis_Ext(LSM6DSL_X_0_handle, &acceleration) == COMPONENT_ERROR)
-    {
-      return COMPONENT_ERROR;
-    }
-
-    /* Decide which axis has been read from FIFO based on pattern number */
-    switch (pattern)
-    {
-    case PATTERN_ACC_X_AXIS:
-      acc->AXIS_X = acceleration;
-      break;
-
-    case PATTERN_ACC_Y_AXIS:
-      acc->AXIS_Y = acceleration;
-      break;
-
-    case PATTERN_ACC_Z_AXIS:
-      acc->AXIS_Z = acceleration;
-      break;
-
-    default:
-      return COMPONENT_ERROR;
-    }
-  }
-
-  LSM303AGR_Read_Magnometer(mag);
-  mx = mag->AXIS_X;
-  my = mag->AXIS_Y;
-  mz = mag->AXIS_Z;
-
-  gx = gyro->AXIS_X;
-  gy = gyro->AXIS_Y;
-  gz = gyro->AXIS_Z;
-
-  ax = acc->AXIS_X;
-  ay = acc->AXIS_Y;
-  az = acc->AXIS_Z;
-
-
-  MadgwickUpdate(gx,gy,gz,ax,ay,az,mx,my,mz);
-
-float yaw = MadgwickGetYaw();
-float pitch = MadgwickGetPitch();
-float roll = MadgwickGetRoll();
-
-  if (sampleIndex < SAMPLE_LIST_MAX)
-  {
-//    printf("%d %d %d %d %d %d %d %d %d %d %d %d\r\n",
-////    		"%.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\r\n",
-//			roll, pitch, yaw,
-//			gyr_x, gyr_y, gyr_z,
-//			acc_x, acc_y, acc_z,
-//			mag_x, mag_y, mag_z
-//    	);
-	printf(
-			"%3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %3.4f\r\n",
-			roll, pitch, yaw, ax, ay, az, gx, gy, gz, mx, my, mz);
-  }
-
-  return COMPONENT_OK;
 }
 
 /**
@@ -994,31 +676,130 @@ float roll = MadgwickGetRoll();
  * @param  Msg the MAGNETO part of the stream
  * @retval None
  */
-static void LSM303AGR_Read_Magnometer(SensorAxes_t *MAG_Value)
+void Magneto_Sensor_Handler(SensorAxes_t *MAG_Value)
 {
-//  SensorAxes_t MAG_Value;
-//  int32_t data[3];
   uint8_t status = 0;
   uint8_t drdy = 0;
-
-  if (BSP_MAGNETO_IsInitialized(LSM303AGR_M_0_handle, &status) == COMPONENT_OK && status == 1)
+  if (BSP_MAGNETO_IsInitialized(MAGNETO_handle, &status) == COMPONENT_OK && status == 1)
   {
-    BSP_MAGNETO_Get_DRDY_Status(LSM303AGR_M_0_handle, &drdy);
-
+    BSP_MAGNETO_Get_DRDY_Status(MAGNETO_handle, &drdy);
     if (drdy != 0)
     {
-
-      BSP_MAGNETO_Get_Axes(LSM303AGR_M_0_handle, MAG_Value);
-
-//      data[0] = MAG_Value->AXIS_X;
-//      data[1] = MAG_Value->AXIS_Y;
-//      data[2] = MAG_Value->AXIS_Z;
-
-//      snprintf(dataOut, MAX_BUF_SIZE, "MAG_X: %d, MAG_Y: %d, MAG_Z: %d\r\n", (int) data[0], (int) data[1], (int) data[2]);
-//      HAL_UART_Transmit(&UartHandle, (uint8_t*) dataOut, strlen(dataOut), 5000);
-
+      BSP_MAGNETO_Get_Axes(MAGNETO_handle, MAG_Value);
     }
   }
+}
+
+/**
+ * @brief  Handles the ACCELERO axes data getting/sending
+ * @param  Msg the ACCELERO part of the stream
+ * @retval None
+ */
+void Accelero_Sensor_Handler(SensorAxes_t *ACC_Value)
+{
+  uint8_t status = 0;
+  uint8_t drdy = 0;
+  if (BSP_ACCELERO_IsInitialized(ACCELERO_handle, &status) == COMPONENT_OK && status == 1)
+  {
+    BSP_ACCELERO_Get_DRDY_Status(ACCELERO_handle, &drdy);
+    if (drdy != 0)
+    {
+      BSP_ACCELERO_Get_Axes(ACCELERO_handle, ACC_Value);
+    }
+  }
+}
+
+/**
+ * @brief  Handles the PRESSURE sensor data getting/sending
+ * @param  Msg the PRESSURE part of the stream
+ * @retval None
+ */
+void Pressure_Sensor_Handler(float *PRESSURE_Value)
+{
+  uint8_t status = 0;
+  uint8_t drdy = 0;
+  if (BSP_PRESSURE_IsInitialized(PRESSURE_handle, &status) == COMPONENT_OK && status == 1)
+  {
+    BSP_PRESSURE_Get_DRDY_Status(PRESSURE_handle, &drdy);
+    if (drdy != 0)
+    {
+      BSP_PRESSURE_Get_Press(PRESSURE_handle, PRESSURE_Value);
+    }
+  }
+}
+
+/**
+ * @brief  Handles the HUMIDITY sensor data getting/sending
+ * @param  Msg the HUMIDITY part of the stream
+ * @retval None
+ */
+void Humidity_Sensor_Handler(float *HUMIDITY_Value)
+{
+  uint8_t status = 0;
+  uint8_t drdy = 0;
+  if (BSP_HUMIDITY_IsInitialized(HUMIDITY_handle, &status) == COMPONENT_OK && status == 1)
+  {
+    BSP_HUMIDITY_Get_DRDY_Status(HUMIDITY_handle, &drdy);
+    if (drdy != 0)
+    {
+      BSP_HUMIDITY_Get_Hum(HUMIDITY_handle, HUMIDITY_Value);
+    }
+  }
+}
+
+/**
+ * @brief  Handles the TEMPERATURE sensor data getting/sending
+ * @param  Msg the TEMPERATURE part of the stream
+ * @retval None
+ */
+void Temperature_Sensor_Handler(float *TEMPERATURE_Value)
+{
+  uint8_t status = 0;
+  uint8_t drdy = 0;
+  if (BSP_TEMPERATURE_IsInitialized(TEMPERATURE_handle, &status) == COMPONENT_OK && status == 1)
+  {
+    BSP_TEMPERATURE_Get_DRDY_Status(TEMPERATURE_handle, &drdy);
+    if (drdy != 0)
+    {
+      BSP_TEMPERATURE_Get_Temp(TEMPERATURE_handle, TEMPERATURE_Value);
+    }
+  }
+}
+
+/**
+ * @brief  Initialize all sensors
+ * @param  None
+ * @retval None
+ */
+void initializeAllSensors(void)
+{
+  /* Try to use automatic discovery. By default use LSM6DSL on board */
+  BSP_ACCELERO_Init(ACCELERO_SENSORS_AUTO, &ACCELERO_handle);
+  /* Try to use automatic discovery. By default use LSM6DSL on board */
+  BSP_GYRO_Init(GYRO_SENSORS_AUTO, &GYRO_handle);
+  /* Try to use automatic discovery. By default use LSM303AGR on board */
+  BSP_MAGNETO_Init(MAGNETO_SENSORS_AUTO, &MAGNETO_handle);
+  /* Try to use automatic discovery. By default use HTS221 on board */
+  BSP_HUMIDITY_Init(HUMIDITY_SENSORS_AUTO, &HUMIDITY_handle);
+  /* Try to use automatic discovery. By default use HTS221 on board */
+  BSP_TEMPERATURE_Init(TEMPERATURE_SENSORS_AUTO, &TEMPERATURE_handle);
+  /* Try to use automatic discovery. By default use LPS22HB on board */
+  BSP_PRESSURE_Init(PRESSURE_SENSORS_AUTO, &PRESSURE_handle);
+}
+
+/**
+ * @brief  Enable/disable desired sensors
+ * @param  None
+ * @retval None
+ */
+void enableDisableSensors(void)
+{
+  BSP_PRESSURE_Sensor_Enable(PRESSURE_handle);
+  BSP_HUMIDITY_Sensor_Enable(HUMIDITY_handle);
+  BSP_TEMPERATURE_Sensor_Enable(TEMPERATURE_handle);
+  BSP_ACCELERO_Sensor_Enable(ACCELERO_handle);
+  BSP_GYRO_Sensor_Enable(GYRO_handle);
+  BSP_MAGNETO_Sensor_Enable(MAGNETO_handle);
 }
 
 /**
@@ -1033,43 +814,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   /* User button pressed */
   if (GPIO_Pin == USER_BUTTON_Pin)
   {
-    if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET)
-    {
-      switch (demoFifoStatus)
-      {
-      /* If FIFO is in Bypass mode switch to Continuous mode */
-      case STATUS_IDLE:
-        demoFifoStatus = DEMO_STATUS_SET_FIFO_CONTINUOUS_MODE;
-        break;
-        /* If FIFO is in Continuous mode switch to Bypass mode */
-      case DEMO_STATUS_FIFO_RUN:
-        demoFifoStatus = DEMO_STATUS_SET_FIFO_BYPASS_MODE;
-        break;
-        /* Otherwise do nothing */
-      case DEMO_STATUS_SET_FIFO_CONTINUOUS_MODE:
-      case DEMO_STATUS_FIFO_DOWNLOAD:
-      case DEMO_STATUS_SET_FIFO_BYPASS_MODE:
-        break;
-      default:
-        break;
-      }
-    }
-  }
-
-  /* FIFO full (available only for LSM6DSL sensor) */
-  else if (GPIO_Pin == LSM6DSL_INT1_O_PIN)
-  {
-    memsIntDetected = 1;
   }
 }
 
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @param  None
- * @retval None
- */
+  * @brief  This function is executed in case of error occurrence.
+  * @param  None
+  * @retval None
+  */
 void _Error_Handler(char * file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -1079,12 +833,12 @@ void _Error_Handler(char * file, int line)
 #ifdef USE_FULL_ASSERT
 
 /**
- * @brief Reports the name of the source file and the source line number
- * where the assert_param error has occurred.
- * @param file: pointer to the source file name
- * @param line: assert_param error line source number
- * @retval None
- */
+   * @brief Reports the name of the source file and the source line number
+   * where the assert_param error has occurred.
+   * @param file: pointer to the source file name
+   * @param line: assert_param error line source number
+   * @retval None
+   */
 void assert_failed(uint8_t* file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
@@ -1095,11 +849,11 @@ void assert_failed(uint8_t* file, uint32_t line)
 #endif
 
 /**
- * @}
- */
+  * @}
+  */
 
 /**
- * @}
- */
+  * @}
+*/
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
