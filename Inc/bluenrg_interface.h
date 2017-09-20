@@ -40,11 +40,15 @@
 #define __BLUENRG_INTERFACE_H_
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32_bluenrg_ble.h"
-#include "hal_types.h"
 
-void Hal_Write_Serial(const void* data1, const void* data2, int32_t n_bytes1,
-                      int32_t n_bytes2);
+#include "osal.h"
+#include "sensor_service.h"
+#include "debug.h"
+#include "stm32_bluenrg_ble.h"
+#include "bluenrg_utils.h"
+#include "bluenrg_interface.h"
+
+void initBlueNrgGattServer(void);
 
 #endif //__BLUENRG_INTERFACE_H_
 
