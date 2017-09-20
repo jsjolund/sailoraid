@@ -1,4 +1,4 @@
-update=2017-09-16 17:31:57
+update=2017-09-20 03:27:53
 version=1
 last_client=kicad
 [pcbnew]
@@ -68,3 +68,5 @@ LibName36=valves
 LibName37=CUSTOMS/a2235-h
 LibName38=CUSTOMS/MOSFET_depleted
 LibName39=CUSTOMS/misc_rfcom
+LibName40=CUSTOMS/IMU_Circuit
+LibName41=CUSTOMS/PowerSupply
