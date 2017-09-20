@@ -30,3 +30,7 @@ http://www.ti.com/lit/ds/symlink/lm1117.pdf
 ___________________________________________________________________
 Amplifier	INA126			Datasheet
 http://www.ti.com/lit/ds/symlink/ina126.pdf
+
+NEW!!!!!!!!________________________________________________________
+XL/Mag	LSM303C			Datasheet
+http://www.st.com/content/ccc/resource/technical/document/datasheet/59/aa/fb/3b/85/9e/4e/0a/DM00089896.pdf/files/DM00089896.pdf/jcr:content/translations/en.DM00089896.pdf
