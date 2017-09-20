@@ -353,8 +353,7 @@ int main(void)
       mx = ((float) MAG_Value.AXIS_X) / 1000;
       my = ((float) MAG_Value.AXIS_Y) / 1000;
       mz = ((float) MAG_Value.AXIS_Z) / 1000;
-//      MadgwickUpdate(gx, gy, gz, ax, ay, az, mx, my, mz);
-      MadgwickUpdateIMU(gx, gy, gz, ax, ay, az);
+      MadgwickUpdate(gx, gy, gz, ax, ay, az, -mx, my, -mz);
       imuPrevious += imuPeriod;
     }
     if (microsNow - serialPrevious >= serialPeriod)
