@@ -247,8 +247,8 @@ int main(void)
       pitch = -MadgwickGetPitch();
       yaw = -MadgwickGetYaw();
       printf("%3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %i\r\n", roll, pitch, yaw, mx, my, mz, adcValues[0]);
-      EUL_Value.AXIS_X = (int) roll * 10;
-      EUL_Value.AXIS_Y = (int) pitch * 10;
+      EUL_Value.AXIS_X = (int) roll;
+      EUL_Value.AXIS_Y = (int) pitch;
       EUL_Value.AXIS_Z = (int) yaw;
       serialPrevious += serialPeriod;
     }
