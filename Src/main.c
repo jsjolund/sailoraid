@@ -44,8 +44,8 @@
 #include "stm32f4xx_nucleo.h"
 #include "imu.h"
 #include "sensor.h"
+#include "serial.h"
 #include "MadgwickAHRS.h"
-#include "com.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -60,6 +60,10 @@ TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart1_tx;
+DMA_HandleTypeDef hdma_usart2_rx;
+DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 extern volatile uint8_t set_connectable;
@@ -157,8 +161,7 @@ int main(void)
   MX_ADC1_Init();
 
   /* USER CODE BEGIN 2 */
-  /* Initialize UART */
-  USARTConfig();
+  SerialInit(&huart2, &huart1);
 
   /* ADC */
   HAL_ADC_Start(&hadc1);
@@ -175,6 +178,10 @@ int main(void)
   /* Configure Bluetooth GATT server */
   InitBlueNrgGattServer();
 
+  HAL_GPIO_WritePin(GPS_ON_OFF_GPIO_Port, GPS_ON_OFF_Pin, GPIO_PIN_SET);
+  HAL_Delay(200);
+  HAL_GPIO_WritePin(GPS_ON_OFF_GPIO_Port, GPS_ON_OFF_Pin, GPIO_PIN_RESET);
+
   /* IMU */
   InitIMU();
 
@@ -190,7 +197,7 @@ int main(void)
   MadgwickInit(imuSampleRate);
 
   uint32_t adcPeriod = 1000000 / adcSampleRate;
-  uint32_t adcPrevious =  htim2.Instance->CNT;
+  uint32_t adcPrevious = htim2.Instance->CNT;
 
   uint32_t imuPeriod = 1000000 / imuSampleRate;
   uint32_t imuPrevious = htim2.Instance->CNT;
@@ -246,7 +253,7 @@ int main(void)
       roll = MadgwickGetRoll();
       pitch = -MadgwickGetPitch();
       yaw = -MadgwickGetYaw();
-      printf("%3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %i\r\n", roll, pitch, yaw, mx, my, mz, adcValues[0]);
+//      printf("%3.4f %3.4f %3.4f %3.4f %3.4f %3.4f %i\r\n", roll, pitch, yaw, mx, my, mz, adcValues[0]);
       EUL_Value.AXIS_X = (int) roll;
       EUL_Value.AXIS_Y = (int) pitch;
       EUL_Value.AXIS_Z = (int) yaw;
@@ -267,7 +274,7 @@ int main(void)
       Press_Update(PRESSURE_Value);
       btUpdatePrevious += btUpdatePeriod;
     }
-    if (microsNow-adcPrevious >= adcPeriod && adcFinished)
+    if (microsNow - adcPrevious >= adcPeriod && adcFinished)
     {
       HAL_ADCEx_InjectedStart_IT(&hadc1);
       adcFinished = 0;
@@ -507,11 +514,24 @@ static void MX_DMA_Init(void)
 {
   /* DMA controller clock enable */
   __HAL_RCC_DMA2_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+  /* DMA1_Stream6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  /* DMA2_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+  /* DMA2_Stream7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 }
 

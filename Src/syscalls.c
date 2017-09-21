@@ -55,6 +55,7 @@
 #include <sys/times.h>
 
 #include "main.h"
+#include "serial.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_uart.h"
 
@@ -123,7 +124,7 @@ int _write(int file, char *ptr, int len)
     ptr = tmp;
     len++;
   }
-  HAL_UART_Transmit(&huart2, (uint8_t*) ptr, len, 5000);
+  UsbTransmit(ptr, len);
   return len;
 }
 
