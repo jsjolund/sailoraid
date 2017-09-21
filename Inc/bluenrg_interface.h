@@ -48,7 +48,7 @@
 #include "bluenrg_utils.h"
 #include "bluenrg_interface.h"
 
-void initBlueNrgGattServer(void);
+void InitBlueNrgGattServer(void);
 
 #endif //__BLUENRG_INTERFACE_H_
 

@@ -55,8 +55,6 @@ volatile uint8_t UART_TxBuffer[UART_BufferSize];
 const uint32_t Usart_BaudRate = 115200;
 UART_HandleTypeDef UartHandle;
 
-
-
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /**

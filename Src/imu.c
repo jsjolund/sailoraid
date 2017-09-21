@@ -133,7 +133,7 @@ void Temperature_Sensor_Handler(float *TEMPERATURE_Value)
  * @param  None
  * @retval None
  */
-void initializeAllSensors(void)
+void InitIMU(void)
 {
   /* Try to use automatic discovery. By default use LSM6DSL on board */
   BSP_ACCELERO_Init(ACCELERO_SENSORS_AUTO, &ACCELERO_handle);
@@ -147,15 +147,7 @@ void initializeAllSensors(void)
   BSP_TEMPERATURE_Init(TEMPERATURE_SENSORS_AUTO, &TEMPERATURE_handle);
   /* Try to use automatic discovery. By default use LPS22HB on board */
   BSP_PRESSURE_Init(PRESSURE_SENSORS_AUTO, &PRESSURE_handle);
-}
 
-/**
- * @brief  Enable/disable desired sensors
- * @param  None
- * @retval None
- */
-void enableDisableSensors(void)
-{
   BSP_PRESSURE_Sensor_Enable(PRESSURE_handle);
   BSP_HUMIDITY_Sensor_Enable(HUMIDITY_handle);
   BSP_TEMPERATURE_Sensor_Enable(TEMPERATURE_handle);
@@ -163,3 +155,4 @@ void enableDisableSensors(void)
   BSP_GYRO_Sensor_Enable(GYRO_handle);
   BSP_MAGNETO_Sensor_Enable(MAGNETO_handle);
 }
+

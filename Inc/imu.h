@@ -24,8 +24,7 @@
 #define MAG_Y_SCL 1.0057472
 #define MAG_Z_SCL 0.9947219
 
-void enableDisableSensors(void);
-void initializeAllSensors(void);
+void InitIMU(void);
 void Temperature_Sensor_Handler(float *TEMPERATURE_Value);
 void Humidity_Sensor_Handler(float *HUMIDITY_Value);
 void Pressure_Sensor_Handler(float *PRESSURE_Value);
