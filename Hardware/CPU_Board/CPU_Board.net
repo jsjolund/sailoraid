@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source E:\GitHub\sailoraid\Hardware\CPU_Board\CPU_Board.sch)
-    (date "2017-09-21 15:44:31")
+    (date "2017-09-22 05:40:53")
     (tool "Eeschema 4.0.4-stable")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
