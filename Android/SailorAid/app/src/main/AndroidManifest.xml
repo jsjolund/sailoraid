@@ -30,7 +30,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".FeedbackActivity" />
+        <activity android:name=".FeedbackActivity">
+            <action android:name="android.intent.action.ACTION_FOUND" />
+            <action android:name="ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_CONNECTED" />
+        </activity>
         <activity
             android:name=".MapsActivity"
             android:label="Map">

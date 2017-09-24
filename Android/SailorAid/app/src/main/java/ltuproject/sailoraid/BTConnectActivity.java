@@ -68,6 +68,7 @@ public class BTConnectActivity extends AppCompatActivity {
     private boolean hasPermission;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics;
     private BTHandler myBTHandler;
+    private BluetoothGattService mGattService;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -163,6 +164,7 @@ public class BTConnectActivity extends AppCompatActivity {
         connectLEbtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
+
                 myBTHandler.registerGattNotifications();
             }
         });
@@ -315,9 +317,9 @@ public class BTConnectActivity extends AppCompatActivity {
     };
 
     /*
-    Displays all services provided by connected ble device not really needed in the end
+
      */
-    private void displayGattServices(List<BluetoothGattService> gattServices) {
+    public void getKnownGattServices(List<BluetoothGattService> gattServices){
         if (gattServices == null) return;
         String uuid = null;
         String unknownServiceString = getResources().
@@ -337,41 +339,21 @@ public class BTConnectActivity extends AppCompatActivity {
                     new HashMap<String, String>();
             uuid = gattService.getUuid().toString();
             currentServiceData.put(
-                    LIST_NAME, sampleGattAttributes.
+                    LIST_NAME, SampleGattAttributes.
                             lookup(uuid, unknownServiceString));
             currentServiceData.put(LIST_UUID, uuid);
             gattServiceData.add(currentServiceData);
 
-            ArrayList<HashMap<String, String>> gattCharacteristicGroupData =
-                    new ArrayList<HashMap<String, String>>();
-            List<BluetoothGattCharacteristic> gattCharacteristics =
-                    gattService.getCharacteristics();
-            ArrayList<BluetoothGattCharacteristic> charas =
-                    new ArrayList<BluetoothGattCharacteristic>();
-            // Loops through available Characteristics.
-            for (BluetoothGattCharacteristic gattCharacteristic :
-                    gattCharacteristics) {
-                charas.add(gattCharacteristic);
-                HashMap<String, String> currentCharaData =
-                        new HashMap<String, String>();
-                uuid = gattCharacteristic.getUuid().toString();
-                currentCharaData.put(
-                        LIST_NAME, sampleGattAttributes.lookup(uuid,
-                                unknownCharaString));
-                currentCharaData.put(LIST_UUID, uuid);
-                gattCharacteristicGroupData.add(currentCharaData);
+            if (uuid.equals(SampleGattAttributes.IMU_SERVICE.toString())) {
+                myBTHandler.setmGattService(gattService);
             }
-            mGattCharacteristics.add(charas);
-            myBTHandler.setmGattCharacteristics(mGattCharacteristics);
-            gattCharacteristicData.add(gattCharacteristicGroupData);
-
+            if (uuid.equals(SampleGattAttributes.ACCELEROMETER_SERVICE.toString())) {
+                myBTHandler.setmGattService(gattService);
+            }
+            if (uuid.equals(SampleGattAttributes.HEART_RATE_SERVICE.toString())) {
+                myBTHandler.setmGattService(gattService);
+            }
         }
-        TextView tv1 = (TextView) findViewById(R.id.uuidText);
-        for (int i =0;i<gattServiceData.size();i++){
-            tv1.append(gattServiceData.get(i).toString() +"\n");
-        }
-        TextView tv2 = (TextView) findViewById(R.id.chatData);
-        tv2.setText(gattCharacteristicData.get(0).get(0).toString());
     }
 
     /*
@@ -423,8 +405,8 @@ public class BTConnectActivity extends AppCompatActivity {
                     ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the
                 // user interface.
-
-                displayGattServices(myBTHandler.getBtLEConnection().getSupportedGattServices());
+                getKnownGattServices(myBTHandler.getBtLEConnection().getSupportedGattServices());
+                //displayGattServices(myBTHandler.getBtLEConnection().getSupportedGattServices());
 
 
             } else if (myBTHandler.getBtLEConnection().ACTION_DATA_AVAILABLE.equals(action)) {
@@ -435,8 +417,14 @@ public class BTConnectActivity extends AppCompatActivity {
 
     private void displayData(String data, String dataType) {
         if (data != null) {
-            TextView tv1 = (TextView) findViewById(R.id.charName);
-            TextView tv = (TextView) findViewById(R.id.chatData);
+            TextView tv1, tv;
+            if (dataType.equals("Incline")){
+                tv1 = (TextView) findViewById(R.id.charNameAcc);
+                tv = (TextView) findViewById(R.id.chatDataAcc);
+            } else {
+                tv1 = (TextView) findViewById(R.id.charName);
+                tv = (TextView) findViewById(R.id.chatData);
+            }
             tv.setText(data);
             tv1.setText(dataType);
         }
@@ -491,12 +479,12 @@ public class BTConnectActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        if (mReceiver !=null){
+        /*if (mReceiver !=null){
             this.unregisterReceiver(mReceiver);
         }
         if (mGattUpdateReceiver != null){
             this.unregisterReceiver(mGattUpdateReceiver);
-        }
+        }*/
         cleanPop();
         myBTHandler.closeGatt();
         super.onDestroy();
