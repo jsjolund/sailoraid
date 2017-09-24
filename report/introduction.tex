@@ -1,1 +1,41 @@
-\lipsum[7-8]
+% \lipsum[7-8]
+% - Is this too general? Feels too much like a very long abstract
+
+% - "While slipping across the waves... " This is just a weird sentence, but I can't put my finger on it
+%   Put paragraph-break before this sentence?
+% - "compact, portable and simple" OR "compact, portable, simple"
+The art of sailing has been around for millenia. For much of human history it has been an absolutely vital part of civilization, providing efficient means of transporting goods all around the world. Today sailing has become a leisure activity enjoyed by millions of people around the world. Modern sailboats come in a large span of sizes, from large ships with crews of dozens down to small single-man dinghies. While slipping across the waves out at sea with only the wind to drive you is a calming experience, it is not a simple thing to do. When you are alone on the water, you have to be in control of the tension of the sail, the attitude of the boat, the forces on the centerboard and more while deciding how to respond to all of these. The goal of Project SailorAid is to offload the decision-making from the sailor onto a compact, portable and simple system that will analyze these parameters and provide clear directions to the sailor. 
+
+% - Put this section after Physics of Sailing to give context to the goals?
+% - Have goals in it's own subsection or incorperate into introduction? Or move it into Product Application?
+%   And what should Product Application contain? What the product does or how it is put on the boat?
+% - "The primary functional..." is too short and mechanical. Try to write something more organic later
+\subsection{Goals}
+The primary functional goals are as follows:
+
+% - TODO Create reference to abbreviation table for GPS, IMU?
+\begin{itemize}
+	\item[.] Boat attitude
+	\begin{itemize}
+		\item[-] Implementing an appropriate sensor array:
+		\begin{itemize}
+			\item Accelerometer
+			\item Gyroscope
+			\item Magnetometer
+		\end{itemize}
+		\item[-] Fusing the sensor output to get an accurate estimate of boat attitude
+	\end{itemize}
+	\item[.] Position tracking and velocity
+	\begin{itemize}
+		\item[-] Implementing a GPS system
+		\item[-] Fusing the GPS output with the accelerometer output for more accurate positioning and velocity
+	\end{itemize}
+	\item[.] Design a force measurement circuit for the centerboard
+	\begin{itemize}
+%		Rephrase item 1, "off the centerboard" might be ambiguous. Intent: "off" as in "not mounted on" but that feels clumsy. But "not mounted on" might work if it has been made clear earlier why we can't put it on the centerboard.
+		\item[-] Design an appropriate sensor mount off the centerboard
+		\item[-] Implement an appropriate sensor
+		\item[-] Implement a centerboard-depth sensor
+	\end{itemize}
+\end{itemize}
+
