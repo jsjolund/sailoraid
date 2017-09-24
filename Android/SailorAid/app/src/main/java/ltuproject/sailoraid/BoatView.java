@@ -45,7 +45,7 @@ public class BoatView extends SurfaceView implements
     private void drawBoat(Canvas canvas) {
         super.draw(canvas);
         canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
-        mRotation = ROT_STEP*x*10;
+        mRotation = ROT_STEP*x;
         canvas.rotate(mRotation, mBitmapHeightAndWidthAdj+50, mBitmapHeightAndWidth);
         canvas.drawBitmap(mBitmap, 100, 0, mPainter);
     }

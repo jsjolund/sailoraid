@@ -4,15 +4,15 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.content.Context;
-import android.content.IntentFilter;
 import android.os.Handler;
-import android.support.v7.app.AlertDialog;
-import android.widget.ArrayAdapter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 
@@ -31,7 +31,7 @@ public class BTHandler {
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_COARSE_LOCATION = 999;
-    private static final long SCAN_PERIOD = 10000;
+    private static final long SCAN_PERIOD = 1000;
 
     private BluetoothAdapter btAdapter;
     private Set<BluetoothDevice> pairedDevices;
@@ -44,6 +44,7 @@ public class BTHandler {
     private BluetoothGattCharacteristic mNotifyCharacteristic;
     private BTLEConnection btLEConnection;
     private BTConnection btConnection;
+    private BluetoothGattService mGattService;
 
     private boolean mScanning;
     private Handler mHandler;
@@ -129,20 +130,24 @@ public class BTHandler {
     public void setmGattCharacteristics(ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics){
         this.mGattCharacteristics = mGattCharacteristics;
     }
+
+    public void setmGattService(BluetoothGattService service){
+        mGattService = service;
+    }
     public void registerGattNotifications(){
-        BluetoothGattCharacteristic characteristic = null;
-        for (int i=0; i<mGattCharacteristics.size(); i++){
-            ArrayList<BluetoothGattCharacteristic> tmp = mGattCharacteristics.get(i);
-            for (int j=0; j<tmp.size(); j++) {
-                characteristic = tmp.get(j);
-                btLEConnection.setCharacteristicNotification(characteristic, true);
+        if (mGattService != null){
+            List<BluetoothGattCharacteristic> gattCharacteristics =
+                    mGattService.getCharacteristics();
+            for (BluetoothGattCharacteristic gattCharacteristic :
+                    gattCharacteristics) {
+                final BluetoothGattCharacteristic characteristic = gattCharacteristic;
                 final int charaProp = characteristic.getProperties();
                 if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
                     // If there is an active notification on a characteristic, clear
                     // it first so it doesn't update the data field on the user interface.
                     if (mNotifyCharacteristic != null) {
-                        btLEConnection.setCharacteristicNotification(
-                                mNotifyCharacteristic, false);
+                       // btLEConnection.setCharacteristicNotification(
+                         //       mNotifyCharacteristic, false);
                         mNotifyCharacteristic = null;
                     }
                     btLEConnection.readCharacteristic(characteristic);
@@ -153,6 +158,7 @@ public class BTHandler {
                             characteristic, true);
                 }
             }
+
         }
     }
 

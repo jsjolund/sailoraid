@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringDef;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -24,6 +25,8 @@ import java.util.List;
 import java.util.UUID;
 
 import ltuproject.sailoraid.R;
+
+import static java.lang.Thread.sleep;
 
 /**
  * Created by Henrik on 2017-09-13.
@@ -59,11 +62,15 @@ public class BTLEConnection extends Service {
     public final static UUID UUID_HEART_RATE_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
     public final static UUID UUID_ACCELEROMETER_MEASUREMENT =
-            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+            UUID.fromString(SampleGattAttributes.ACCELEROMETER_MEASUREMENT);
     public final static UUID UUID_GPS_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
     public final static UUID UUID_PRESSURE_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+    public final static UUID UUID_IMU_ACCEL_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.IMU_ACCEL_MEASUREMENT);
+    public final static UUID UUID_IMU_GYRO_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.IMU_GYRO_MEASUREMENT);
 
     private Context contx;
 
@@ -163,12 +170,54 @@ public class BTLEConnection extends Service {
         }
         mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
+        try {
+            Thread.sleep(100);
+        } catch (Exception e) {
+            // ignore
+        }
+
         // This is specific to Heart Rate Measurement.
         if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
                     UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+
+            characteristic.addDescriptor(descriptor);
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             mBluetoothGatt.writeDescriptor(descriptor);
+        } // 340a1b80-cf4b-11e1-ac36-0002a5d5c51b
+        if (UUID_IMU_ACCEL_MEASUREMENT.equals(characteristic.getUuid())) {
+            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
+                    UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+            characteristic.addDescriptor(descriptor);
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            mBluetoothGatt.writeDescriptor(descriptor);
+        }
+        if (UUID_ACCELEROMETER_MEASUREMENT.equals(characteristic.getUuid())) {
+            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
+                    UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+            characteristic.addDescriptor(descriptor);
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            mBluetoothGatt.writeDescriptor(descriptor);
+        }
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -193,18 +242,32 @@ public class BTLEConnection extends Service {
             Log.d(TAG, String.format("Received heart rate: %d", heartRate));
             intent.putExtra(EXTRA_TYPE, "Current rate: ");
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
-            contx.sendBroadcast(intent);
-        } else {
-            // For all other profiles, writes the data formatted in HEX.
-            final byte[] data = characteristic.getValue();
-            if (data != null && data.length > 0) {
-                final StringBuilder stringBuilder = new StringBuilder(data.length);
-                for(byte byteChar : data)
-                    stringBuilder.append(String.format("%02X ", byteChar));
-                intent.putExtra(EXTRA_DATA, new String(data) + "\n" +
-                        stringBuilder.toString());
-            }
-        }
+        } else if (UUID_ACCELEROMETER_MEASUREMENT.equals(characteristic.getUuid())) {
+                int flag = characteristic.getProperties();
+                int format = -1;
+                if ((flag & 0x01) != 0) {
+                    format = BluetoothGattCharacteristic.FORMAT_FLOAT;
+                    Log.d(TAG, "Accelerometer UINT16.");
+                } else {
+                    format = BluetoothGattCharacteristic.FORMAT_SFLOAT;
+                    Log.d(TAG, "Accelerometer UINT8.");
+                }
+                byte[] recByte = characteristic.getValue();
 
+                final float x = ((recByte[0]) | ((recByte[1])<<8));
+                final float y = ((recByte[2]) | ((recByte[3])<<8));
+                final float z = ((recByte[4]) | ((recByte[5])<<8));
+            /*    final float x = characteristic.getFloatValue(format, 0);
+                final float y = characteristic.getFloatValue(format, 2);
+                final float z = characteristic.getFloatValue(format, 4);
+*/
+                final String charName = characteristic.getStringValue(format);
+                //Log.d(TAG, String.format("Received Accelerometer: %f", x));
+                intent.putExtra(EXTRA_TYPE, "Incline");
+                intent.putExtra(EXTRA_DATA, String.valueOf(x) +":" +String.valueOf(y) +":" +String.valueOf(z));
+                //intent.putExtra(EXTRA_DATA, "x:  " +String.valueOf(x) +"\n y: " + String.valueOf(y));
+
+        }
+        contx.sendBroadcast(intent);
     }
 }

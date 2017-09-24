@@ -1,4 +1,4 @@
-update=2017-09-20 03:27:53
+update=2017-09-21 13:15:50
 version=1
 last_client=kicad
 [pcbnew]
@@ -70,3 +70,4 @@ LibName38=CUSTOMS/MOSFET_depleted
 LibName39=CUSTOMS/misc_rfcom
 LibName40=CUSTOMS/IMU_Circuit
 LibName41=CUSTOMS/PowerSupply
+LibName42=CUSTOMS/Custom_Switches
