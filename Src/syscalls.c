@@ -60,8 +60,7 @@
 #include "stm32f4xx_hal_uart.h"
 
 extern UART_HandleTypeDef huart2;
-#define MAX_BUF_SIZE 1024
-static char tmp[MAX_BUF_SIZE];
+static char tmp[TX_BUFFER_MAX];
 
 /* Variables */
 extern int errno;
@@ -111,11 +110,6 @@ int _read(int file, char *ptr, int len)
 
 int _write(int file, char *ptr, int len)
 {
-//	int DataIdx;
-//	for (DataIdx = 0; DataIdx < len; DataIdx++)
-//	{
-//		__io_putchar(*ptr++);
-//	}
   if ((len > 1) && ((ptr[len - 1] == '\n' && ptr[len - 2] != '\r') || (ptr[len - 1] == '\r' && ptr[len - 2] != '\n')))
   {
     memcpy(tmp, ptr, len);
@@ -124,7 +118,7 @@ int _write(int file, char *ptr, int len)
     ptr = tmp;
     len++;
   }
-  UsbTransmit(ptr, len);
+  SerialUsbTransmit(ptr, len);
   return len;
 }
 

@@ -1,20 +1,4 @@
 /*
- * serial.c
- *
- *  Created on: Sep 21, 2017
- *      Author: user
- */
-
-//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle) {
-//  if (huartHandle == &huart1) {
-//    uint8_t data = huartHandle->Instance->DR;
-//
-//  } else if (huartHandle == &huart2) {
-//
-//
-//  }
-//}
-/*
  * serial.cpp
  *
  *  Created on: Jan 28, 2017
@@ -22,7 +6,6 @@
  */
 
 #include "serial.h"
-#include "main.h"
 
 typedef struct SerialHandle
 {
@@ -37,13 +20,14 @@ typedef struct SerialHandle
 
 static SerialHandle usbHandle;
 static SerialHandle gpsHandle;
+static BOOL gpsEcho = FALSE;
 
-int isGlyph(char c)
+static int IsGlyph(char c)
 {
   return (c >= ' ' && c <= '~');
 }
 
-int UsbQueuePut(SerialHandle *h, uint8_t input)
+static int QueuePut(SerialHandle *h, uint8_t input)
 {
   if (h->txIndex == ((h->txOutdex - 1 + TX_BUFFER_MAX) % TX_BUFFER_MAX))
     return 0;
@@ -52,7 +36,7 @@ int UsbQueuePut(SerialHandle *h, uint8_t input)
   return 1;
 }
 
-int UsbQueueGet(SerialHandle *h, uint8_t *output)
+static int QueueGet(SerialHandle *h, uint8_t *output)
 {
   if (h->txIndex == h->txOutdex)
     return 0;
@@ -61,19 +45,19 @@ int UsbQueueGet(SerialHandle *h, uint8_t *output)
   return 1;
 }
 
-int UsbQueueGetSize(SerialHandle *h)
+static int QueueGetSize(SerialHandle *h)
 {
   return (h->txOutdex > h->txIndex) ?
   TX_BUFFER_MAX - h->txOutdex + h->txIndex :
                                       h->txIndex - h->txOutdex;
 }
 
-int UsbQueueGetAll(SerialHandle *h, uint8_t *output, int count)
+static int QueueGetAll(SerialHandle *h, uint8_t *output, int count)
 {
   int i;
   for (i = 0; i < count; i++)
   {
-    if (!UsbQueueGet(h, output + i))
+    if (!QueueGet(h, output + i))
       return i;
   }
   return count;
@@ -90,59 +74,48 @@ void SerialInit(UART_HandleTypeDef *usbHuartHandle, UART_HandleTypeDef *gpsHuart
   HAL_UART_Receive_DMA(gpsHandle.huart, &gpsHandle.rxBuffer, sizeof(gpsHandle.rxBuffer));
 }
 
-void UsbSendFromFIFO(SerialHandle *h)
+static void SendFromFIFO(SerialHandle *h)
 {
-//  // Sends a character from the FIFO through DMA
-//  HAL_UART_StateTypeDef uartState = HAL_UART_GetState(usbHuart);
-//  if (uartState == HAL_UART_STATE_READY || uartState == HAL_UART_STATE_BUSY_RX)
-//  {
-//    if (usbTxCplt)
-//    {
-//      usbTxCplt = 0;
-//      int size = UsbQueueGetSize();
-//      if (size > 0)
-//      {
-//        uint8_t c[size];
-//        UsbQueueGetAll(c, size);
-//        while (HAL_UART_Transmit_DMA(usbHuart, c, size) != HAL_OK)
-//          ;
-//      }
-//      else
-//      {
-//        usbTxCplt = 1;
-//      }
-//    }
-//  }
-
   HAL_UART_StateTypeDef uartState = HAL_UART_GetState(h->huart);
   if ((uartState == HAL_UART_STATE_READY) || (uartState == HAL_UART_STATE_BUSY_RX))
   {
     uint8_t c;
-    if (UsbQueueGet(h, &c))
+    if (QueueGet(h, &c))
       while (HAL_UART_Transmit_DMA(h->huart, &c, 1) != HAL_OK)
         ;
   }
 }
 
-void SerialTransmit(SerialHandle *h, char *ptr, int len)
+static void SerialTransmit(SerialHandle *h, char *ptr, int len)
 {
   int i;
   for (i = 0; i < len; i++)
   {
-    UsbQueuePut(h, ptr[i]);
+    QueuePut(h, ptr[i]);
   }
-  UsbSendFromFIFO(h);
+  SendFromFIFO(h);
 
 }
 
-void UsbTransmit(char *ptr, int len)
+void SerialUsbTransmit(char *ptr, int len)
 {
   SerialTransmit(&usbHandle, ptr, len);
 }
 
+void GPSecho(BOOL echo)
+{
+    gpsEcho = echo;
+}
+
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
-  SerialTransmit(&usbHandle, "ERROR\r\n", 7);
+  if (huart == gpsHandle.huart)
+  {
+    char buffer [30];
+    int cx;
+    cx = snprintf(buffer, 30, "ERROR CODE %d GPS UART\r\n", (int) huart->ErrorCode);
+    SerialTransmit(&usbHandle, buffer, cx);
+  }
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huartHandle)
@@ -150,61 +123,95 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huartHandle)
   if (huartHandle == usbHandle.huart)
   {
     usbHandle.txCplt = 1;
-    UsbSendFromFIFO(&usbHandle);
+    SendFromFIFO(&usbHandle);
   }
+}
+
+float NMEAtoGPS(float in_coords)
+{
+  float f = in_coords;
+  int firsttwodigits = ((int) f) / 100; //This assumes that f < 10000.
+  float nexttwodigits = f - (float) (firsttwodigits * 100);
+  float theFinalAnswer = (float) (firsttwodigits + nexttwodigits / 60.0);
+  return theFinalAnswer;
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
 {
-  int echo = 1;
   SerialHandle *h;
   int i;
   char rxChar;
   if (huartHandle == usbHandle.huart)
   {
-    rxChar = (char) usbHandle.rxBuffer;
+    gpsEcho = FALSE;
+    IMUecho(FALSE);
+    h = &usbHandle;
   }
   else if (huartHandle == gpsHandle.huart)
   {
-    rxChar = (char) gpsHandle.rxBuffer;
+    h = &gpsHandle;
   }
   else
   {
     return;
   }
-  h = &usbHandle;
-
+  rxChar = h->rxBuffer;
   if (rxChar == 127 || rxChar == 8)
   {
     // Backspace or delete
-    SerialTransmit(h, "\b \b", 3);
+    if (h == &usbHandle)
+      SerialTransmit(h, "\b \b", 3);
+
     h->rxIndex = (h->rxIndex > 0) ? h->rxIndex - 1 : 0;
     h->rxString[h->rxIndex] = 0;
   }
+  else if (rxChar == '\n')
+  {
+
+  }
   else if (rxChar == '\r')
   {
-    // Echo carriage return
-    SerialTransmit(h, "\r\n", 2);
+    // Carriage return
+    if (h == &usbHandle)
+      SerialTransmit(h, "\r\n", 2);
     // Add null terminator
     h->rxString[h->rxIndex] = '\0';
-//    ShellExecute((char *) &rxString);
+    char *row = (char *) &h->rxString;
+    if (h == &gpsHandle)
+    {
+      h->rxString[h->rxIndex] = '\r';
+      if (h->rxIndex < RX_BUFFER_MAX - 1)
+        h->rxIndex++;
+      h->rxString[h->rxIndex] = '\n';
+      if (h->rxIndex < RX_BUFFER_MAX - 1)
+        h->rxIndex++;
+      nmeaINFO info = GPSparse(row, strlen(row));
+      if (gpsEcho)
+      {
+        printf(row);
+        float lat = NMEAtoGPS(info.lat);
+        float lon = NMEAtoGPS(info.lon);
+        printf("date %d/%d %d, time %d:%d, lat %f, lon %f, elv %f, satuse %d, satview %d\n", info.utc.day, info.utc.mon + 1, info.utc.year + 1900,
+            info.utc.hour, info.utc.min, lat, lon, info.elv, info.satinfo.inuse, info.satinfo.inview);
+      }
+    }
+    else if (h == &usbHandle)
+    {
+      ShellExecute(row);
+    }
     // Clear the buffer
     h->rxIndex = 0;
     for (i = 0; i < RX_BUFFER_MAX; i++)
       h->rxString[i] = 0;
-//    HAL_GPIO_WritePin(GPS_ON_OFF_GPIO_Port, GPS_ON_OFF_Pin, GPIO_PIN_SET);
-//    HAL_Delay(200);
-//    HAL_GPIO_WritePin(GPS_ON_OFF_GPIO_Port, GPS_ON_OFF_Pin, GPIO_PIN_RESET);
-
   }
-  else if (isGlyph(rxChar))
+  else
   {
     // Echo the character
-    SerialTransmit(h, &rxChar, 1);
+    if (h == &usbHandle)
+      SerialTransmit(h, &rxChar, 1);
     // Append character and increment cursor
     h->rxString[h->rxIndex] = rxChar;
     if (h->rxIndex < RX_BUFFER_MAX - 1)
       h->rxIndex++;
   }
-
 }

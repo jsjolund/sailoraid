@@ -170,7 +170,7 @@ void InitBlueNrgGattServer(void)
 
   /* Set output power level */
   ret = aci_hal_set_tx_power_level(1, 4);
-
+  printf("Bluetooth OK.\n");
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

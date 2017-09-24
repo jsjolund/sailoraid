@@ -47,6 +47,7 @@
 #include "stm32f4xx_hal_dma.h"
 #include "stm32f4xx_hal_spi.h"
 #include "stdint.h"
+#include "hal_types.h"
 
 /* USER CODE END Includes */
 
@@ -55,6 +56,8 @@
 #define USER_BUTTON_Pin GPIO_PIN_13
 #define USER_BUTTON_GPIO_Port GPIOC
 #define USER_BUTTON_EXTI_IRQn EXTI15_10_IRQn
+#define GPS_NRST_Pin GPIO_PIN_0
+#define GPS_NRST_GPIO_Port GPIOC
 #define M_INT2_O_Pin GPIO_PIN_1
 #define M_INT2_O_GPIO_Port GPIOC
 #define M_INT2_O_EXTI_IRQn EXTI1_IRQn
@@ -63,10 +66,10 @@
 #define BNRG_SPI_IRQ_EXTI_IRQn EXTI0_IRQn
 #define BNRG_SPI_CS_Pin GPIO_PIN_1
 #define BNRG_SPI_CS_GPIO_Port GPIOA
-#define USART_TX_Pin GPIO_PIN_2
-#define USART_TX_GPIO_Port GPIOA
-#define USART_RX_Pin GPIO_PIN_3
-#define USART_RX_GPIO_Port GPIOA
+#define USB_USART_TX_Pin GPIO_PIN_2
+#define USB_USART_TX_GPIO_Port GPIOA
+#define USB_USART_RX_Pin GPIO_PIN_3
+#define USB_USART_RX_GPIO_Port GPIOA
 #define LED2_Pin GPIO_PIN_5
 #define LED2_GPIO_Port GPIOA
 #define BNRG_SPI_MISO_Pin GPIO_PIN_6
@@ -82,10 +85,10 @@
 #define GPS_ON_OFF_GPIO_Port GPIOC
 #define BNRG_SPI_RESET_Pin GPIO_PIN_8
 #define BNRG_SPI_RESET_GPIO_Port GPIOA
-#define GPS_TX_Pin GPIO_PIN_9
-#define GPS_TX_GPIO_Port GPIOA
-#define GPS_RX_Pin GPIO_PIN_10
-#define GPS_RX_GPIO_Port GPIOA
+#define GPS_USART_TX_Pin GPIO_PIN_9
+#define GPS_USART_TX_GPIO_Port GPIOA
+#define GPS_USART_RX_Pin GPIO_PIN_10
+#define GPS_USART_RX_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
@@ -98,6 +101,10 @@
 #define LSM6DSL_INT1_O_Pin GPIO_PIN_5
 #define LSM6DSL_INT1_O_GPIO_Port GPIOB
 #define LSM6DSL_INT1_O_EXTI_IRQn EXTI9_5_IRQn
+#define IMU_I2C_SCL_Pin GPIO_PIN_8
+#define IMU_I2C_SCL_GPIO_Port GPIOB
+#define IMU_I2C_SDA_Pin GPIO_PIN_9
+#define IMU_I2C_SDA_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 #define USARTx_TX_AF                     GPIO_AF7_USART2
@@ -195,6 +202,7 @@ void _Error_Handler(char *, int);
 
 #define Error_Handler() _Error_Handler(__FILE__, __LINE__)
 
+void IMUecho(BOOL echo);
 /**
   * @}
   */ 

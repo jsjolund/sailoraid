@@ -186,7 +186,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
     PB8     ------> I2C1_SCL
     PB9     ------> I2C1_SDA 
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
+    GPIO_InitStruct.Pin = IMU_I2C_SCL_Pin|IMU_I2C_SDA_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -222,7 +222,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
     PB8     ------> I2C1_SCL
     PB9     ------> I2C1_SDA 
     */
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_8|GPIO_PIN_9);
+    HAL_GPIO_DeInit(GPIOB, IMU_I2C_SCL_Pin|IMU_I2C_SDA_Pin);
 
     /* I2C1 interrupt DeInit */
     HAL_NVIC_DisableIRQ(I2C1_EV_IRQn);
@@ -362,7 +362,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     PA9     ------> USART1_TX
     PA10     ------> USART1_RX 
     */
-    GPIO_InitStruct.Pin = GPS_TX_Pin|GPS_RX_Pin;
+    GPIO_InitStruct.Pin = GPS_USART_TX_Pin|GPS_USART_RX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -425,7 +425,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     PA2     ------> USART2_TX
     PA3     ------> USART2_RX 
     */
-    GPIO_InitStruct.Pin = USART_TX_Pin|USART_RX_Pin;
+    GPIO_InitStruct.Pin = USB_USART_TX_Pin|USB_USART_RX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -494,7 +494,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     PA9     ------> USART1_TX
     PA10     ------> USART1_RX 
     */
-    HAL_GPIO_DeInit(GPIOA, GPS_TX_Pin|GPS_RX_Pin);
+    HAL_GPIO_DeInit(GPIOA, GPS_USART_TX_Pin|GPS_USART_RX_Pin);
 
     /* USART1 DMA DeInit */
     HAL_DMA_DeInit(huart->hdmarx);
@@ -518,7 +518,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     PA2     ------> USART2_TX
     PA3     ------> USART2_RX 
     */
-    HAL_GPIO_DeInit(GPIOA, USART_TX_Pin|USART_RX_Pin);
+    HAL_GPIO_DeInit(GPIOA, USB_USART_TX_Pin|USB_USART_RX_Pin);
 
     /* USART2 DMA DeInit */
     HAL_DMA_DeInit(huart->hdmarx);
