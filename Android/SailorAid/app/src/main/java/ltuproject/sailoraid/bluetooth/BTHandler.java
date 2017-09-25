@@ -31,7 +31,7 @@ public class BTHandler {
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_COARSE_LOCATION = 999;
-    private static final long SCAN_PERIOD = 1000;
+    private static final long SCAN_PERIOD = 10000;
 
     private BluetoothAdapter btAdapter;
     private Set<BluetoothDevice> pairedDevices;

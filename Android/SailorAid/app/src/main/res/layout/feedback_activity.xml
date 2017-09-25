@@ -27,53 +27,85 @@
         app:layout_constraintLeft_toLeftOf="parent"
         android:orientation="horizontal">
 
-        <TableLayout
-            android:layout_width="200dp"
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:padding="3dp"
-            android:background="@color/darkblue"
-            android:id="@+id/tableLeftFeedback1"
-            android:gravity="bottom"
-            app:layout_constraintBottom_toBottomOf="parent">
-            <TableRow
-                android:layout_margin="1dp"
-                android:background="@color/background">
+            android:orientation="horizontal">
+
+
+            <TableLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:padding="3dp"
+                android:background="@color/darkblue"
+                android:id="@+id/tableLeftFeedback1"
+                android:gravity="bottom"
+                app:layout_constraintBottom_toBottomOf="parent">
+                <TableRow
+                    android:layout_margin="1dp"
+                    android:background="@color/background">
+
+                    <TextView
+                        android:text="Tilt: "
+                        android:textSize="14pt"
+                        android:layout_width="100dp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:id="@+id/degreeText"
+                        android:textSize="14pt"
+                        />
+                </TableRow>
+                <TableRow
+                    android:layout_margin="1dp"
+                    android:background="@color/background">
+                    <TextView
+                        android:text="SOG: "
+                        android:textSize="10pt"
+                        android:layout_width="100dp"/>
+                    <TextView
+                        android:id="@+id/speedText"
+                        android:textSize="10pt"
+                        android:layout_width="wrap_content"
+                        />
+
+                </TableRow>
+                <Button
+                    android:id="@+id/mapviewbtn"
+                    android:text="View map"
+                    android:background="@color/laserblue"
+                    android:layout_margin="5dp"
+                    android:textSize="8pt"
+                    android:textColor="@color/darkblue"
+                    android:layout_width="match_parent"
+                    >
+                </Button>
+
+            </TableLayout>
+            <TableLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:padding="3dp"
+                android:background="@color/darkblue"
+                android:id="@+id/tableLeftFeedback2"
+                android:gravity="bottom"
+                app:layout_constraintBottom_toBottomOf="parent">
 
                 <TextView
-                    android:text="Tilt: "
-                    android:textSize="14pt"
-                    android:layout_width="100dp"/>
-                <TextView
+                    android:id="@+id/callbackText"
                     android:layout_width="wrap_content"
-                    android:id="@+id/degreeText"
-                    android:textSize="14pt"
+                    android:layout_height="wrap_content"
+                    android:background="@color/background"/>
+                <ImageView
+                    android:id="@+id/driftImg"
+                    android:layout_height="100dp"
+                    android:layout_width="100dp"
                     />
-            </TableRow>
-            <TableRow
-                android:layout_margin="1dp"
-                android:background="@color/background">
-                <TextView
-                    android:text="Speed: "
-                    android:textSize="14pt"
-                    android:layout_width="100dp"/>
-                <TextView
-                    android:id="@+id/speedText"
-                    android:textSize="14pt"
-                    android:layout_width="wrap_content"
-                    />
-            </TableRow>
-            <Button
-                android:id="@+id/mapviewbtn"
-                android:text="View map"
-                android:background="@color/laserblue"
-                android:layout_margin="7dp"
-                android:textSize="10pt"
-                android:textColor="@color/darkblue"
-                android:layout_width="match_parent"
-                >
-            </Button>
-        </TableLayout>
+
+            </TableLayout>
+        </LinearLayout>
+
         <TableLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -95,7 +127,7 @@
                     android:id="@+id/pressureMeter"
                     android:orientation="horizontal"
                     android:layout_weight="1">
-                    </LinearLayout>
+                </LinearLayout>
             </TableRow>
             <TableRow
                 android:id="@+id/pressureTextRow"
@@ -111,14 +143,6 @@
             </TableRow>
         </TableLayout>
 
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/connectFeedback"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
