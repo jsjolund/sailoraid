@@ -2,7 +2,7 @@
  * shell.h
  *
  *  Created on: Sep 24, 2017
- *      Author: user
+ *      Author: jsjolund
  */
 
 #ifndef SHELL_H_

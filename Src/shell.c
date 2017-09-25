@@ -2,7 +2,7 @@
  * shell.c
  *
  *  Created on: Sep 24, 2017
- *      Author: user
+ *      Author: jsjolund
  */
 
 #include "shell.h"

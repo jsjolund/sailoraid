@@ -2,7 +2,7 @@
  * imu.h
  *
  *  Created on: Sep 20, 2017
- *      Author: user
+ *      Author: jsjolund
  */
 
 #ifndef IMU_H_

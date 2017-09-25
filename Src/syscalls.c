@@ -113,7 +113,7 @@ int _write(int file, char *ptr, int len)
   if ((len > 1) && ((ptr[len - 1] == '\n' && ptr[len - 2] != '\r') || (ptr[len - 1] == '\r' && ptr[len - 2] != '\n')))
   {
     memcpy(tmp, ptr, len);
-    tmp[len-1] = '\r';
+    tmp[len - 1] = '\r';
     tmp[len] = '\n';
     ptr = tmp;
     len++;

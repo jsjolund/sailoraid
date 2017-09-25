@@ -74,7 +74,7 @@ volatile uint8_t adcFinished = 1;
 volatile uint8_t adcValues[] = { 0, 0, 0, 0 };
 static BOOL imuEcho = FALSE;
 static BOOL gpsEcho = FALSE;
-SensorState sensorState;
+SensorState sensor;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -150,9 +150,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
-  memset(&sensorState, 0, sizeof(SensorState));
+  memset(&sensor, 0, sizeof(SensorState));
   SensorAxes_t ACC_Value; /*!< Acceleration Value */
   SensorAxes_t GYR_Value; /*!< Gyroscope Value */
   SensorAxes_t MAG_Value; /*!< Magnetometer Value */
@@ -233,8 +232,6 @@ int main(void)
   uint32_t btUpdatePeriod = 1000000 / btUpdateRate;
   uint32_t btUpdatePrevious = htim2.Instance->CNT;
 
-//  float ax = 0, ay = 0, az = 0, gx = 0, gy = 0, gz = 0, mx = 0, my = 0, mz = 0, yaw = 0, pitch = 0, roll = 0;
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -257,48 +254,52 @@ int main(void)
       Accelero_Sensor_Handler(&ACC_Value);
       Gyro_Sensor_Handler(&GYR_Value);
       Magneto_Sensor_Handler(&MAG_Value);
-      sensorState.gx = ((float) GYR_Value.AXIS_X) / 1000;
-      sensorState.gy = ((float) GYR_Value.AXIS_Y) / 1000;
-      sensorState.gz = ((float) GYR_Value.AXIS_Z) / 1000;
-      sensorState.ax = ((float) ACC_Value.AXIS_X) / 1000;
-      sensorState.ay = ((float) ACC_Value.AXIS_Y) / 1000;
-      sensorState.az = ((float) ACC_Value.AXIS_Z) / 1000;
-      sensorState.mx = (((float) MAG_Value.AXIS_X) - MAG_X_BIAS) * MAG_X_SCL / 1000;
-      sensorState.my = -(((float) MAG_Value.AXIS_Y) - MAG_Y_BIAS) * MAG_Y_SCL / 1000; // LSM6DSL has opposite y-axis compared to LSM303 on IMU board
-      sensorState.mz = (((float) MAG_Value.AXIS_Z) - MAG_X_BIAS) * MAG_Z_SCL / 1000;
+      sensor.imu.gx = ((float) GYR_Value.AXIS_X) / 1000;
+      sensor.imu.gy = ((float) GYR_Value.AXIS_Y) / 1000;
+      sensor.imu.gz = ((float) GYR_Value.AXIS_Z) / 1000;
+      sensor.imu.ax = ((float) ACC_Value.AXIS_X) / 1000;
+      sensor.imu.ay = ((float) ACC_Value.AXIS_Y) / 1000;
+      sensor.imu.az = ((float) ACC_Value.AXIS_Z) / 1000;
+      sensor.imu.mx = (((float) MAG_Value.AXIS_X) - MAG_X_BIAS) * MAG_X_SCL / 1000;
+      sensor.imu.my = -(((float) MAG_Value.AXIS_Y) - MAG_Y_BIAS) * MAG_Y_SCL / 1000; // LSM6DSL has opposite y-axis compared to LSM303 on IMU board
+      sensor.imu.mz = (((float) MAG_Value.AXIS_Z) - MAG_X_BIAS) * MAG_Z_SCL / 1000;
 
-      MadgwickUpdate(sensorState.gx, sensorState.gy, sensorState.gz, sensorState.ax, sensorState.ay, sensorState.az, sensorState.mx, sensorState.my, sensorState.mz);
-      sensorState.roll = MadgwickGetRoll();
-      sensorState.pitch = -MadgwickGetPitch();
-      sensorState.yaw = -MadgwickGetYaw();
+      MadgwickUpdate(sensor.imu.gx, sensor.imu.gy, sensor.imu.gz, sensor.imu.ax, sensor.imu.ay, sensor.imu.az, sensor.imu.mx, sensor.imu.my, sensor.imu.mz);
+      sensor.imu.roll = MadgwickGetRoll();
+      sensor.imu.pitch = -MadgwickGetPitch();
+      sensor.imu.yaw = -MadgwickGetYaw();
       imuPrevious += imuPeriod;
     }
     if (microsNow - serialPrevious >= serialPeriod)
     {
       if (imuEcho)
-        printf("%3.4f %3.4f %3.4f %3.4f %3.4f %3.4f \r\n", sensorState.roll, sensorState.pitch, sensorState.yaw,
-            sensorState.ax, sensorState.ay, sensorState.az);
+        printf("%3.4f %3.4f %3.4f %3.4f %3.4f %3.4f \r\n", sensor.imu.roll, sensor.imu.pitch, sensor.imu.yaw, sensor.imu.ax, sensor.imu.ay, sensor.imu.az);
       if (gpsEcho)
-        printf("date %d/%d %d, time %d:%d, lat %f, lon %f, elv %f, speed %f, dir %f satuse %d, satview %d\r\n",
-            sensorState.day, sensorState.month, sensorState.year, sensorState.hour, sensorState.min, sensorState.latitude, sensorState.longitude, sensorState.elevation, sensorState.speed, sensorState.direction, sensorState.satUse, sensorState.satView);
+      {
+        HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
+        printf("date %d/%d %d, time %d:%d, lat %f, lon %f, elv %f, speed %f, dir %f satuse %d, satview %d\r\n", sensor.gps.time.day, sensor.gps.time.month,
+            sensor.gps.time.year, sensor.gps.time.hour, sensor.gps.time.min, sensor.gps.pos.latitude, sensor.gps.pos.longitude, sensor.gps.pos.elevation,
+            sensor.gps.pos.speed, sensor.gps.pos.direction, sensor.gps.info.satUse, sensor.gps.info.satView);
+        HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
+      }
       serialPrevious += serialPeriod;
     }
     if (microsNow - envSensorPrevious >= envSensorPeriod)
     {
-      Pressure_Sensor_Handler(&sensorState.pressure);
-      Humidity_Sensor_Handler(&sensorState.humidity);
-      Temperature_Sensor_Handler(&sensorState.temperature);
+      Pressure_Sensor_Handler(&sensor.env.pressure);
+      Humidity_Sensor_Handler(&sensor.env.humidity);
+      Temperature_Sensor_Handler(&sensor.env.temperature);
       envSensorPrevious += envSensorPeriod;
     }
     if (microsNow - btUpdatePrevious >= btUpdatePeriod)
     {
-      EUL_Value.AXIS_X = (int) sensorState.roll;
-      EUL_Value.AXIS_Y = (int) sensorState.pitch;
-      EUL_Value.AXIS_Z = (int) sensorState.yaw;
+      EUL_Value.AXIS_X = (int) sensor.imu.roll;
+      EUL_Value.AXIS_Y = (int) sensor.imu.pitch;
+      EUL_Value.AXIS_Z = (int) sensor.imu.yaw;
       Acc_Update(&EUL_Value);
-      Temp_Update(sensorState.temperature);
-      Humidity_Update(sensorState.humidity);
-      Press_Update(sensorState.pressure);
+      Temp_Update(sensor.env.temperature);
+      Humidity_Update(sensor.env.humidity);
+      Press_Update(sensor.env.pressure);
       btUpdatePrevious += btUpdatePeriod;
     }
     if (microsNow - adcPrevious >= adcPeriod && adcFinished)

@@ -2,7 +2,7 @@
  * imu.c
  *
  *  Created on: Sep 20, 2017
- *      Author: user
+ *      Author: jsjolund
  */
 
 #include "imu.h"
@@ -13,6 +13,8 @@ static void *MAGNETO_handle = NULL;
 static void *HUMIDITY_handle = NULL;
 static void *TEMPERATURE_handle = NULL;
 static void *PRESSURE_handle = NULL;
+
+//void IMU_Update()
 
 /**
  * @brief  Handles the GYRO axes data getting/sending

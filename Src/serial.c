@@ -2,7 +2,7 @@
  * serial.cpp
  *
  *  Created on: Jan 28, 2017
- *      Author: user
+ *      Author: jsjolund
  */
 
 #include "serial.h"
@@ -20,7 +20,7 @@ typedef struct SerialHandle
 
 static SerialHandle usbHandle;
 static SerialHandle gpsHandle;
-extern SensorState sensorState;
+extern SensorState sensor;
 static int QueuePut(SerialHandle *h, uint8_t input)
 {
   if (h->txIndex == ((h->txOutdex - 1 + TX_BUFFER_MAX) % TX_BUFFER_MAX))
@@ -57,25 +57,21 @@ static int QueueGet(SerialHandle *h, uint8_t *output)
 //  return count;
 //}
 
-void SerialInit(UART_HandleTypeDef *usbHuartHandle,
-    UART_HandleTypeDef *gpsHuartHandle)
+void SerialInit(UART_HandleTypeDef *usbHuartHandle, UART_HandleTypeDef *gpsHuartHandle)
 {
   usbHandle.huart = usbHuartHandle;
   usbHandle.txCplt = 1;
   gpsHandle.huart = gpsHuartHandle;
   gpsHandle.txCplt = 1;
   // Initiate automatic receive through DMA one character at a time
-  HAL_UART_Receive_DMA(usbHandle.huart, &usbHandle.rxBuffer,
-      sizeof(usbHandle.rxBuffer));
-  HAL_UART_Receive_DMA(gpsHandle.huart, &gpsHandle.rxBuffer,
-      sizeof(gpsHandle.rxBuffer));
+  HAL_UART_Receive_DMA(usbHandle.huart, &usbHandle.rxBuffer, sizeof(usbHandle.rxBuffer));
+  HAL_UART_Receive_DMA(gpsHandle.huart, &gpsHandle.rxBuffer, sizeof(gpsHandle.rxBuffer));
 }
 
 static void SendFromFIFO(SerialHandle *h)
 {
   HAL_UART_StateTypeDef uartState = HAL_UART_GetState(h->huart);
-  if ((uartState == HAL_UART_STATE_READY)
-      || (uartState == HAL_UART_STATE_BUSY_RX))
+  if ((uartState == HAL_UART_STATE_READY) || (uartState == HAL_UART_STATE_BUSY_RX))
   {
     uint8_t c;
     if (QueueGet(h, &c))
@@ -101,28 +97,33 @@ void SerialUsbTransmit(char *ptr, int len)
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
+  SerialHandle *h;
   if (huart == gpsHandle.huart)
   {
+    h = &gpsHandle;
     char buffer[30];
     int cx;
-    cx = snprintf(buffer, 30, "ERROR CODE %d GPS UART\r\n",
-        (int) huart->ErrorCode);
+    cx = snprintf(buffer, 30, "ERROR CODE %d GPS UART\r\n", (int) huart->ErrorCode);
     SerialUsbTransmit(buffer, cx);
-
-    if (huart->ErrorCode == HAL_UART_ERROR_PE)
-      __HAL_UART_CLEAR_PEFLAG(huart);
-    if (huart->ErrorCode == HAL_UART_ERROR_FE)
-      __HAL_UART_CLEAR_FEFLAG(huart);
-    if (huart->ErrorCode == HAL_UART_ERROR_NE)
-      __HAL_UART_CLEAR_NEFLAG(huart);
-
-    // Clear the buffer since we got invalid data, then start receiving again
-    gpsHandle.rxIndex = 0;
-    for (int i = 0; i < RX_BUFFER_MAX; i++)
-      gpsHandle.rxString[i] = 0;
-    HAL_UART_Receive_DMA(gpsHandle.huart, &gpsHandle.rxBuffer,
-        sizeof(gpsHandle.rxBuffer));
   }
+  else
+  {
+    h = &usbHandle;
+  }
+
+  if (h->huart->ErrorCode == HAL_UART_ERROR_PE)
+    __HAL_UART_CLEAR_PEFLAG(h->huart);
+  if (h->huart->ErrorCode == HAL_UART_ERROR_FE)
+    __HAL_UART_CLEAR_FEFLAG(h->huart);
+  if (h->huart->ErrorCode == HAL_UART_ERROR_NE)
+    __HAL_UART_CLEAR_NEFLAG(h->huart);
+
+  // Clear the buffer since we got invalid data, then start receiving again
+  h->rxIndex = 0;
+  for (int i = 0; i < RX_BUFFER_MAX; i++)
+    h->rxString[i] = 0;
+  HAL_UART_Receive_DMA(h->huart, &h->rxBuffer, sizeof(h->rxBuffer));
+
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huartHandle)
@@ -185,20 +186,20 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
       h->rxString[h->rxIndex++] = '\r';
       h->rxString[h->rxIndex++] = '\n';
       nmeaINFO info = GPSparse(row, strlen(row));
-      sensorState.year = info.utc.year + 1900;
-      sensorState.month = info.utc.mon + 1;
-      sensorState.day = info.utc.day;
-      sensorState.hour = info.utc.hour;
-      sensorState.min = info.utc.min;
-      sensorState.sec = info.utc.sec;
-      sensorState.hsec = info.utc.hsec;
-      sensorState.elevation = info.elv;
-      sensorState.latitude = NMEAtoGPS(info.lat);
-      sensorState.longitude = NMEAtoGPS(info.lon);
-      sensorState.satUse = info.satinfo.inuse;
-      sensorState.satView = info.satinfo.inview;
-      sensorState.speed = info.speed;
-      sensorState.direction = info.direction;
+      sensor.gps.time.year = info.utc.year + 1900;
+      sensor.gps.time.month = info.utc.mon + 1;
+      sensor.gps.time.day = info.utc.day;
+      sensor.gps.time.hour = info.utc.hour;
+      sensor.gps.time.min = info.utc.min;
+      sensor.gps.time.sec = info.utc.sec;
+      sensor.gps.time.hsec = info.utc.hsec;
+      sensor.gps.pos.elevation = info.elv;
+      sensor.gps.pos.latitude = NMEAtoGPS(info.lat);
+      sensor.gps.pos.longitude = NMEAtoGPS(info.lon);
+      sensor.gps.info.satUse = info.satinfo.inuse;
+      sensor.gps.info.satView = info.satinfo.inview;
+      sensor.gps.pos.speed = info.speed;
+      sensor.gps.pos.direction = info.direction;
     }
     else if (h == &usbHandle)
     {

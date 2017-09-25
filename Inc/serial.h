@@ -2,7 +2,7 @@
  * serial.h
  *
  *  Created on: Sep 21, 2017
- *      Author: user
+ *      Author: jsjolund
  */
 
 #ifndef SERIAL_H_
