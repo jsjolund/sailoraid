@@ -82,6 +82,6 @@ public class BoatView extends SurfaceView implements
     public void surfaceDestroyed(SurfaceHolder holder) {
         if (null != mDrawingThread)
             mDrawingThread.interrupt();
-    }
+}
 
 }

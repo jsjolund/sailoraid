@@ -96,57 +96,21 @@ public class FeedbackActivity extends AppCompatActivity {
 
         btnMap = (Button) findViewById(R.id.mapviewbtn);
 
-        // Instantiate SensorManager
-        //mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        // Get Accelerometer sensor
-        //mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-        filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        this.registerReceiver(mReceiver, filter);
-
-        filter = new IntentFilter(BTLEConnection.ACTION_GATT_CONNECTED);
-        filter.addAction(BTLEConnection.ACTION_GATT_DISCONNECTED);
-        filter.addAction(BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED);
-        filter.addAction(BTLEConnection.ACTION_DATA_AVAILABLE);
-        this.registerReceiver(mGattUpdateReceiver, filter);
-
-        myBTHandler = new BTHandler(this);
-        if(!myBTHandler.getBtAdapter().isEnabled()) {
-            turnOn();
-        }
-        checkLocationPermission();
-        if(hasPermission){
-            cleanPop();
-            setPopDialog(LE_LIST);
-            BTArrayAdapter.clear();
-            alertpop = popDialog.show();
-            myBTHandler.clearLeList();
-            myBTHandler.scanLeDevice(mLeScanCallback, true);
-        }
-
+        initFilter();
+        initBTconn();
         /*
         Draw the boat alignment
          */
-        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.boatalignmentholder);
+        /*LinearLayout linearLayout = (LinearLayout) findViewById(R.id.boatalignmentholder);
         mBoatView = new BoatView(getApplicationContext(),
                 BitmapFactory.decodeResource(getResources(), R.drawable.boat_alignement));
         mBoatView.setZOrderOnTop(true);    // necessary
         linearLayout.addView(mBoatView);
-
+*/
         /*
         Draw needle for pressure measurement
          */
-        LinearLayout linearPressureLayout = (LinearLayout) findViewById(R.id.pressureMeter);
-        mNeedleView = new NeedleView(getApplicationContext(),
-                BitmapFactory.decodeResource(getResources(), R.drawable.needle));
-        linearPressureLayout.addView(mNeedleView);
-        mNeedleView.setZOrderOnTop(true);    // necessary
-
-
-
+         // necessary
 
         /**
          * Change to map activity and sending location coordinates to intent
@@ -163,68 +127,106 @@ public class FeedbackActivity extends AppCompatActivity {
         });
     }
 
+    public void initBTconn(){
+        myBTHandler = new BTHandler(this);
+        if(!myBTHandler.getBtAdapter().isEnabled()) {
+            turnOn();
+        }
+        checkLocationPermission();
+        if(hasPermission){
+            cleanPop();
+            setPopDialog(LE_LIST);
+            BTArrayAdapter.clear();
+            alertpop = popDialog.show();
+            myBTHandler.clearLeList();
+            myBTHandler.scanLeDevice(mLeScanCallback, true);
+        }
+    }
+
+    /*
+    Init filter for bluetooth update handling
+     */
+    private void initFilter(){
+
+        filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        this.registerReceiver(mReceiver, filter);
+
+        filter = new IntentFilter(BTLEConnection.ACTION_GATT_CONNECTED);
+        filter.addAction(BTLEConnection.ACTION_GATT_DISCONNECTED);
+        filter.addAction(BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED);
+        filter.addAction(BTLEConnection.ACTION_DATA_AVAILABLE);
+        this.registerReceiver(mGattUpdateReceiver, filter);
+    }
     @Override
     protected void onResume() {
+        /*filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        this.registerReceiver(mReceiver, filter);
+
+        filter = new IntentFilter(BTLEConnection.ACTION_GATT_CONNECTED);
+        filter.addAction(BTLEConnection.ACTION_GATT_DISCONNECTED);
+        filter.addAction(BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED);
+        filter.addAction(BTLEConnection.ACTION_DATA_AVAILABLE);
+        this.registerReceiver(mGattUpdateReceiver, filter);
+*/
         super.onResume();
+        displayDynamicPics();
+
         // register Listener for SensorManager and Accelerometer sensor
         //mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
     }
 
+    private void displayDynamicPics(){
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.boatalignmentholder);
+        mBoatView = new BoatView(getApplicationContext(),
+                BitmapFactory.decodeResource(getResources(), R.drawable.boat_alignement));
+        mBoatView.setZOrderOnTop(true);    // necessary
+        linearLayout.addView(mBoatView);
+
+        LinearLayout linearPressureLayout = (LinearLayout) findViewById(R.id.pressureMeter);
+        mNeedleView = new NeedleView(getApplicationContext(),
+                BitmapFactory.decodeResource(getResources(), R.drawable.needle));
+        mNeedleView.setZOrderOnTop(true);
+        linearPressureLayout.addView(mNeedleView);
+    }
     @Override
     protected void onDestroy() {
-        /*if (mReceiver !=null){
-            this.unregisterReceiver(mReceiver);
-        }
-        if (mGattUpdateReceiver != null){
-            this.unregisterReceiver(mGattUpdateReceiver);
-        }*/
-        cleanPop();
-        myBTHandler.closeGatt();
         super.onDestroy();
+        this.unregisterReceiver(mReceiver);
+        this.unregisterReceiver(mGattUpdateReceiver);
+        cleanPop();
+        myBTHandler.scanLeDevice(mLeScanCallback, false);
+        myBTHandler.closeGatt();
+
 
     }
 
     @Override
     protected void onPause() {
-        this.unregisterReceiver(mReceiver);
-        this.unregisterReceiver(mGattUpdateReceiver);
-        cleanPop();
         super.onPause();
-        // unregister Listener for SensorManager
-        //mSensorManager.unregisterListener(this);
+        myBTHandler.scanLeDevice(mLeScanCallback, false);
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.boatalignmentholder);
+        linearLayout.removeView(mBoatView);
+        LinearLayout linearPressureLayout = (LinearLayout) findViewById(R.id.pressureMeter);
+        linearPressureLayout.removeView(mNeedleView);
+
     }
 
-   /* @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // can be safely ignored for tutorial
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        final float alpha = 0.8f;
-
-        float gravity[] = new float[3];
-        gravity[0] = alpha * gravity[0] + (1-alpha) * event.values[0];
-        gravity[1] = alpha * gravity[1] + (1-alpha) * event.values[1];
-        gravity[2] = alpha * gravity[2] + (1-alpha) * event.values[2];
-
-        this.x = event.values[0]- gravity[0];
-        this.y = event.values[1]- gravity[1];
-        this.z = event.values[2]- gravity[2];
-        mBoatView.setXYZ(this.x, this.y, this.z);
-        mNeedleView.setPressure(abs(this.x));
-        setDegreeText((int) (this.x*10));
-        setPressureText((int) abs(this.x));
-    }*/
     private void setDegreeText(int degree){
         TextView tv = (TextView) findViewById(R.id.degreeText);
-        tv.setText(degree + "\u2103");
+        String ph = degree + "\u00B0";
+        tv.setText(ph);
     }
     private void setPressureText(int pressure){
         TextView tv = (TextView) findViewById(R.id.pressureText);
-        tv.setText(pressure + " Psi");
+        String ph = pressure + " Psi";
+        tv.setText(ph);
     }
-
 
     /*
     This connects to the bluetooth same as BTConnectActivity, see if we can do this smarter by implementing BTHandler as a service and bind to activity...
@@ -428,6 +430,9 @@ public class FeedbackActivity extends AppCompatActivity {
                 BTArrayAdapter.add(bd.getName()+ "\n" + bd.getAddress());
                 BTArrayAdapter.notifyDataSetChanged();
             }
+            else{
+                BTArrayAdapter.notifyDataSetChanged();
+            }
         }
 
         @Override
@@ -451,7 +456,7 @@ public class FeedbackActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            TextView tv = (TextView) findViewById(R.id.connectFeedback);
+            TextView tv = (TextView) findViewById(R.id.callbackText);
             if (myBTHandler.getBtLEConnection().ACTION_GATT_CONNECTED.equals(action)) {
                 mConnected = true;
                 tv.setText(R.string.connected);
@@ -484,9 +489,9 @@ public class FeedbackActivity extends AppCompatActivity {
             this.y = Float.parseFloat(y);
             this.z = Float.parseFloat(z);
             mBoatView.setXYZ(this.x, this.y, this.z);
-            mNeedleView.setPressure(abs(this.x));
-            setDegreeText((int) (this.x/10));
-            setPressureText((int) abs(this.x));
+            mNeedleView.setPressure(abs(this.y)/10);
+            setDegreeText((int) (this.x));
+            setPressureText((int) abs(this.y)/10);
         }
     }
 

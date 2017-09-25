@@ -369,6 +369,9 @@ public class BTConnectActivity extends AppCompatActivity {
                 BTArrayAdapter.add(bd.getName()+ "\n" + bd.getAddress());
                 BTArrayAdapter.notifyDataSetChanged();
             }
+            else{
+                BTArrayAdapter.notifyDataSetChanged();
+            }
         }
 
         @Override
@@ -495,6 +498,7 @@ public class BTConnectActivity extends AppCompatActivity {
     protected  void onPause() {
         this.unregisterReceiver(mReceiver);
         this.unregisterReceiver(mGattUpdateReceiver);
+        myBTHandler.getBtAdapter().cancelDiscovery();
         cleanPop();
         super.onPause();
 
