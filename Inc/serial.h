@@ -14,12 +14,12 @@
 #include "stm32f4xx_hal.h"
 #include "shell.h"
 #include "gps.h"
+#include "state.h"
 
 #define RX_BUFFER_MAX 512
 #define TX_BUFFER_MAX 512
 
 void SerialInit(UART_HandleTypeDef *usbHuartHandle, UART_HandleTypeDef *gpsHuartHandle);
 void SerialUsbTransmit(char *ptr, int len);
-void GPSecho(uint8_t echo);
 
 #endif /* SERIAL_H_ */

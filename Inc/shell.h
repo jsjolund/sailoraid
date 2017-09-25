@@ -13,7 +13,6 @@
 #include <string.h>
 
 #include "main.h"
-#include "serial.h"
 #include "hal_types.h"
 
 void ShellExecute(char* string);

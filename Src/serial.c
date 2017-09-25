@@ -20,13 +20,7 @@ typedef struct SerialHandle
 
 static SerialHandle usbHandle;
 static SerialHandle gpsHandle;
-static BOOL gpsEcho = FALSE;
-
-static int IsGlyph(char c)
-{
-  return (c >= ' ' && c <= '~');
-}
-
+extern SensorState sensorState;
 static int QueuePut(SerialHandle *h, uint8_t input)
 {
   if (h->txIndex == ((h->txOutdex - 1 + TX_BUFFER_MAX) % TX_BUFFER_MAX))
@@ -45,39 +39,43 @@ static int QueueGet(SerialHandle *h, uint8_t *output)
   return 1;
 }
 
-static int QueueGetSize(SerialHandle *h)
-{
-  return (h->txOutdex > h->txIndex) ?
-  TX_BUFFER_MAX - h->txOutdex + h->txIndex :
-                                      h->txIndex - h->txOutdex;
-}
+//static int QueueGetSize(SerialHandle *h)
+//{
+//  return (h->txOutdex > h->txIndex) ?
+//  TX_BUFFER_MAX - h->txOutdex + h->txIndex :
+//                                      h->txIndex - h->txOutdex;
+//}
+//
+//static int QueueGetAll(SerialHandle *h, uint8_t *output, int count)
+//{
+//  int i;
+//  for (i = 0; i < count; i++)
+//  {
+//    if (!QueueGet(h, output + i))
+//      return i;
+//  }
+//  return count;
+//}
 
-static int QueueGetAll(SerialHandle *h, uint8_t *output, int count)
-{
-  int i;
-  for (i = 0; i < count; i++)
-  {
-    if (!QueueGet(h, output + i))
-      return i;
-  }
-  return count;
-}
-
-void SerialInit(UART_HandleTypeDef *usbHuartHandle, UART_HandleTypeDef *gpsHuartHandle)
+void SerialInit(UART_HandleTypeDef *usbHuartHandle,
+    UART_HandleTypeDef *gpsHuartHandle)
 {
   usbHandle.huart = usbHuartHandle;
   usbHandle.txCplt = 1;
   gpsHandle.huart = gpsHuartHandle;
   gpsHandle.txCplt = 1;
   // Initiate automatic receive through DMA one character at a time
-  HAL_UART_Receive_DMA(usbHandle.huart, &usbHandle.rxBuffer, sizeof(usbHandle.rxBuffer));
-  HAL_UART_Receive_DMA(gpsHandle.huart, &gpsHandle.rxBuffer, sizeof(gpsHandle.rxBuffer));
+  HAL_UART_Receive_DMA(usbHandle.huart, &usbHandle.rxBuffer,
+      sizeof(usbHandle.rxBuffer));
+  HAL_UART_Receive_DMA(gpsHandle.huart, &gpsHandle.rxBuffer,
+      sizeof(gpsHandle.rxBuffer));
 }
 
 static void SendFromFIFO(SerialHandle *h)
 {
   HAL_UART_StateTypeDef uartState = HAL_UART_GetState(h->huart);
-  if ((uartState == HAL_UART_STATE_READY) || (uartState == HAL_UART_STATE_BUSY_RX))
+  if ((uartState == HAL_UART_STATE_READY)
+      || (uartState == HAL_UART_STATE_BUSY_RX))
   {
     uint8_t c;
     if (QueueGet(h, &c))
@@ -94,7 +92,6 @@ static void SerialTransmit(SerialHandle *h, char *ptr, int len)
     QueuePut(h, ptr[i]);
   }
   SendFromFIFO(h);
-
 }
 
 void SerialUsbTransmit(char *ptr, int len)
@@ -102,19 +99,29 @@ void SerialUsbTransmit(char *ptr, int len)
   SerialTransmit(&usbHandle, ptr, len);
 }
 
-void GPSecho(BOOL echo)
-{
-    gpsEcho = echo;
-}
-
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
   if (huart == gpsHandle.huart)
   {
-    char buffer [30];
+    char buffer[30];
     int cx;
-    cx = snprintf(buffer, 30, "ERROR CODE %d GPS UART\r\n", (int) huart->ErrorCode);
-    SerialTransmit(&usbHandle, buffer, cx);
+    cx = snprintf(buffer, 30, "ERROR CODE %d GPS UART\r\n",
+        (int) huart->ErrorCode);
+    SerialUsbTransmit(buffer, cx);
+
+    if (huart->ErrorCode == HAL_UART_ERROR_PE)
+      __HAL_UART_CLEAR_PEFLAG(huart);
+    if (huart->ErrorCode == HAL_UART_ERROR_FE)
+      __HAL_UART_CLEAR_FEFLAG(huart);
+    if (huart->ErrorCode == HAL_UART_ERROR_NE)
+      __HAL_UART_CLEAR_NEFLAG(huart);
+
+    // Clear the buffer since we got invalid data, then start receiving again
+    gpsHandle.rxIndex = 0;
+    for (int i = 0; i < RX_BUFFER_MAX; i++)
+      gpsHandle.rxString[i] = 0;
+    HAL_UART_Receive_DMA(gpsHandle.huart, &gpsHandle.rxBuffer,
+        sizeof(gpsHandle.rxBuffer));
   }
 }
 
@@ -143,7 +150,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
   char rxChar;
   if (huartHandle == usbHandle.huart)
   {
-    gpsEcho = FALSE;
+    GPSecho(FALSE);
     IMUecho(FALSE);
     h = &usbHandle;
   }
@@ -160,55 +167,54 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
   {
     // Backspace or delete
     if (h == &usbHandle)
-      SerialTransmit(h, "\b \b", 3);
+      SerialUsbTransmit("\b \b", 3);
 
     h->rxIndex = (h->rxIndex > 0) ? h->rxIndex - 1 : 0;
     h->rxString[h->rxIndex] = 0;
   }
   else if (rxChar == '\n')
   {
-
   }
   else if (rxChar == '\r')
   {
     // Carriage return
-    if (h == &usbHandle)
-      SerialTransmit(h, "\r\n", 2);
-    // Add null terminator
-    h->rxString[h->rxIndex] = '\0';
     char *row = (char *) &h->rxString;
-    if (h == &gpsHandle)
+    // Check if we should update GPS data or execute command
+    if ((h == &gpsHandle) && (h->rxIndex < RX_BUFFER_MAX - 2))
     {
-      h->rxString[h->rxIndex] = '\r';
-      if (h->rxIndex < RX_BUFFER_MAX - 1)
-        h->rxIndex++;
-      h->rxString[h->rxIndex] = '\n';
-      if (h->rxIndex < RX_BUFFER_MAX - 1)
-        h->rxIndex++;
+      h->rxString[h->rxIndex++] = '\r';
+      h->rxString[h->rxIndex++] = '\n';
       nmeaINFO info = GPSparse(row, strlen(row));
-      if (gpsEcho)
-      {
-        printf(row);
-        float lat = NMEAtoGPS(info.lat);
-        float lon = NMEAtoGPS(info.lon);
-        printf("date %d/%d %d, time %d:%d, lat %f, lon %f, elv %f, satuse %d, satview %d\n", info.utc.day, info.utc.mon + 1, info.utc.year + 1900,
-            info.utc.hour, info.utc.min, lat, lon, info.elv, info.satinfo.inuse, info.satinfo.inview);
-      }
+      sensorState.year = info.utc.year + 1900;
+      sensorState.month = info.utc.mon + 1;
+      sensorState.day = info.utc.day;
+      sensorState.hour = info.utc.hour;
+      sensorState.min = info.utc.min;
+      sensorState.sec = info.utc.sec;
+      sensorState.hsec = info.utc.hsec;
+      sensorState.elevation = info.elv;
+      sensorState.latitude = NMEAtoGPS(info.lat);
+      sensorState.longitude = NMEAtoGPS(info.lon);
+      sensorState.satUse = info.satinfo.inuse;
+      sensorState.satView = info.satinfo.inview;
+      sensorState.speed = info.speed;
+      sensorState.direction = info.direction;
     }
     else if (h == &usbHandle)
     {
+      SerialUsbTransmit("\r\n", 2);
       ShellExecute(row);
     }
     // Clear the buffer
     h->rxIndex = 0;
     for (i = 0; i < RX_BUFFER_MAX; i++)
-      h->rxString[i] = 0;
+      h->rxString[i] = '\0';
   }
   else
   {
     // Echo the character
     if (h == &usbHandle)
-      SerialTransmit(h, &rxChar, 1);
+      SerialUsbTransmit(&rxChar, 1);
     // Append character and increment cursor
     h->rxString[h->rxIndex] = rxChar;
     if (h->rxIndex < RX_BUFFER_MAX - 1)
