@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="ltuproject.sailoraid.MainActivity"
+    android:background="@color/background">
+
+    <ImageView
+        android:id="@+id/boatview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/boat"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Your best matey! Yargh!"
+        android:textColor="@color/darkblue"
+        android:textSize="12pt"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TableLayout
+        android:layout_width="368dp"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:stretchColumns="*"
+        app:layout_constraintTop_toBottomOf="@+id/boatview"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="20dp">
+        <TableRow>
+            <Button
+                android:id="@+id/feedbackviewbtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/laserblue"
+                android:text="Feedback"
+                android:textColor="@color/darkblue"
+                android:padding="10dp"
+                android:layout_margin="10dp"
+                ></Button>
+
+            <Button
+                android:id="@+id/historyviewbtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/laserblue"
+                android:text="Sail history"
+                android:textColor="@color/darkblue"
+                android:padding="10dp"
+                android:layout_margin="10dp"
+                ></Button>
+        </TableRow>
+        <Button
+            android:id="@+id/btconbtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/laserblue"
+            android:text="Connect to boat"
+            android:textColor="@color/darkblue"
+            android:padding="10dp"
+            android:layout_margin="40dp">
+        </Button>
+
+
+    </TableLayout>
+
+</android.support.constraint.ConstraintLayout>

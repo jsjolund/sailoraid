@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/constraintFeedbackView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="ltuproject.sailoraid.FeedbackActivity"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="368dp"
+        android:layout_height="300dp"
+        android:id="@+id/boatalignmentholder"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@drawable/gyro"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent">
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="368dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+
+            <TableLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:padding="3dp"
+                android:background="@color/darkblue"
+                android:id="@+id/tableLeftFeedback1"
+                android:gravity="bottom"
+                app:layout_constraintBottom_toBottomOf="parent">
+                <TableRow
+                    android:layout_margin="1dp"
+                    android:layout_width="wrap_content"
+                    android:background="@color/background">
+
+                    <TextView
+                        android:text="Tilt: "
+                        android:textSize="10pt"
+                        android:layout_width="100dp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:id="@+id/degreeText"
+                        android:textSize="10pt"
+                        />
+                </TableRow>
+                <TableRow
+                    android:layout_margin="1dp"
+                    android:background="@color/background">
+                    <TextView
+                        android:text="SOG: "
+                        android:textSize="10pt"
+                        android:layout_width="100dp"/>
+                    <TextView
+                        android:id="@+id/speedText"
+                        android:textSize="10pt"
+                        android:layout_width="wrap_content"
+                        />
+                </TableRow>
+                <TableRow
+                    android:layout_margin="1dp"
+                    android:background="@color/background">
+                    <TextView
+                        android:text="TEMP: "
+                        android:textSize="10pt"
+                        android:layout_width="100dp"
+                        />
+                    <TextView
+                        android:id="@+id/tempText"
+                        android:textSize="10pt"
+                        />
+                </TableRow>
+                <TableRow
+                    android:layout_margin="1dp"
+                    android:background="@color/background">
+                    <TextView
+                        android:text="HUM: "
+                        android:textSize="10pt"
+                        android:layout_width="100dp"
+                        />
+                    <TextView
+                        android:id="@+id/humText"
+                        android:textSize="10pt"
+                        />
+                </TableRow>
+                <Button
+                    android:id="@+id/mapviewbtn"
+                    android:text="View map"
+                    android:background="@color/laserblue"
+                    android:layout_margin="5dp"
+                    android:textSize="8pt"
+                    android:textColor="@color/darkblue"
+                    android:layout_width="match_parent"
+                    >
+                </Button>
+
+            </TableLayout>
+            <TableLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:padding="3dp"
+                android:background="@color/darkblue"
+                android:id="@+id/tableLeftFeedback2"
+                android:gravity="bottom"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <TextView
+                    android:id="@+id/callbackText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/background"/>
+                <ImageView
+                    android:id="@+id/driftImg"
+                    android:layout_height="100dp"
+                    android:layout_width="100dp"
+                    />
+
+            </TableLayout>
+        </LinearLayout>
+
+        <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/darkblue"
+            android:padding="3dp"
+            >
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:background="@color/background"
+                android:layout_margin="1dp"
+                android:id="@+id/pressureTableRow">
+
+                <LinearLayout
+                    android:layout_width="160dp"
+                    android:layout_height="160dp"
+                    android:background="@drawable/pressure_meter"
+                    android:id="@+id/pressureMeter"
+                    android:orientation="horizontal"
+                    android:layout_weight="1">
+                </LinearLayout>
+            </TableRow>
+            <TableRow
+                android:id="@+id/pressureTextRow"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:background="@color/background"
+                android:layout_margin="1dp">
+                <TextView
+                    android:id="@+id/pressureText"
+                    android:layout_width="wrap_content"
+                    android:textSize="14pt"
+                    />
+            </TableRow>
+        </TableLayout>
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>
