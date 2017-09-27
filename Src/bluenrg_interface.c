@@ -38,7 +38,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "bluenrg_interface.h"
 #define BDADDR_SIZE 6
-uint8_t bnrg_expansion_board = IDB04A1; /* at startup, suppose the X-NUCLEO-IDB04A1 is used */
+uint8_t bnrg_expansion_board = IDB05A1; /* at startup, suppose the X-NUCLEO-IDB04A1 is used */
 void InitBlueNrgGattServer(void)
 {
   const char *name = "BlueNRG";
@@ -137,6 +137,13 @@ void InitBlueNrgGattServer(void)
     printf("Acc service added successfully.\n");
   else
     printf("Error while adding Acc service.\n");
+
+  ret = Add_GPS_Service();
+
+  if (ret == BLE_STATUS_SUCCESS)
+    printf("GPS service added successfully.\n");
+  else
+    printf("Error while adding GPS service.\n");
 
   ret = Add_Environmental_Sensor_Service();
 

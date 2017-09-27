@@ -40,6 +40,9 @@ public class SampleGattAttributes {
     public static String GPS_MEASUREMENT = "00002902-0000-1000-8000-00805f9b34fb";
     public static String PRESSURE_MEASUREMENT = "00002902-0000-1000-8000-00805f9b34fb";
 
+    public static String NUCLEO_GPS_SERVICE = "abcd6e80-cf3a-11e1-9ab4-0002a5d5c51b";
+    public static String NUCLEO_GPS_MEASUREMENT = "aabb1b80-cf4b-11e1-ac36-0002a5d5c51b";
+
     static {
         // Sample Services.
         attributes.put("0000180d-0000-1000-8000-00805f9b34fb", "Heart Rate Service");

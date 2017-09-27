@@ -61,6 +61,7 @@
 #include "debug.h"
 
 #include <stdlib.h>
+#include "state.h"
 
 /** @addtogroup X-CUBE-BLE1_Applications
  *  @{
@@ -116,6 +117,8 @@ typedef struct {
  */
 tBleStatus Add_Acc_Service(void);
 tBleStatus Acc_Update(AxesRaw_t *data);
+tBleStatus Add_Orientation_Service(void);
+tBleStatus Orient_Update(AxesRaw_t *data);
 tBleStatus Temp_Update(int16_t temp);
 tBleStatus Press_Update(int32_t press);
 tBleStatus Humidity_Update(uint16_t humidity);
