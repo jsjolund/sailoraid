@@ -165,7 +165,7 @@ public class BTConnectActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
 
-                myBTHandler.getBtLEConnection().registerGattNotifications();
+                myBTHandler.registerGattNotifications();
             }
         });
     }
@@ -476,6 +476,7 @@ public class BTConnectActivity extends AppCompatActivity {
         filter = new IntentFilter(BTLEConnection.ACTION_GATT_CONNECTED);
         filter.addAction(BTLEConnection.ACTION_GATT_DISCONNECTED);
         filter.addAction(BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED);
+        filter.addAction(BTLEConnection.ACTION_GATT_SERVICE_NOTIFIED);
         filter.addAction(BTLEConnection.ACTION_DATA_AVAILABLE);
         this.registerReceiver(mGattUpdateReceiver, filter);
     }

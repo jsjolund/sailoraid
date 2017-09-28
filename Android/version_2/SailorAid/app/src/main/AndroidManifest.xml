@@ -33,6 +33,7 @@
         <activity android:name=".FeedbackActivity">
             <action android:name="android.intent.action.ACTION_FOUND" />
             <action android:name="ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_CONNECTED" />
+            <action android:name="ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_SERVICE_NOTIFIED" />
         </activity>
         <activity
             android:name=".MapsActivity"

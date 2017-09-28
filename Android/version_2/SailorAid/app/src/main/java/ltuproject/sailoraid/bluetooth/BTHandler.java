@@ -47,7 +47,8 @@ public class BTHandler {
     private BluetoothGattService mGattService;
     private ArrayList<BluetoothGattService> mServiceList;
     private List<BluetoothGattCharacteristic> mCharacteristicList;
-
+    private int listIterator = 0;
+    private int serviceIterator = 0;
     private boolean mScanning;
     private Handler mHandler;
 
@@ -58,6 +59,7 @@ public class BTHandler {
         newDeviceList = new ArrayList<BluetoothDevice>();
         leDeviceList = new ArrayList<BluetoothDevice>();
         mHandler = new Handler();
+        mServiceList = new ArrayList<BluetoothGattService>();
         this.contx = contx;
 
     }
@@ -134,33 +136,43 @@ public class BTHandler {
         this.mGattCharacteristics = mGattCharacteristics;
     }
 
-/*
+    public void setmGattService(BluetoothGattService service){
+        mGattService = service;
+        mServiceList.add(mGattService);
+    }
+
     public void registerGattNotifications(){
         if (!(mServiceList.isEmpty())){
-            if (mCharacteristicList.isEmpty()){
-                mCharacteristicList = mServiceList.remove(0).getCharacteristics();
+           if (mCharacteristicList == null || mCharacteristicList.isEmpty() || (listIterator >=  mCharacteristicList.size()) ) {
+               listIterator = 0;
+                mCharacteristicList  =
+                        mServiceList.get(serviceIterator).getCharacteristics();
+               serviceIterator += 1;
             }
-            if(!mCharacteristicList.isEmpty()){
-                final BluetoothGattCharacteristic characteristic = mCharacteristicList.remove(0);
-                final int charaProp = characteristic.getProperties();
-                if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
-                    // If there is an active notification on a characteristic, clear
-                    // it first so it doesn't update the data field on the user interface.
-                    if (mNotifyCharacteristic != null) {
-                        // btLEConnection.setCharacteristicNotification(
-                        //       mNotifyCharacteristic, false);
-                        mNotifyCharacteristic = null;
+            if (serviceIterator <= mServiceList.size()) {
+                if (!mCharacteristicList.isEmpty() && listIterator < mCharacteristicList.size()) {
+                    final BluetoothGattCharacteristic characteristic = mCharacteristicList.get(listIterator);
+                    listIterator += 1;
+                    final int charaProp = characteristic.getProperties();
+                    if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+                        // If there is an active notification on a characteristic, clear
+                        // it first so it doesn't update the data field on the user interface.
+                        if (mNotifyCharacteristic != null) {
+                            btLEConnection.setCharacteristicNotification(mNotifyCharacteristic, false);
+                            mNotifyCharacteristic = null;
+                        }
+                        btLEConnection.readCharacteristic(characteristic);
                     }
-                    btLEConnection.readCharacteristic(characteristic);
-                }
-                if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-                    mNotifyCharacteristic = characteristic;
-                    btLEConnection.setCharacteristicNotification(
-                            characteristic, true);
+                    if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+                        //mNotifyCharacteristic = characteristic;
+                        btLEConnection.setCharacteristicNotification(characteristic, true);
+                    }
                 }
             }
+
+        }
     }
-*/
+
     public boolean deviceExists(ArrayList<BluetoothDevice> list, BluetoothDevice device){
         boolean exists = false;
         for (int i=0;i<list.size();i++){

@@ -20,6 +20,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -98,19 +99,6 @@ public class FeedbackActivity extends AppCompatActivity {
 
         initFilter();
         initBTconn();
-        /*
-        Draw the boat alignment
-         */
-        /*LinearLayout linearLayout = (LinearLayout) findViewById(R.id.boatalignmentholder);
-        mBoatView = new BoatView(getApplicationContext(),
-                BitmapFactory.decodeResource(getResources(), R.drawable.boat_alignement));
-        mBoatView.setZOrderOnTop(true);    // necessary
-        linearLayout.addView(mBoatView);
-*/
-        /*
-        Draw needle for pressure measurement
-         */
-         // necessary
 
         /**
          * Change to map activity and sending location coordinates to intent
@@ -158,27 +146,13 @@ public class FeedbackActivity extends AppCompatActivity {
         filter.addAction(BTLEConnection.ACTION_GATT_DISCONNECTED);
         filter.addAction(BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED);
         filter.addAction(BTLEConnection.ACTION_DATA_AVAILABLE);
+        filter.addAction(BTLEConnection.ACTION_GATT_SERVICE_NOTIFIED);
         this.registerReceiver(mGattUpdateReceiver, filter);
     }
     @Override
     protected void onResume() {
-        /*filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        this.registerReceiver(mReceiver, filter);
-
-        filter = new IntentFilter(BTLEConnection.ACTION_GATT_CONNECTED);
-        filter.addAction(BTLEConnection.ACTION_GATT_DISCONNECTED);
-        filter.addAction(BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED);
-        filter.addAction(BTLEConnection.ACTION_DATA_AVAILABLE);
-        this.registerReceiver(mGattUpdateReceiver, filter);
-*/
         super.onResume();
         displayDynamicPics();
-
-        // register Listener for SensorManager and Accelerometer sensor
-        //mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
     }
 
     private void displayDynamicPics(){
@@ -194,6 +168,7 @@ public class FeedbackActivity extends AppCompatActivity {
         mNeedleView.setZOrderOnTop(true);
         linearPressureLayout.addView(mNeedleView);
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -202,8 +177,6 @@ public class FeedbackActivity extends AppCompatActivity {
         cleanPop();
         myBTHandler.scanLeDevice(mLeScanCallback, false);
         myBTHandler.closeGatt();
-
-
     }
 
     @Override
@@ -214,23 +187,19 @@ public class FeedbackActivity extends AppCompatActivity {
         linearLayout.removeView(mBoatView);
         LinearLayout linearPressureLayout = (LinearLayout) findViewById(R.id.pressureMeter);
         linearPressureLayout.removeView(mNeedleView);
-
     }
 
     private void setDegreeText(int degree){
         TextView tv = (TextView) findViewById(R.id.degreeText);
-        String ph = degree + "\u00B0";
+        String ph = String.valueOf(degree) + "\u00B0";
         tv.setText(ph);
     }
     private void setPressureText(int pressure){
         TextView tv = (TextView) findViewById(R.id.pressureText);
-        String ph = pressure + " Psi";
+        String ph = String.valueOf(pressure) + " Psi";
         tv.setText(ph);
     }
 
-    /*
-    This connects to the bluetooth same as BTConnectActivity, see if we can do this smarter by implementing BTHandler as a service and bind to activity...
-     */
     /*
     Popup when searching for bluetooth devices
      */
@@ -405,13 +374,16 @@ public class FeedbackActivity extends AppCompatActivity {
             currentServiceData.put(LIST_UUID, uuid);
             gattServiceData.add(currentServiceData);
 
-            if (uuid.equals(SampleGattAttributes.IMU_SERVICE.toString())) {
+            if (uuid.equals(SampleGattAttributes.HEART_RATE_SERVICE.toString())) {
                 myBTHandler.getBtLEConnection().setmGattService(gattService);
             }
             if (uuid.equals(SampleGattAttributes.ACCELEROMETER_SERVICE.toString())) {
                 myBTHandler.getBtLEConnection().setmGattService(gattService);
             }
             if (uuid.equals(SampleGattAttributes.ENV_SERVICE.toString())) {
+                myBTHandler.getBtLEConnection().setmGattService(gattService);
+            }
+            if (uuid.equals(SampleGattAttributes.NUCLEO_GPS_SERVICE.toString())) {
                 myBTHandler.getBtLEConnection().setmGattService(gattService);
             }
         }
@@ -471,41 +443,67 @@ public class FeedbackActivity extends AppCompatActivity {
                 // user interface.
                 getKnownGattServices(myBTHandler.getBtLEConnection().getSupportedGattServices());
                 //displayGattServices(myBTHandler.getBtLEConnection().getSupportedGattServices());
-                myBTHandler.getBtLEConnection().registerGattNotifications();
+                //myBTHandler.registerGattNotifications();
+                startRegNotifications();
 
             } else if (myBTHandler.getBtLEConnection().ACTION_DATA_AVAILABLE.equals(action)) {
                 displayData(intent.getStringExtra(myBTHandler.getBtLEConnection().EXTRA_DATA),intent.getStringExtra(myBTHandler.getBtLEConnection().EXTRA_TYPE));
+            } else if (myBTHandler.getBtLEConnection().ACTION_GATT_SERVICE_NOTIFIED.equals(action)){
+                //myBTHandler.registerGattNotifications();
+                startRegNotifications();
             }
         }
     };
 
+    public void startRegNotifications() {
+        Handler handler = new Handler();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                myBTHandler.getBtLEConnection().registerGattNotifications();
+            }
+        });
+    }
+
     private void displayData(String data, String dataType) {
         if (data != null) {
             if(dataType.equals("Incline")){
-                String[] accelerometer = data.split(":");
+                /*String[] accelerometer = data.split(":");
                 String x = accelerometer[0]; // this will contain "Fruit"
                 String y = accelerometer[1]; // this will contain " they taste good"
                 String z = accelerometer[2]; // this will contain " they taste good"
                 this.x = Float.parseFloat(x);
                 this.y = Float.parseFloat(y);
-                this.z = Float.parseFloat(z);
+                this.z = Float.parseFloat(z);*/
+
+                this.x = Byte.parseByte(data);
                 mBoatView.setXYZ(this.x, this.y, this.z);
-                mNeedleView.setPressure(abs(this.y)/10);
-                setDegreeText((int) (this.x));
-                setPressureText((int) abs(this.y)/10);
+                //mNeedleView.setPressure(abs(this.y)/10);
+                //setDegreeText((int) (this.x));
+                //setPressureText((int) abs(this.y)/10);
             }
             else if(dataType.equals("Temp")){
+                this.x = Byte.parseByte(data);
+                mBoatView.setXYZ(this.x, this.y, this.z);
                 TextView tv = (TextView) findViewById(R.id.tempText);
-                tv.setText(data);
+                tv.setText(String.valueOf(this.x));
             }
             else if(dataType.equals("Pressure")){
-                mNeedleView.setPressure(Integer.parseInt(data));
+                int pressure = Byte.parseByte(data);
+                setPressureText(pressure);
+                mNeedleView.setPressure(pressure/10);
             }
             else if(dataType.equals("Free Fall")){
 
             }
             else if(dataType.equals("Humidity")){
-
+                int hum = Byte.parseByte(data);
+                TextView tv = (TextView) findViewById(R.id.humText);
+                tv.setText(String.valueOf(hum));
+            }
+            else if(dataType.equals("Heart")){
+                this.y = Byte.parseByte(data);
+                setDegreeText((int) this.y);
             }
         }
     }

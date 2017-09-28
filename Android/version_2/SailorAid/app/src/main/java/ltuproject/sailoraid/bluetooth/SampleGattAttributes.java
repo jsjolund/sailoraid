@@ -46,6 +46,8 @@ public class SampleGattAttributes {
     public static String IMU_GYRO_MEASUREMENT =     "917649a2-d98e-11e5-9eec-0002a5d5c51b";
     public static String FREE_FALL_MEASUREMENT =    "e23e78a0-cf4a-11e1-8ffc-0002a5d5c51b";
 
+    public static String NUCLEO_GPS_SERVICE = "abcd6e80-cf3a-11e1-9ab4-0002a5d5c51b";
+    public static String NUCLEO_GPS_MEASUREMENT = "aabb1b80-cf4b-11e1-ac36-0002a5d5c51b";
 
     public static String GPS_MEASUREMENT =          "00002902-0000-1000-8000-00805f9b34fb";
 
@@ -56,6 +58,7 @@ public class SampleGattAttributes {
         attributes.put(IMU_SERVICE, "IMU Service");
         attributes.put(ACCELEROMETER_SERVICE, "Accelerometer Service");
         attributes.put(ENV_SERVICE, "Enviromental Service");
+        attributes.put(NUCLEO_GPS_SERVICE, "Nucleao gps service");
         // Sample Characteristics.
         attributes.put(HEART_RATE_MEASUREMENT, "Heart Rate Measurement");
         attributes.put(ACCELEROMETER_MEASUREMENT, "Accelerometer Measurement");
@@ -65,6 +68,7 @@ public class SampleGattAttributes {
         attributes.put(PRESSURE_MEASUREMENT, "Pressure Measurement");
         attributes.put(HUMIDITY_MEASUREMENT, "Humidity Measurement");
         attributes.put(FREE_FALL_MEASUREMENT, "Free Fall Measurement");
+        attributes.put(NUCLEO_GPS_MEASUREMENT, "Nucleo gps Measurement");
         attributes.put("00002a29-0000-1000-8000-00805f9b34fb", "Manufacturer Name String");
     }
 

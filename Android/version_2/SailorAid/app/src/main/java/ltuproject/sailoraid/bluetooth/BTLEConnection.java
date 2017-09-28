@@ -58,6 +58,8 @@ public class BTLEConnection extends Service {
             "ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_DISCONNECTED";
     public final static String ACTION_GATT_SERVICES_DISCOVERED =
             "ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_SERVICES_DISCOVERED";
+    public final static String ACTION_GATT_SERVICE_NOTIFIED =
+            "ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_SERVICE_NOTIFIED";
     public final static String ACTION_DATA_AVAILABLE =
             "ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA =
@@ -72,7 +74,7 @@ public class BTLEConnection extends Service {
     public final static UUID UUID_FREE_FALL_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.FREE_FALL_MEASUREMENT);
     public final static UUID UUID_GPS_MEASUREMENT =
-            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+            UUID.fromString(SampleGattAttributes.NUCLEO_GPS_MEASUREMENT);
     public final static UUID UUID_IMU_ACCEL_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.IMU_ACCEL_MEASUREMENT);
     public final static UUID UUID_IMU_GYRO_MEASUREMENT =
@@ -84,13 +86,16 @@ public class BTLEConnection extends Service {
     public final static UUID UUID_HUMIDITY_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.HUMIDITY_MEASUREMENT);
 
+
     private Context contx;
+    private int listIterator = 0;
+    private int serviceIterator = 0;
 
     public BTLEConnection(Context contx, BluetoothAdapter btAdapter){
         this.contx = contx;
         this.mBluetoothAdapter = btAdapter;
         mServiceList = new ArrayList<BluetoothGattService>();
-        mCharacteristicList = new ArrayList<BluetoothGattCharacteristic>();
+
     }
     // Various callback methods defined by the BLE API.
     public final BluetoothGattCallback mGattCallback =
@@ -131,6 +136,11 @@ public class BTLEConnection extends Service {
                                                  int status) {
                     if (status == GATT_SUCCESS) {
                         broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+                        final int charaProp = characteristic.getProperties();
+                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+                            mNotifyCharacteristic = characteristic;
+                            setCharacteristicNotification(characteristic, true);
+                        }
                     }
                 }
                 @Override
@@ -139,20 +149,14 @@ public class BTLEConnection extends Service {
                     broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
                 }
                 @Override
-                public void onCharacteristicWrite (BluetoothGatt gatt,
-                                                   BluetoothGattCharacteristic characteristic,
-                                                   int status){
+                public void onDescriptorWrite (BluetoothGatt gatt,
+                                               BluetoothGattDescriptor descriptor,
+                                               int status){
                     if (status == GATT_SUCCESS){
-                        boolean enabled = true;
-                        registerGattNotifications();
+                        broadcastUpdate(ACTION_GATT_SERVICE_NOTIFIED);
                     }
-
                 }
             };
-
-    public void setServices(ArrayList<BluetoothGattService> services){
-        mServiceList = services;
-    }
 
     public void setmGattService(BluetoothGattService service){
         mGattService = service;
@@ -161,30 +165,38 @@ public class BTLEConnection extends Service {
 
     public void registerGattNotifications(){
         if (!(mServiceList.isEmpty())){
-            if (mCharacteristicList.isEmpty()){
-                mCharacteristicList = mServiceList.remove(0).getCharacteristics();
+            if (mCharacteristicList == null || mCharacteristicList.isEmpty() || (listIterator >=  mCharacteristicList.size()) ) {
+                listIterator = 0;
+                mCharacteristicList  =
+                        mServiceList.get(serviceIterator).getCharacteristics();
+                serviceIterator += 1;
             }
-            if(!mCharacteristicList.isEmpty()){
-                final BluetoothGattCharacteristic characteristic = mCharacteristicList.remove(0);
-                final int charaProp = characteristic.getProperties();
-                if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
-                    // If there is an active notification on a characteristic, clear
-                    // it first so it doesn't update the data field on the user interface.
-                    if (mNotifyCharacteristic != null) {
-                        // btLEConnection.setCharacteristicNotification(
-                        //       mNotifyCharacteristic, false);
-                        mNotifyCharacteristic = null;
+            if (serviceIterator <= mServiceList.size()) {
+                if (!mCharacteristicList.isEmpty() && listIterator < mCharacteristicList.size()) {
+                    BluetoothGattCharacteristic characteristic = mCharacteristicList.get(listIterator);
+                    listIterator += 1;
+                    if (characteristic.getUuid().equals(UUID_FREE_FALL_MEASUREMENT)){
+                        characteristic = mCharacteristicList.get(listIterator);
                     }
-                    readCharacteristic(characteristic);
-                }
-                if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-                    mNotifyCharacteristic = characteristic;
-                    setCharacteristicNotification(
-                            characteristic, true);
+                    final int charaProp = characteristic.getProperties();
+                    if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+                        // If there is an active notification on a characteristic, clear
+                        // it first so it doesn't update the data field on the user interface.
+                        if (mNotifyCharacteristic != null) {
+                            //setCharacteristicNotification(mNotifyCharacteristic, false);
+                            mNotifyCharacteristic = null;
+                        }
+                        readCharacteristic(characteristic);
+                    } else if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0){
+                        setCharacteristicNotification(characteristic, true);
+                    }
+
                 }
             }
+
         }
     }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -225,18 +237,21 @@ public class BTLEConnection extends Service {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
-        mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
+       // mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
         // This is specific to Heart Rate Measurement.
         if ( UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())
-                || UUID_IMU_ACCEL_MEASUREMENT.equals(characteristic.getUuid())
                 || UUID_ACCELEROMETER_MEASUREMENT.equals(characteristic.getUuid())
                 || UUID_PRESSURE_MEASUREMENT.equals(characteristic.getUuid())
-                || UUID_FREE_FALL_MEASUREMENT.equals(characteristic.getUuid()) ) {
+                || UUID_HUMIDITY_MEASUREMENT.equals(characteristic.getUuid())
+                || UUID_TEMP_MEASUREMENT.equals(characteristic.getUuid())
+                //|| UUID_FREE_FALL_MEASUREMENT.equals(characteristic.getUuid())
+                || UUID_GPS_MEASUREMENT.equals(characteristic.getUuid()) ) {
+            mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
                     UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
-
             characteristic.addDescriptor(descriptor);
+            //descriptor.setValue(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE);
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
             mBluetoothGatt.writeDescriptor(descriptor);
         }
@@ -259,82 +274,47 @@ public class BTLEConnection extends Service {
                 Log.d(TAG, "Heart rate format UINT8.");
             }
             final int heartRate = characteristic.getIntValue(format, 1);
-            final String charName = characteristic.getStringValue(format);
             Log.d(TAG, String.format("Received heart rate: %d", heartRate));
-            intent.putExtra(EXTRA_TYPE, "Current rate: ");
+            intent.putExtra(EXTRA_TYPE, "Heart");
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
         } else if (UUID_ACCELEROMETER_MEASUREMENT.equals(characteristic.getUuid())) {
                 int flag = characteristic.getProperties();
-                int format = -1;
-                if ((flag & 0x01) != 0) {
-                    format = BluetoothGattCharacteristic.FORMAT_FLOAT;
-                    Log.d(TAG, "Accelerometer UINT16.");
-                } else {
-                    format = BluetoothGattCharacteristic.FORMAT_SFLOAT;
-                    Log.d(TAG, "Accelerometer UINT8.");
-                }
-                byte[] recByte = characteristic.getValue();
 
-                final float x = ((recByte[0]) | ((recByte[1])<<8));
+               //final int x = characteristic.getIntValue(format, 1);
+                final byte[] recByte = characteristic.getValue();
+
+                /*final float x = ((recByte[0]) | ((recByte[1])<<8));
                 final float y = ((recByte[2]) | ((recByte[3])<<8));
-                final float z = ((recByte[4]) | ((recByte[5])<<8));
-                final String charName = characteristic.getStringValue(format);
+                final float z = ((recByte[4]) | ((recByte[5])<<8));*/
                 intent.putExtra(EXTRA_TYPE, "Incline");
-                intent.putExtra(EXTRA_DATA, String.valueOf(x) +":" +String.valueOf(y) +":" +String.valueOf(z));
+                //intent.putExtra(EXTRA_DATA, String.valueOf(x) +":" +String.valueOf(y) +":" +String.valueOf(z));
+                intent.putExtra(EXTRA_DATA, String.valueOf(recByte[1]));
         } else if (UUID_FREE_FALL_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
-            int format = -1;
-            if ((flag & 0x01) != 0) {
-                format = BluetoothGattCharacteristic.FORMAT_FLOAT;
-                Log.d(TAG, "Accelerometer UINT16.");
-            } else {
-                format = BluetoothGattCharacteristic.FORMAT_SFLOAT;
-                Log.d(TAG, "Accelerometer UINT8.");
-            }
-            final int freeFallInc = characteristic.getIntValue(format, 1);
+
+            final byte[] freeFallInc = characteristic.getValue();
             intent.putExtra(EXTRA_TYPE, "Free fall");
-            intent.putExtra(EXTRA_DATA, String.valueOf(freeFallInc));
+            intent.putExtra(EXTRA_DATA, String.valueOf(freeFallInc[1]));
         } else if (UUID_TEMP_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
-            int format = -1;
-            if ((flag & 0x01) != 0) {
-                format = BluetoothGattCharacteristic.FORMAT_UINT16;
-                Log.d(TAG, "Accelerometer UINT16.");
-            } else {
-                format = BluetoothGattCharacteristic.FORMAT_SINT16;
-                Log.d(TAG, "Accelerometer UINT8.");
-            }
-            final int temp = characteristic.getIntValue(format, 1);
+
+            final byte[] temp = characteristic.getValue();
 
             intent.putExtra(EXTRA_TYPE, "Temp");
-            intent.putExtra(EXTRA_DATA, String.valueOf(temp));
+            intent.putExtra(EXTRA_DATA, String.valueOf(temp[1]));
         } else if (UUID_PRESSURE_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
-            int format = -1;
-            if ((flag & 0x01) != 0) {
-                format = BluetoothGattCharacteristic.FORMAT_SINT16;
-                Log.d(TAG, "Accelerometer UINT16.");
-            } else {
-                format = BluetoothGattCharacteristic.FORMAT_SINT32;
-                Log.d(TAG, "Accelerometer UINT8.");
-            }
-            final int pressure = characteristic.getIntValue(format, 1);
+
+            final byte[] pressure = characteristic.getValue();
 
             intent.putExtra(EXTRA_TYPE, "Pressure");
-            intent.putExtra(EXTRA_DATA, String.valueOf(pressure));
+            intent.putExtra(EXTRA_DATA, String.valueOf(pressure[1]));
         } else if (UUID_HUMIDITY_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
-            int format = -1;
-            if ((flag & 0x01) != 0) {
-                format = BluetoothGattCharacteristic.FORMAT_FLOAT;
-                Log.d(TAG, "Accelerometer UINT16.");
-            } else {
-                format = BluetoothGattCharacteristic.FORMAT_UINT16;
-                Log.d(TAG, "Accelerometer UINT8.");
-            }
-            final int humidity = characteristic.getIntValue(format, 1);
+
+            final byte[] humidity = characteristic.getValue();
             intent.putExtra(EXTRA_TYPE, "Humidity");
-            intent.putExtra(EXTRA_DATA, String.valueOf(humidity));
+            intent.putExtra(EXTRA_DATA, String.valueOf(humidity[1]));
         }
         contx.sendBroadcast(intent);
     }
