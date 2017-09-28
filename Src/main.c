@@ -205,7 +205,7 @@ int main(void)
 
   // System sample rates in Hz
   int serialDebugRate = 50;
-  int btUpdateRate = 60;
+  int btUpdateRate = 30;
   int imuSampleRate = 100;
   int envSensorRate = 1;
   int adcSampleRate = 1;
@@ -275,14 +275,14 @@ int main(void)
     if (microsNow - btUpdatePrevious >= btUpdatePeriod)
     {
       // Update orientation, GPS and environmental data on Bluetooth GATT server
-      EUL_Value.AXIS_X = (int) sensor.imu.roll;
-      EUL_Value.AXIS_Y = (int) sensor.imu.pitch;
-      EUL_Value.AXIS_Z = (int) sensor.imu.yaw;
+      EUL_Value.AXIS_X = *((i32_t*)(&sensor.imu.roll));
+      EUL_Value.AXIS_Y = *((i32_t*)(&sensor.imu.pitch));
+      EUL_Value.AXIS_Z = *((i32_t*)(&sensor.imu.yaw));
       Orientation_Update(&EUL_Value);
 
-      GPS_Value.AXIS_X = (int) sensor.gps.pos.longitude;
-      GPS_Value.AXIS_Y = (int) sensor.gps.pos.latitude;
-      GPS_Value.AXIS_Z = (int) sensor.gps.pos.elevation;
+      GPS_Value.AXIS_X = *((i32_t*)(&sensor.gps.pos.longitude));
+      GPS_Value.AXIS_Y = *((i32_t*)(&sensor.gps.pos.latitude));
+      GPS_Value.AXIS_Z = *((i32_t*)(&sensor.gps.pos.elevation));
       GPS_Update(&GPS_Value);
 
       Temp_Update(sensor.env.temperature);

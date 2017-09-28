@@ -96,8 +96,8 @@ extern I2C_HandleTypeDef hi2c1;
 VL53L0X_Dev_t VL53L0XDevs[] =
 {
 { .Id = 0, .DevLetter = 'l', .I2cHandle = &hi2c1, .I2cDevAddr = 0x52 },
-{ .Id = 0, .DevLetter = 'l', .I2cHandle = &hi2c1, .I2cDevAddr = 0x00 },
-{ .Id = 0, .DevLetter = 'l', .I2cHandle = &hi2c1, .I2cDevAddr = 0x00 } };
+{ .Id = 0, .DevLetter = 'c', .I2cHandle = &hi2c1, .I2cDevAddr = 0x00 },
+{ .Id = 0, .DevLetter = 'r', .I2cHandle = &hi2c1, .I2cDevAddr = 0x00 } };
 
 /** range low (and high) in @a RangeToLetter()
  *

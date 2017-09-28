@@ -476,7 +476,7 @@ public class FeedbackActivity extends AppCompatActivity {
                 this.y = Float.parseFloat(y);
                 this.z = Float.parseFloat(z);*/
 
-                this.x = Byte.parseByte(data);
+                this.x = Float.parseFloat(data);
                 mBoatView.setXYZ(this.x, this.y, this.z);
                 //mNeedleView.setPressure(abs(this.y)/10);
                 //setDegreeText((int) (this.x));
@@ -504,6 +504,9 @@ public class FeedbackActivity extends AppCompatActivity {
             else if(dataType.equals("Heart")){
                 this.y = Byte.parseByte(data);
                 setDegreeText((int) this.y);
+            }
+            else if (dataType.equals("Position")) {
+                // TODO
             }
         }
     }

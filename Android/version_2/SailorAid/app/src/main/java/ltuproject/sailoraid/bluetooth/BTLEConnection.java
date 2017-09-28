@@ -277,18 +277,18 @@ public class BTLEConnection extends Service {
             Log.d(TAG, String.format("Received heart rate: %d", heartRate));
             intent.putExtra(EXTRA_TYPE, "Heart");
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
+
         } else if (UUID_ACCELEROMETER_MEASUREMENT.equals(characteristic.getUuid())) {
-                int flag = characteristic.getProperties();
+            final byte[] recByte = characteristic.getValue();
+            int rollInt = (recByte[0]  & 0xFF) | ((recByte[1] & 0xFF)<<8) |  ((recByte[2] & 0xFF)<<16) | ((recByte[3] & 0xFF)<<24);
+            int pitchInt = (recByte[4]  & 0xFF) | ((recByte[5] & 0xFF)<<8) |  ((recByte[6] & 0xFF)<<16) | ((recByte[7] & 0xFF)<<24);
+            int yawInt = (recByte[8]  & 0xFF) | ((recByte[9] & 0xFF)<<8) |  ((recByte[10] & 0xFF)<<16) | ((recByte[11] & 0xFF)<<24);
+            float roll = Float.intBitsToFloat(rollInt);
+            float pitch = Float.intBitsToFloat(pitchInt);
+            float yaw = Float.intBitsToFloat(yawInt);
+            intent.putExtra(EXTRA_TYPE, "Incline");
+            intent.putExtra(EXTRA_DATA, String.valueOf(roll));
 
-               //final int x = characteristic.getIntValue(format, 1);
-                final byte[] recByte = characteristic.getValue();
-
-                /*final float x = ((recByte[0]) | ((recByte[1])<<8));
-                final float y = ((recByte[2]) | ((recByte[3])<<8));
-                final float z = ((recByte[4]) | ((recByte[5])<<8));*/
-                intent.putExtra(EXTRA_TYPE, "Incline");
-                //intent.putExtra(EXTRA_DATA, String.valueOf(x) +":" +String.valueOf(y) +":" +String.valueOf(z));
-                intent.putExtra(EXTRA_DATA, String.valueOf(recByte[1]));
         } else if (UUID_FREE_FALL_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
 
@@ -315,6 +315,18 @@ public class BTLEConnection extends Service {
             final byte[] humidity = characteristic.getValue();
             intent.putExtra(EXTRA_TYPE, "Humidity");
             intent.putExtra(EXTRA_DATA, String.valueOf(humidity[1]));
+
+        } else if (UUID_GPS_MEASUREMENT.equals(characteristic.getUuid())) {
+            int flag = characteristic.getProperties();
+            final byte[] recByte = characteristic.getValue();
+            int lonInt = (recByte[0]  & 0xFF) | ((recByte[1] & 0xFF)<<8) |  ((recByte[2] & 0xFF)<<16) | ((recByte[3] & 0xFF)<<24);
+            int latInt = (recByte[4]  & 0xFF) | ((recByte[5] & 0xFF)<<8) |  ((recByte[6] & 0xFF)<<16) | ((recByte[7] & 0xFF)<<24);
+            int elevInt = (recByte[8]  & 0xFF) | ((recByte[9] & 0xFF)<<8) |  ((recByte[10] & 0xFF)<<16) | ((recByte[11] & 0xFF)<<24);
+            float lon = Float.intBitsToFloat(lonInt);
+            float lat = Float.intBitsToFloat(latInt);
+            float elev = Float.intBitsToFloat(elevInt);
+            intent.putExtra(EXTRA_TYPE, "Position");
+            intent.putExtra(EXTRA_DATA, String.format("%f°N:%f°W:%fm",lat,lon,elev)); // TODO
         }
         contx.sendBroadcast(intent);
     }

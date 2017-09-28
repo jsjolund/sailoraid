@@ -57,7 +57,6 @@ volatile uint8_t set_connectable = 1;
 volatile uint16_t connection_handle = 0;
 volatile uint8_t notification_enabled = FALSE;
 extern SensorState sensor;
-uint16_t sampleServHandle, TXCharHandle, RXCharHandle;
 uint16_t orientServHandle, freeFallCharHandle, orientCharHandle;
 uint16_t gpsServHandle, gpsCharHandle;
 uint16_t envSensServHandle, tempCharHandle, pressCharHandle, humidityCharHandle;
@@ -119,8 +118,13 @@ do {\
 #endif
 
 /* Store Value into a buffer in Little Endian Format */
-#define STORE_LE_16(buf, val)    ( ((buf)[0] =  (uint8_t) (val)    ) , \
+#define STORE_LE_16(buf, val)    (((buf)[0] =  (uint8_t) (val)    ) , \
                                    ((buf)[1] =  (uint8_t) (val>>8) ) )
+
+#define STORE_LE_32(buf, val)    (((buf)[0] =  (uint8_t) (val)    ) , \
+                                   ((buf)[1] =  (uint8_t) (val>>8) ) , \
+                                   ((buf)[2] =  (uint8_t) (val>>16) ) , \
+                                   ((buf)[3] =  (uint8_t) (val>>24) ) )
 /**
  * @}
  */
@@ -152,7 +156,7 @@ tBleStatus Add_Orientation_Service(void)
   if (ret != BLE_STATUS_SUCCESS) goto fail;
   
   COPY_ACC_UUID(uuid);  
-  ret =  aci_gatt_add_char(orientServHandle, UUID_TYPE_128, uuid, 6,
+  ret =  aci_gatt_add_char(orientServHandle, UUID_TYPE_128, uuid, 12,
                            CHAR_PROP_NOTIFY|CHAR_PROP_READ,
                            ATTR_PERMISSION_NONE,
                            GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
@@ -178,13 +182,13 @@ fail:
 tBleStatus Orientation_Update(AxesRaw_t *data)
 {
   tBleStatus ret;
-  uint8_t buff[6];
+  uint8_t buff[12];
 
-  STORE_LE_16(buff,data->AXIS_X);
-  STORE_LE_16(buff+2,data->AXIS_Y);
-  STORE_LE_16(buff+4,data->AXIS_Z);
+  STORE_LE_32(buff,data->AXIS_X);
+  STORE_LE_32(buff+4,data->AXIS_Y);
+  STORE_LE_32(buff+8,data->AXIS_Z);
 
-  ret = aci_gatt_update_char_value(orientServHandle, orientCharHandle, 0, 6, buff);
+  ret = aci_gatt_update_char_value(orientServHandle, orientCharHandle, 0, 12, buff);
 
   if (ret != BLE_STATUS_SUCCESS){
     printf("Error while updating ACC characteristic.\n") ;
@@ -206,7 +210,7 @@ tBleStatus Add_GPS_Service(void)
     goto fail;
 
   COPY_GPS_UUID(uuid);
-  ret = aci_gatt_add_char(gpsServHandle, UUID_TYPE_128, uuid, 6,
+  ret = aci_gatt_add_char(gpsServHandle, UUID_TYPE_128, uuid, 12,
   CHAR_PROP_NOTIFY | CHAR_PROP_READ,
   ATTR_PERMISSION_NONE,
   GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &gpsCharHandle);
@@ -225,13 +229,13 @@ tBleStatus Add_GPS_Service(void)
 tBleStatus GPS_Update(AxesRaw_t *data)
 {
   tBleStatus ret;
-  uint8_t buff[6];
+  uint8_t buff[12];
 
-  STORE_LE_16(buff, data->AXIS_X);
-  STORE_LE_16(buff + 2, data->AXIS_Y);
-  STORE_LE_16(buff + 4, data->AXIS_Z);
+  STORE_LE_32(buff, data->AXIS_X);
+  STORE_LE_32(buff + 4, data->AXIS_Y);
+  STORE_LE_32(buff + 8, data->AXIS_Z);
 
-  ret = aci_gatt_update_char_value(gpsServHandle, gpsCharHandle, 0, 6, buff);
+  ret = aci_gatt_update_char_value(gpsServHandle, gpsCharHandle, 0, 12, buff);
 
   if (ret != BLE_STATUS_SUCCESS)
   {
