@@ -58,7 +58,7 @@ volatile uint16_t connection_handle = 0;
 volatile uint8_t notification_enabled = FALSE;
 extern SensorState sensor;
 uint16_t sampleServHandle, TXCharHandle, RXCharHandle;
-uint16_t accServHandle, freeFallCharHandle, accCharHandle;
+uint16_t orientServHandle, freeFallCharHandle, orientCharHandle;
 uint16_t gpsServHandle, gpsCharHandle;
 uint16_t envSensServHandle, tempCharHandle, pressCharHandle, humidityCharHandle;
 
@@ -134,7 +134,7 @@ do {\
  * @param  None
  * @retval tBleStatus Status
  */
-tBleStatus Add_Acc_Service(void)
+tBleStatus Add_Orientation_Service(void)
 {
   tBleStatus ret;
 
@@ -142,30 +142,55 @@ tBleStatus Add_Acc_Service(void)
   
   COPY_ACC_SERVICE_UUID(uuid);
   ret = aci_gatt_add_serv(UUID_TYPE_128,  uuid, PRIMARY_SERVICE, 7,
-                          &accServHandle);
+                          &orientServHandle);
   if (ret != BLE_STATUS_SUCCESS) goto fail;    
   
   COPY_FREE_FALL_UUID(uuid);
-  ret =  aci_gatt_add_char(accServHandle, UUID_TYPE_128, uuid, 1,
+  ret =  aci_gatt_add_char(orientServHandle, UUID_TYPE_128, uuid, 1,
                            CHAR_PROP_NOTIFY, ATTR_PERMISSION_NONE, 0,
                            16, 0, &freeFallCharHandle);
   if (ret != BLE_STATUS_SUCCESS) goto fail;
   
   COPY_ACC_UUID(uuid);  
-  ret =  aci_gatt_add_char(accServHandle, UUID_TYPE_128, uuid, 6,
+  ret =  aci_gatt_add_char(orientServHandle, UUID_TYPE_128, uuid, 6,
                            CHAR_PROP_NOTIFY|CHAR_PROP_READ,
                            ATTR_PERMISSION_NONE,
                            GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
-                           16, 0, &accCharHandle);
+                           16, 0, &orientCharHandle);
   if (ret != BLE_STATUS_SUCCESS) goto fail;
   
-  printf("Service ACC added. Handle 0x%04X, Free fall Charac handle: 0x%04X, Acc Charac handle: 0x%04X\n",accServHandle, freeFallCharHandle, accCharHandle);
+  printf("Service ORIENT added. Handle 0x%04X, Free fall Charac handle: 0x%04X, Ori Charac handle: 0x%04X\n",orientServHandle, freeFallCharHandle, orientCharHandle);
   return BLE_STATUS_SUCCESS; 
   
 fail:
-  printf("Error while adding ACC service.\n");
+  printf("Error while adding ORIENT service.\n");
   return BLE_STATUS_ERROR ;
     
+}
+
+
+/**
+ * @brief  Update acceleration characteristic value.
+ *
+ * @param  Structure containing Euler angles in degrees
+ * @retval Status
+ */
+tBleStatus Orientation_Update(AxesRaw_t *data)
+{
+  tBleStatus ret;
+  uint8_t buff[6];
+
+  STORE_LE_16(buff,data->AXIS_X);
+  STORE_LE_16(buff+2,data->AXIS_Y);
+  STORE_LE_16(buff+4,data->AXIS_Z);
+
+  ret = aci_gatt_update_char_value(orientServHandle, orientCharHandle, 0, 6, buff);
+
+  if (ret != BLE_STATUS_SUCCESS){
+    printf("Error while updating ACC characteristic.\n") ;
+    return BLE_STATUS_ERROR ;
+  }
+  return BLE_STATUS_SUCCESS;
 }
 
 tBleStatus Add_GPS_Service(void)
@@ -214,30 +239,6 @@ tBleStatus GPS_Update(AxesRaw_t *data)
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
-}
-
-/**
- * @brief  Update acceleration characteristic value.
- *
- * @param  Structure containing acceleration value in mg
- * @retval Status
- */
-tBleStatus Acc_Update(AxesRaw_t *data)
-{  
-  tBleStatus ret;    
-  uint8_t buff[6];
-    
-  STORE_LE_16(buff,data->AXIS_X);
-  STORE_LE_16(buff+2,data->AXIS_Y);
-  STORE_LE_16(buff+4,data->AXIS_Z);
-	
-  ret = aci_gatt_update_char_value(accServHandle, accCharHandle, 0, 6, buff);
-	
-  if (ret != BLE_STATUS_SUCCESS){
-    printf("Error while updating ACC characteristic.\n") ;
-    return BLE_STATUS_ERROR ;
-  }
-  return BLE_STATUS_SUCCESS;	
 }
 
 /**
@@ -489,12 +490,12 @@ void Read_Request_CB(uint16_t handle)
   AxesRaw_t EUL_Value; /*!< Euler Angles Value */
   AxesRaw_t GPS_Value; /*!< GPS Value */
 
-  if (handle == accCharHandle + 1)
+  if (handle == orientCharHandle + 1)
   {
     EUL_Value.AXIS_X = (int) sensor.imu.roll;
     EUL_Value.AXIS_Y = (int) sensor.imu.pitch;
     EUL_Value.AXIS_Z = (int) sensor.imu.yaw;
-    Acc_Update(&EUL_Value);
+    Orientation_Update(&EUL_Value);
   }
   else if (handle == gpsCharHandle + 1)
   {
@@ -505,14 +506,13 @@ void Read_Request_CB(uint16_t handle)
   }
   else if (handle == tempCharHandle + 1)
   {
-//    Acc_Update((AxesRaw_t*) &axes_data); //FIXME: to overcome issue on Android App
-//                                         // If the user button is not pressed within
-//                                         // a short time after the connection,
-//                                         // a pop-up reports a "No valid characteristics found" error.
     EUL_Value.AXIS_X = (int) sensor.imu.roll;
     EUL_Value.AXIS_Y = (int) sensor.imu.pitch;
     EUL_Value.AXIS_Z = (int) sensor.imu.yaw;
-    Acc_Update(&EUL_Value);
+    Orientation_Update(&EUL_Value); //FIXME: to overcome issue on Android App
+                                    // If the user button is not pressed within
+                                    // a short time after the connection,
+                                    // a pop-up reports a "No valid characteristics found" error.
 
     Temp_Update((int32_t)sensor.env.temperature);
   }

@@ -39,23 +39,23 @@ static int QueueGet(SerialHandle *h, uint8_t *output)
   return 1;
 }
 
-//static int QueueGetSize(SerialHandle *h)
-//{
-//  return (h->txOutdex > h->txIndex) ?
-//  TX_BUFFER_MAX - h->txOutdex + h->txIndex :
-//                                      h->txIndex - h->txOutdex;
-//}
-//
-//static int QueueGetAll(SerialHandle *h, uint8_t *output, int count)
-//{
-//  int i;
-//  for (i = 0; i < count; i++)
-//  {
-//    if (!QueueGet(h, output + i))
-//      return i;
-//  }
-//  return count;
-//}
+static int QueueGetSize(SerialHandle *h)
+{
+  return (h->txOutdex > h->txIndex) ?
+  TX_BUFFER_MAX - h->txOutdex + h->txIndex :
+                                      h->txIndex - h->txOutdex;
+}
+
+static int QueueGetAll(SerialHandle *h, uint8_t *output, int count)
+{
+  int i;
+  for (i = 0; i < count; i++)
+  {
+    if (!QueueGet(h, output + i))
+      return i;
+  }
+  return count;
+}
 
 void SerialInit(UART_HandleTypeDef *usbHuartHandle, UART_HandleTypeDef *gpsHuartHandle)
 {
@@ -70,6 +70,29 @@ void SerialInit(UART_HandleTypeDef *usbHuartHandle, UART_HandleTypeDef *gpsHuart
 
 static void SendFromFIFO(SerialHandle *h)
 {
+
+//  // Sends a character from the FIFO through DMA
+//  HAL_UART_StateTypeDef uartState = HAL_UART_GetState(h->huart);
+//  if (uartState == HAL_UART_STATE_READY || uartState == HAL_UART_STATE_BUSY_RX)
+//  {
+//    if (h->txCplt)
+//    {
+//      h->txCplt = 0;
+//      int size = QueueGetSize(h);
+//      if (size > 0)
+//      {
+//        uint8_t c[size];
+//        QueueGetAll(h, c, size);
+//        while (HAL_UART_Transmit_DMA(h->huart, c, size) != HAL_OK)
+//          ;
+//      }
+//      else
+//      {
+//        h->txCplt = 1;
+//      }
+//    }
+//  }
+
   HAL_UART_StateTypeDef uartState = HAL_UART_GetState(h->huart);
   if ((uartState == HAL_UART_STATE_READY) || (uartState == HAL_UART_STATE_BUSY_RX))
   {
@@ -133,6 +156,11 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huartHandle)
     usbHandle.txCplt = 1;
     SendFromFIFO(&usbHandle);
   }
+  if (huartHandle == gpsHandle.huart)
+  {
+    gpsHandle.txCplt = 1;
+    SendFromFIFO(&gpsHandle);
+  }
 }
 
 float NMEAtoGPS(float in_coords)
@@ -167,7 +195,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
   if (rxChar == 127 || rxChar == 8)
   {
     // Backspace or delete
-    if (h == &usbHandle)
+    if (h == &usbHandle && h->rxIndex > 0)
       SerialUsbTransmit("\b \b", 3);
 
     h->rxIndex = (h->rxIndex > 0) ? h->rxIndex - 1 : 0;
@@ -214,7 +242,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
   else
   {
     // Echo the character
-    if (h == &usbHandle)
+    if (h == &usbHandle && h->rxIndex < RX_BUFFER_MAX - 1)
       SerialUsbTransmit(&rxChar, 1);
     // Append character and increment cursor
     h->rxString[h->rxIndex] = rxChar;

@@ -39,7 +39,7 @@
 #include "bluenrg_interface.h"
 #define BDADDR_SIZE 6
 uint8_t bnrg_expansion_board = IDB05A1; /* at startup, suppose the X-NUCLEO-IDB04A1 is used */
-void InitBlueNrgGattServer(void)
+void InitBluetoothGattServer(void)
 {
   const char *name = "BlueNRG";
   uint8_t SERVER_BDADDR[] = { 0x12, 0x34, 0x00, 0xE1, 0x80, 0x03 };
@@ -131,7 +131,7 @@ void InitBlueNrgGattServer(void)
 
   printf("SERVER: BLE Stack Initialized\n");
 
-  ret = Add_Acc_Service();
+  ret = Add_Orientation_Service();
 
   if (ret == BLE_STATUS_SUCCESS)
     printf("Acc service added successfully.\n");

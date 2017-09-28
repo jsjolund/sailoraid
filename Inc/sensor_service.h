@@ -115,8 +115,10 @@ typedef struct {
 /** @addtogroup SENSOR_SERVICE_Exported_Functions
  *  @{
  */
-tBleStatus Add_Acc_Service(void);
-tBleStatus Acc_Update(AxesRaw_t *data);
+tBleStatus Add_Orientation_Service(void);
+tBleStatus Orientation_Update(AxesRaw_t *data);
+tBleStatus Add_GPS_Service(void);
+tBleStatus GPS_Update(AxesRaw_t *data);
 tBleStatus Add_Orientation_Service(void);
 tBleStatus Orient_Update(AxesRaw_t *data);
 tBleStatus Temp_Update(int16_t temp);

@@ -143,37 +143,11 @@
 #define BNRG_SPI_EXTI_Pin BNRG_SPI_IRQ_Pin
 #define BNRG_SPI_EXTI_GPIO_Port BNRG_SPI_IRQ_GPIO_Port
 #define RTC_CLOCK_SOURCE_LSI
-/* Exported constants --------------------------------------------------------*/
+
 /**
  * bit mapping of event not requiring sending HCI event
  */
-#define	EVENT_NOT_REQUIRING_SENDING_HCI_COMMAND	(~(uint32_t)((1<<eMAIN_HCI_THRESHOLD)-1))
-
-/** @addtogroup MAIN_Exported_Types
- *  @{
- */
-/* Exported types ------------------------------------------------------------*/
-/**
- * All enum after eMAIN_HCI_THRESHOLD shall not request sending HCI command
- */
-typedef enum
-{
-  eMAIN_HCI_Process_Request_Id, eMAIN_User_Process_Request_Id, eMAIN_HCI_THRESHOLD, /**< Shall be in the list of enum and shall not be used by the application */
-} eMAIN_Background_Task_Id_t;
-/**
- * @}
- */
-
-/** @addtogroup MAIN_Exported_Defines
- *  @{
- */
-/* Exported defines -----------------------------------------------------------*/
 #define JTAG_SUPPORTED 0 /* if 1 keep debugger enabled while in any low power mode */
-
-#define HCLK_32MHZ 0 /* can be set to 1 only for STM32L053xx */
-#define HCLK_80MHZ 0 /* can be set to 1 only for STM32L476xx */
-#define HCLK_84MHZ 0 /* can be set to 1 only for STM32F401xE */
-
 #define LOW_POWER_MODE 1 /* 1 = Low Power mode ON, 0 = Low Power Mode OFF */
 
 /**
@@ -182,29 +156,16 @@ typedef enum
 #define WUCKSEL_DIVIDER (3)		/**< Tick is  (LSI speed clock/2) */
 #define RTC_ASYNCH_PRESCALER (1)
 #define RTC_SYNCH_PRESCALER (0x7FFF)
-/**
- * @}
- */
 
-/** @addtogroup MAIN_Exported_Functions
- *  @{
- */
-/* Exported functions ------------------------------------------------------- */
-void TaskExecutionRequest(eMAIN_Background_Task_Id_t eMAIN_Background_Task_Id);
-void TaskExecuted(eMAIN_Background_Task_Id_t eMAIN_Background_Task_Id);
+void IMUecho(BOOL echo);
+void GPSecho(BOOL echo);
+
 /* USER CODE END Private defines */
 
 void _Error_Handler(char *, int);
 
 #define Error_Handler() _Error_Handler(__FILE__, __LINE__)
 
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-*/ 
 
 #endif /* __MAIN_H */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
