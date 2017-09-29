@@ -295,26 +295,30 @@ public class BTLEConnection extends Service {
             final byte[] freeFallInc = characteristic.getValue();
             intent.putExtra(EXTRA_TYPE, "Free fall");
             intent.putExtra(EXTRA_DATA, String.valueOf(freeFallInc[1]));
+
         } else if (UUID_TEMP_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
-
-            final byte[] temp = characteristic.getValue();
-
+            final byte[] recByte = characteristic.getValue();
+            int temperatureInt = (recByte[0]  & 0xFF) | ((recByte[1] & 0xFF)<<8) |  ((recByte[2] & 0xFF)<<16) | ((recByte[3] & 0xFF)<<24);
+            float temperature = Float.intBitsToFloat(temperatureInt);
             intent.putExtra(EXTRA_TYPE, "Temp");
-            intent.putExtra(EXTRA_DATA, String.valueOf(temp[1]));
+            intent.putExtra(EXTRA_DATA, String.valueOf(temperature));
+
         } else if (UUID_PRESSURE_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
-
-            final byte[] pressure = characteristic.getValue();
-
+            final byte[] recByte = characteristic.getValue();
+            int pressureInt = (recByte[0]  & 0xFF) | ((recByte[1] & 0xFF)<<8) |  ((recByte[2] & 0xFF)<<16) | ((recByte[3] & 0xFF)<<24);
+            float pressure = Float.intBitsToFloat(pressureInt);
             intent.putExtra(EXTRA_TYPE, "Pressure");
-            intent.putExtra(EXTRA_DATA, String.valueOf(pressure[1]));
+            intent.putExtra(EXTRA_DATA, String.valueOf(pressure));
+
         } else if (UUID_HUMIDITY_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
-
-            final byte[] humidity = characteristic.getValue();
+            final byte[] recByte = characteristic.getValue();
+            int humidityInt = (recByte[0]  & 0xFF) | ((recByte[1] & 0xFF)<<8) |  ((recByte[2] & 0xFF)<<16) | ((recByte[3] & 0xFF)<<24);
+            float humidity = Float.intBitsToFloat(humidityInt);
             intent.putExtra(EXTRA_TYPE, "Humidity");
-            intent.putExtra(EXTRA_DATA, String.valueOf(humidity[1]));
+            intent.putExtra(EXTRA_DATA, String.valueOf(humidity));
 
         } else if (UUID_GPS_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
@@ -326,7 +330,7 @@ public class BTLEConnection extends Service {
             float lat = Float.intBitsToFloat(latInt);
             float elev = Float.intBitsToFloat(elevInt);
             intent.putExtra(EXTRA_TYPE, "Position");
-            intent.putExtra(EXTRA_DATA, String.format("%f°N:%f°W:%fm",lat,lon,elev)); // TODO
+            intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f",lat,lon,elev)); // TODO
         }
         contx.sendBroadcast(intent);
     }

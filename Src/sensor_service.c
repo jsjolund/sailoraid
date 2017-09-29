@@ -85,9 +85,9 @@ do {\
 }while(0)
 
 #if NEW_SERVICES
-  #define COPY_ACC_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x02,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-  #define COPY_FREE_FALL_UUID(uuid_struct)    COPY_UUID_128(uuid_struct,0xe2,0x3e,0x78,0xa0, 0xcf,0x4a, 0x11,0xe1, 0x8f,0xfc, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-  #define COPY_ACC_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x34,0x0a,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_ACC_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x02,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_FREE_FALL_UUID(uuid_struct)    COPY_UUID_128(uuid_struct,0xe2,0x3e,0x78,0xa0, 0xcf,0x4a, 0x11,0xe1, 0x8f,0xfc, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_ACC_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x34,0x0a,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 
 #define COPY_ENV_SENS_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x42,0x82,0x1a,0x40, 0xe4,0x77, 0x11,0xe2, 0x82,0xd0, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_TEMP_CHAR_UUID(uuid_struct)         COPY_UUID_128(uuid_struct,0xa3,0x2e,0x55,0x20, 0xe4,0x77, 0x11,0xe2, 0xa9,0xe3, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
@@ -104,9 +104,9 @@ do {\
 #define COPY_LED_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_LED_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x0c,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #else
-  #define COPY_ACC_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x02,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-  #define COPY_FREE_FALL_UUID(uuid_struct)    COPY_UUID_128(uuid_struct,0xe2,0x3e,0x78,0xa0, 0xcf,0x4a, 0x11,0xe1, 0x8f,0xfc, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-  #define COPY_ACC_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x34,0x0a,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_ACC_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x02,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_FREE_FALL_UUID(uuid_struct)    COPY_UUID_128(uuid_struct,0xe2,0x3e,0x78,0xa0, 0xcf,0x4a, 0x11,0xe1, 0x8f,0xfc, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_ACC_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x34,0x0a,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 
 #define COPY_GPS_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0xab,0xcd,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_GPS_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0xaa,0xbb,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
@@ -143,38 +143,37 @@ tBleStatus Add_Orientation_Service(void)
   tBleStatus ret;
 
   uint8_t uuid[16];
-  
+
   COPY_ACC_SERVICE_UUID(uuid);
-  ret = aci_gatt_add_serv(UUID_TYPE_128,  uuid, PRIMARY_SERVICE, 7,
-                          &orientServHandle);
-  if (ret != BLE_STATUS_SUCCESS) goto fail;    
-  
+  ret = aci_gatt_add_serv(UUID_TYPE_128, uuid, PRIMARY_SERVICE, 7, &orientServHandle);
+  if (ret != BLE_STATUS_SUCCESS)
+    goto fail;
+
   COPY_FREE_FALL_UUID(uuid);
-  ret =  aci_gatt_add_char(orientServHandle, UUID_TYPE_128, uuid, 1,
-                           CHAR_PROP_NOTIFY, ATTR_PERMISSION_NONE, 0,
-                           16, 0, &freeFallCharHandle);
-  if (ret != BLE_STATUS_SUCCESS) goto fail;
-  
-  COPY_ACC_UUID(uuid);  
-  ret =  aci_gatt_add_char(orientServHandle, UUID_TYPE_128, uuid, 12,
-                           CHAR_PROP_NOTIFY|CHAR_PROP_READ,
-                           ATTR_PERMISSION_NONE,
-                           GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
-                           16, 0, &orientCharHandle);
-  if (ret != BLE_STATUS_SUCCESS) goto fail;
-  
-  printf("Service ORIENT added. Handle 0x%04X, Free fall Charac handle: 0x%04X, Ori Charac handle: 0x%04X\n",orientServHandle, freeFallCharHandle, orientCharHandle);
-  return BLE_STATUS_SUCCESS; 
-  
-fail:
-  printf("Error while adding ORIENT service.\n");
-  return BLE_STATUS_ERROR ;
-    
+  ret = aci_gatt_add_char(orientServHandle, UUID_TYPE_128, uuid, 1,
+  CHAR_PROP_NOTIFY, ATTR_PERMISSION_NONE, 0, 16, 0, &freeFallCharHandle);
+  if (ret != BLE_STATUS_SUCCESS)
+    goto fail;
+
+  COPY_ACC_UUID(uuid);
+  ret = aci_gatt_add_char(orientServHandle, UUID_TYPE_128, uuid, 12,
+  CHAR_PROP_NOTIFY | CHAR_PROP_READ,
+  ATTR_PERMISSION_NONE,
+  GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &orientCharHandle);
+  if (ret != BLE_STATUS_SUCCESS)
+    goto fail;
+
+  printf("Service ORIENT added. Handle 0x%04X, Free fall Charac handle: 0x%04X, Ori Charac handle: 0x%04X\n", orientServHandle, freeFallCharHandle,
+      orientCharHandle);
+  return BLE_STATUS_SUCCESS;
+
+  fail: printf("Error while adding ORIENT service.\n");
+  return BLE_STATUS_ERROR;
+
 }
 
-
 /**
- * @brief  Update acceleration characteristic value.
+ * @brief  Update orientation characteristic value.
  *
  * @param  Structure containing Euler angles in degrees
  * @retval Status
@@ -184,15 +183,16 @@ tBleStatus Orientation_Update(AxesRaw_t *data)
   tBleStatus ret;
   uint8_t buff[12];
 
-  STORE_LE_32(buff,data->AXIS_X);
-  STORE_LE_32(buff+4,data->AXIS_Y);
-  STORE_LE_32(buff+8,data->AXIS_Z);
+  STORE_LE_32(buff, data->AXIS_X);
+  STORE_LE_32(buff + 4, data->AXIS_Y);
+  STORE_LE_32(buff + 8, data->AXIS_Z);
 
   ret = aci_gatt_update_char_value(orientServHandle, orientCharHandle, 0, 12, buff);
 
-  if (ret != BLE_STATUS_SUCCESS){
-    printf("Error while updating ACC characteristic.\n") ;
-    return BLE_STATUS_ERROR ;
+  if (ret != BLE_STATUS_SUCCESS)
+  {
+    printf("Error while updating ACC characteristic.\n");
+    return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
 }
@@ -204,8 +204,7 @@ tBleStatus Add_GPS_Service(void)
   uint8_t uuid[16];
 
   COPY_GPS_SERVICE_UUID(uuid);
-  ret = aci_gatt_add_serv(UUID_TYPE_128, uuid, PRIMARY_SERVICE, 7,
-      &gpsServHandle);
+  ret = aci_gatt_add_serv(UUID_TYPE_128, uuid, PRIMARY_SERVICE, 7, &gpsServHandle);
   if (ret != BLE_STATUS_SUCCESS)
     goto fail;
 
@@ -217,8 +216,7 @@ tBleStatus Add_GPS_Service(void)
   if (ret != BLE_STATUS_SUCCESS)
     goto fail;
 
-  printf("Service GPS added. Handle 0x%04X, GPS Charac handle: 0x%04X\n",
-      gpsServHandle, gpsCharHandle);
+  printf("Service GPS added. Handle 0x%04X, GPS Charac handle: 0x%04X\n", gpsServHandle, gpsCharHandle);
   return BLE_STATUS_SUCCESS;
 
   fail: printf("Error while adding GPS service.\n");
@@ -255,92 +253,90 @@ tBleStatus Add_Environmental_Sensor_Service(void)
 {
   tBleStatus ret;
   uint8_t uuid[16];
-  uint16_t uuid16;
-  charactFormat charFormat;
-  uint16_t descHandle;
+//  uint16_t uuid16;
+//  charactFormat charFormat;
+//  uint16_t descHandle;
 
   COPY_ENV_SENS_SERVICE_UUID(uuid);
-  ret = aci_gatt_add_serv(UUID_TYPE_128, uuid, PRIMARY_SERVICE, 10,
-      &envSensServHandle);
+  ret = aci_gatt_add_serv(UUID_TYPE_128, uuid, PRIMARY_SERVICE, 10, &envSensServHandle);
   if (ret != BLE_STATUS_SUCCESS)
     goto fail;
 
   /* Temperature Characteristic */
   COPY_TEMP_CHAR_UUID(uuid);
   ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
-  CHAR_PROP_READ, ATTR_PERMISSION_NONE,
+  CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
   GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &tempCharHandle);
   if (ret != BLE_STATUS_SUCCESS)
     goto fail;
 
-  charFormat.format = FORMAT_SINT16;
-  charFormat.exp = -1;
-  charFormat.unit = UNIT_TEMP_CELSIUS;
-  charFormat.name_space = 0;
-  charFormat.desc = 0;
-
-  uuid16 = CHAR_FORMAT_DESC_UUID;
-
-  ret = aci_gatt_add_char_desc(envSensServHandle, tempCharHandle,
-  UUID_TYPE_16, (uint8_t *) &uuid16, 7, 7, (void *) &charFormat,
-  ATTR_PERMISSION_NONE,
-  ATTR_ACCESS_READ_ONLY, 0, 16, FALSE, &descHandle);
-  if (ret != BLE_STATUS_SUCCESS)
-    goto fail;
+//  charFormat.format = FORMAT_SINT24;
+//  charFormat.exp = -1;
+//  charFormat.unit = UNIT_TEMP_CELSIUS;
+//  charFormat.name_space = 0;
+//  charFormat.desc = 0;
+//
+//  uuid16 = CHAR_FORMAT_DESC_UUID;
+//
+//  ret = aci_gatt_add_char_desc(envSensServHandle, tempCharHandle,
+//  UUID_TYPE_16, (uint8_t *) &uuid16, 7, 7, (void *) &charFormat,
+//  ATTR_PERMISSION_NONE,
+//  ATTR_ACCESS_READ_ONLY, 0, 16, FALSE, &descHandle);
+//  if (ret != BLE_STATUS_SUCCESS)
+//    goto fail;
 
   /* Pressure Characteristic */
   if (1)
   { //FIXME
     COPY_PRESS_CHAR_UUID(uuid);
     ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
-    CHAR_PROP_READ, ATTR_PERMISSION_NONE,
+    CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
     GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &pressCharHandle);
     if (ret != BLE_STATUS_SUCCESS)
       goto fail;
 
-    charFormat.format = FORMAT_SINT24;
-    charFormat.exp = -5;
-    charFormat.unit = UNIT_PRESSURE_BAR;
-    charFormat.name_space = 0;
-    charFormat.desc = 0;
-
-    uuid16 = CHAR_FORMAT_DESC_UUID;
-
-    ret = aci_gatt_add_char_desc(envSensServHandle, pressCharHandle,
-    UUID_TYPE_16, (uint8_t *) &uuid16, 7, 7, (void *) &charFormat,
-    ATTR_PERMISSION_NONE,
-    ATTR_ACCESS_READ_ONLY, 0, 16, FALSE, &descHandle);
-    if (ret != BLE_STATUS_SUCCESS)
-      goto fail;
+//    charFormat.format = FORMAT_SINT24;
+//    charFormat.exp = -5;
+//    charFormat.unit = UNIT_PRESSURE_BAR;
+//    charFormat.name_space = 0;
+//    charFormat.desc = 0;
+//
+//    uuid16 = CHAR_FORMAT_DESC_UUID;
+//
+//    ret = aci_gatt_add_char_desc(envSensServHandle, pressCharHandle,
+//    UUID_TYPE_16, (uint8_t *) &uuid16, 7, 7, (void *) &charFormat,
+//    ATTR_PERMISSION_NONE,
+//    ATTR_ACCESS_READ_ONLY, 0, 16, FALSE, &descHandle);
+//    if (ret != BLE_STATUS_SUCCESS)
+//      goto fail;
   }
   /* Humidity Characteristic */
   if (1)
   {   //FIXME
     COPY_HUMIDITY_CHAR_UUID(uuid);
     ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
-    CHAR_PROP_READ, ATTR_PERMISSION_NONE,
+    CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
     GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &humidityCharHandle);
     if (ret != BLE_STATUS_SUCCESS)
       goto fail;
 
-    charFormat.format = FORMAT_UINT16;
-    charFormat.exp = -1;
-    charFormat.unit = UNIT_UNITLESS;
-    charFormat.name_space = 0;
-    charFormat.desc = 0;
-
-    uuid16 = CHAR_FORMAT_DESC_UUID;
-
-    ret = aci_gatt_add_char_desc(envSensServHandle, humidityCharHandle,
-    UUID_TYPE_16, (uint8_t *) &uuid16, 7, 7, (void *) &charFormat,
-    ATTR_PERMISSION_NONE,
-    ATTR_ACCESS_READ_ONLY, 0, 16, FALSE, &descHandle);
-    if (ret != BLE_STATUS_SUCCESS)
-      goto fail;
+//    charFormat.format = FORMAT_SINT24;
+//    charFormat.exp = -1;
+//    charFormat.unit = UNIT_UNITLESS;
+//    charFormat.name_space = 0;
+//    charFormat.desc = 0;
+//
+//    uuid16 = CHAR_FORMAT_DESC_UUID;
+//
+//    ret = aci_gatt_add_char_desc(envSensServHandle, humidityCharHandle,
+//    UUID_TYPE_16, (uint8_t *) &uuid16, 7, 7, (void *) &charFormat,
+//    ATTR_PERMISSION_NONE,
+//    ATTR_ACCESS_READ_ONLY, 0, 16, FALSE, &descHandle);
+//    if (ret != BLE_STATUS_SUCCESS)
+//      goto fail;
   }
-  printf(
-      "Service ENV_SENS added. Handle 0x%04X, TEMP Charac handle: 0x%04X, PRESS Charac handle: 0x%04X, HUMID Charac handle: 0x%04X\n",
-      envSensServHandle, tempCharHandle, pressCharHandle, humidityCharHandle);
+  printf("Service ENV_SENS added. Handle 0x%04X, TEMP Charac handle: 0x%04X, PRESS Charac handle: 0x%04X, HUMID Charac handle: 0x%04X\n", envSensServHandle,
+      tempCharHandle, pressCharHandle, humidityCharHandle);
   return BLE_STATUS_SUCCESS;
 
   fail: printf("Error while adding ENV_SENS service.\n");
@@ -357,8 +353,7 @@ tBleStatus Temp_Update(int32_t temp)
 {
   tBleStatus ret;
 
-  ret = aci_gatt_update_char_value(envSensServHandle, tempCharHandle, 0, 4,
-      (uint8_t*) &temp);
+  ret = aci_gatt_update_char_value(envSensServHandle, tempCharHandle, 0, 4, (uint8_t*) &temp);
 
   if (ret != BLE_STATUS_SUCCESS)
   {
@@ -378,12 +373,11 @@ tBleStatus Press_Update(int32_t press)
 {
   tBleStatus ret;
 
-  ret = aci_gatt_update_char_value(envSensServHandle, pressCharHandle, 0, 4,
-      (uint8_t*) &press);
+  ret = aci_gatt_update_char_value(envSensServHandle, pressCharHandle, 0, 4, (uint8_t*) &press);
 
   if (ret != BLE_STATUS_SUCCESS)
   {
-    printf("Error while updating TEMP characteristic.\n");
+    printf("Error while updating PRESS characteristic.\n");
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
@@ -399,12 +393,11 @@ tBleStatus Humidity_Update(int32_t humidity)
 {
   tBleStatus ret;
 
-  ret = aci_gatt_update_char_value(envSensServHandle, humidityCharHandle, 0, 4,
-      (uint8_t*) &humidity);
+  ret = aci_gatt_update_char_value(envSensServHandle, humidityCharHandle, 0, 4, (uint8_t*) &humidity);
 
   if (ret != BLE_STATUS_SUCCESS)
   {
-    printf("Error while updating TEMP characteristic.\n");
+    printf("Error while updating HUM characteristic.\n");
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
@@ -435,15 +428,13 @@ void setConnectable(void)
 {
   tBleStatus ret;
 
-  const char local_name[] =
-  { AD_TYPE_COMPLETE_LOCAL_NAME, 'B', 'l', 'u', 'e', 'N', 'R', 'G' };
+  const char local_name[] = { AD_TYPE_COMPLETE_LOCAL_NAME, 'B', 'l', 'u', 'e', 'N', 'R', 'G' };
 
   /* disable scan response */
   hci_le_set_scan_resp_data(0, NULL);
   printf("General Discoverable Mode.\n");
 
-  ret = aci_gap_set_discoverable(ADV_IND, 0, 0, PUBLIC_ADDR, NO_WHITE_LIST_USE,
-      sizeof(local_name), local_name, 0, NULL, 0, 0);
+  ret = aci_gap_set_discoverable(ADV_IND, 0, 0, PUBLIC_ADDR, NO_WHITE_LIST_USE, sizeof(local_name), local_name, 0, NULL, 0, 0);
   if (ret != BLE_STATUS_SUCCESS)
   {
     printf("Error while setting discoverable mode (%d)\n", ret);
@@ -496,37 +487,29 @@ void Read_Request_CB(uint16_t handle)
 
   if (handle == orientCharHandle + 1)
   {
-    EUL_Value.AXIS_X = (int) sensor.imu.roll;
-    EUL_Value.AXIS_Y = (int) sensor.imu.pitch;
-    EUL_Value.AXIS_Z = (int) sensor.imu.yaw;
+    EUL_Value.AXIS_X = *((i32_t*) (&sensor.imu.roll));
+    EUL_Value.AXIS_Y = *((i32_t*) (&sensor.imu.pitch));
+    EUL_Value.AXIS_Z = *((i32_t*) (&sensor.imu.yaw));
     Orientation_Update(&EUL_Value);
   }
   else if (handle == gpsCharHandle + 1)
   {
-    GPS_Value.AXIS_X = (int) sensor.gps.pos.longitude;
-    GPS_Value.AXIS_Y = (int) sensor.gps.pos.latitude;
-    GPS_Value.AXIS_Z = (int) sensor.gps.pos.elevation;
+    GPS_Value.AXIS_X = *((i32_t*) (&sensor.gps.pos.longitude));
+    GPS_Value.AXIS_Y = *((i32_t*) (&sensor.gps.pos.latitude));
+    GPS_Value.AXIS_Z = *((i32_t*) (&sensor.gps.pos.elevation));
     GPS_Update(&GPS_Value);
   }
   else if (handle == tempCharHandle + 1)
   {
-    EUL_Value.AXIS_X = (int) sensor.imu.roll;
-    EUL_Value.AXIS_Y = (int) sensor.imu.pitch;
-    EUL_Value.AXIS_Z = (int) sensor.imu.yaw;
-    Orientation_Update(&EUL_Value); //FIXME: to overcome issue on Android App
-                                    // If the user button is not pressed within
-                                    // a short time after the connection,
-                                    // a pop-up reports a "No valid characteristics found" error.
-
-    Temp_Update((int32_t)sensor.env.temperature);
+    Temp_Update(*((i32_t*) (&sensor.env.temperature)));
   }
   else if (handle == pressCharHandle + 1)
   {
-    Press_Update((int32_t)sensor.env.pressure);
+    Press_Update(*((i32_t*) (&sensor.env.pressure)));
   }
   else if (handle == humidityCharHandle + 1)
   {
-    Humidity_Update((int32_t)sensor.env.humidity);
+    Humidity_Update(*((i32_t*) (&sensor.env.humidity)));
   }
 
   //EXIT:

@@ -194,7 +194,7 @@ public class FeedbackActivity extends AppCompatActivity {
         String ph = String.valueOf(degree) + "\u00B0";
         tv.setText(ph);
     }
-    private void setPressureText(int pressure){
+    private void setPressureText(float pressure){
         TextView tv = (TextView) findViewById(R.id.pressureText);
         String ph = String.valueOf(pressure) + " Psi";
         tv.setText(ph);
@@ -483,13 +483,12 @@ public class FeedbackActivity extends AppCompatActivity {
                 //setPressureText((int) abs(this.y)/10);
             }
             else if(dataType.equals("Temp")){
-                this.x = Byte.parseByte(data);
-                mBoatView.setXYZ(this.x, this.y, this.z);
                 TextView tv = (TextView) findViewById(R.id.tempText);
-                tv.setText(String.valueOf(this.x));
+                tv.setText(String.valueOf(data));
             }
             else if(dataType.equals("Pressure")){
-                int pressure = Byte.parseByte(data);
+                data = data.replace(',', '.');
+                float pressure = Float.parseFloat(data);
                 setPressureText(pressure);
                 mNeedleView.setPressure(pressure/10);
             }
@@ -497,16 +496,19 @@ public class FeedbackActivity extends AppCompatActivity {
 
             }
             else if(dataType.equals("Humidity")){
-                int hum = Byte.parseByte(data);
                 TextView tv = (TextView) findViewById(R.id.humText);
-                tv.setText(String.valueOf(hum));
+                tv.setText(data);
             }
             else if(dataType.equals("Heart")){
                 this.y = Byte.parseByte(data);
                 setDegreeText((int) this.y);
             }
             else if (dataType.equals("Position")) {
-                // TODO
+                data = data.replace(',', '.');
+                String[] pos = data.split(":");
+                latitude = pos[0];
+                longitude = pos[1];
+                float elevation = Float.parseFloat(pos[2]);
             }
         }
     }

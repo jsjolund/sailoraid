@@ -235,7 +235,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
       SerialUsbTransmit("\r\n", 2);
       ShellExecute(row);
     }
-    // Clear the buffer
+    // Clear the receive buffer
     h->rxIndex = 0;
     for (i = 0; i < RX_BUFFER_MAX; i++)
       h->rxString[i] = '\0';

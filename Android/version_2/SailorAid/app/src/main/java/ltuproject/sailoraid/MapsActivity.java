@@ -37,8 +37,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Intent i = getIntent();
         String lat = i.getStringExtra(TAG_LAT);
         String lon = i.getStringExtra(TAG_LONG);
-        latitude = Double.parseDouble(lat);
-        longitude = Double.parseDouble(lon);
+        latitude = Float.parseFloat(lat);
+        longitude = Float.parseFloat(lon);
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -48,6 +48,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    public void addMarker(float latitude, float longitude) {
+        LatLng boat = new LatLng(latitude, longitude);
+        mMap.addMarker(new MarkerOptions().position(boat).title("You are here"));
+    }
 
     /**
      * Manipulates the map once available.
