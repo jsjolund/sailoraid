@@ -30,6 +30,11 @@ void ShellExecute(char* string)
     fail = 0;
     GPSecho(TRUE);
   }
+  else if (strlen(token) == 3 && strncmp(token, "env", 1) == 0)
+  {
+    fail = 0;
+    ENVecho(TRUE);
+  }
   if (fail)
   {
     printf("command not found: %s\r\n", string);

@@ -181,6 +181,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
   {
     GPSecho(FALSE);
     IMUecho(FALSE);
+    ENVecho(FALSE);
     h = &usbHandle;
   }
   else if (huartHandle == gpsHandle.huart)

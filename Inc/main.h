@@ -159,6 +159,7 @@
 
 void IMUecho(BOOL echo);
 void GPSecho(BOOL echo);
+void ENVecho(BOOL echo);
 
 /* USER CODE END Private defines */
 
