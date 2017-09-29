@@ -267,7 +267,7 @@ tBleStatus Add_Environmental_Sensor_Service(void)
 
   /* Temperature Characteristic */
   COPY_TEMP_CHAR_UUID(uuid);
-  ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 2,
+  ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
   CHAR_PROP_READ, ATTR_PERMISSION_NONE,
   GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &tempCharHandle);
   if (ret != BLE_STATUS_SUCCESS)
@@ -292,7 +292,7 @@ tBleStatus Add_Environmental_Sensor_Service(void)
   if (1)
   { //FIXME
     COPY_PRESS_CHAR_UUID(uuid);
-    ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 3,
+    ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
     CHAR_PROP_READ, ATTR_PERMISSION_NONE,
     GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &pressCharHandle);
     if (ret != BLE_STATUS_SUCCESS)
@@ -317,7 +317,7 @@ tBleStatus Add_Environmental_Sensor_Service(void)
   if (1)
   {   //FIXME
     COPY_HUMIDITY_CHAR_UUID(uuid);
-    ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 2,
+    ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
     CHAR_PROP_READ, ATTR_PERMISSION_NONE,
     GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &humidityCharHandle);
     if (ret != BLE_STATUS_SUCCESS)
@@ -353,11 +353,11 @@ tBleStatus Add_Environmental_Sensor_Service(void)
  * @param  Temperature in tenths of degree 
  * @retval Status
  */
-tBleStatus Temp_Update(int16_t temp)
+tBleStatus Temp_Update(int32_t temp)
 {
   tBleStatus ret;
 
-  ret = aci_gatt_update_char_value(envSensServHandle, tempCharHandle, 0, 2,
+  ret = aci_gatt_update_char_value(envSensServHandle, tempCharHandle, 0, 4,
       (uint8_t*) &temp);
 
   if (ret != BLE_STATUS_SUCCESS)
@@ -378,7 +378,7 @@ tBleStatus Press_Update(int32_t press)
 {
   tBleStatus ret;
 
-  ret = aci_gatt_update_char_value(envSensServHandle, pressCharHandle, 0, 3,
+  ret = aci_gatt_update_char_value(envSensServHandle, pressCharHandle, 0, 4,
       (uint8_t*) &press);
 
   if (ret != BLE_STATUS_SUCCESS)
@@ -395,11 +395,11 @@ tBleStatus Press_Update(int32_t press)
  * @param  uint16_thumidity RH (Relative Humidity) in thenths of %
  * @retval tBleStatus      Status
  */
-tBleStatus Humidity_Update(uint16_t humidity)
+tBleStatus Humidity_Update(int32_t humidity)
 {
   tBleStatus ret;
 
-  ret = aci_gatt_update_char_value(envSensServHandle, humidityCharHandle, 0, 2,
+  ret = aci_gatt_update_char_value(envSensServHandle, humidityCharHandle, 0, 4,
       (uint8_t*) &humidity);
 
   if (ret != BLE_STATUS_SUCCESS)
