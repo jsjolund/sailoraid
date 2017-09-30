@@ -21,6 +21,6 @@ Sensor package for the Laser Pico sail boat
 
 ![X Nucleo IDB04A1 pins](Docs/X_Nucleo_IDB04A1.png)
 
-
+![X Nucleo IKS01A2 pins](Docs/X_Nucleo_IKS01A2_mbed_pinout_v1_b8S8xn8.jpg)
 
 
