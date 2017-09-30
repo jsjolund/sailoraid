@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 
@@ -13,9 +14,13 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Henrik on 2017-09-06.
@@ -23,34 +28,27 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    private int mInterval = 1000; // 1 seconds by default, can be changed later
+    private Handler mHandler;
+
+
     private GoogleMap mMap;
 
-    private static final String TAG_LAT = "lat";
-    private static final String TAG_LONG = "lon";
-    private double latitude;
-    private double longitude;
+    private Polyline travelRoutePolyline;
+    private Marker hereMarker;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_activity);
 
         Intent i = getIntent();
-        String lat = i.getStringExtra(TAG_LAT);
-        String lon = i.getStringExtra(TAG_LONG);
-        latitude = Float.parseFloat(lat);
-        longitude = Float.parseFloat(lon);
-
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-    }
-
-    public void addMarker(float latitude, float longitude) {
-        LatLng boat = new LatLng(latitude, longitude);
-        mMap.addMarker(new MarkerOptions().position(boat).title("You are here"));
     }
 
     /**
@@ -69,35 +67,57 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
         }
-        LatLng boat = new LatLng(latitude, longitude);
-        mMap.addMarker(new MarkerOptions().position(boat).title("You are here"));
-
-        /*
-        Focus on your position
-         */
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(boat)
-                .zoom(11)
-                .bearing(0)
-                .tilt(5)
-                .build();
-
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
-        double slat = 65.540858;
-        double slong = 22.369398;
-        // Instantiates a new Polyline object and adds points to define a rectangle
-        PolylineOptions rectOptions = new PolylineOptions()
-                .add(new LatLng(slat, slong))
-                .add(new LatLng(65.538650, 22.353103))  // North of the previous point, but at the same longitude
-                .add(new LatLng(65.531561, 22.365508))  // Same latitude, and 30km to the west
-                .add(new LatLng(65.527302, 22.391835))  // Same longitude, and 16km to the south
-                .add(new LatLng(latitude, longitude)); // Closes the polyline.
-
-// Get back the mutable Polyline
-        Polyline polyline = mMap.addPolyline(rectOptions);
+        mHandler = new Handler();
+        startRepeatingTask();
     }
 
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopRepeatingTask();
+    }
+
+    Runnable mStatusChecker = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                // Update travel route on timer update
+                List<LatLng> newPoints = new ArrayList<LatLng>();
+                FeedbackActivity.getRoute(newPoints);
+                PolylineOptions newTravelRoute = new PolylineOptions();
+                newTravelRoute.addAll(newPoints);
+                if (travelRoutePolyline != null)
+                    travelRoutePolyline.remove();
+                travelRoutePolyline = mMap.addPolyline(newTravelRoute);
+
+                if (newPoints.size() > 0) {
+                    if (hereMarker != null)
+                        hereMarker.remove();
+                    LatLng boat = newPoints.get(newPoints.size() - 1);
+                    hereMarker = mMap.addMarker(new MarkerOptions().position(boat).title("You are here"));
+                    CameraPosition cameraPosition = new CameraPosition.Builder()
+                            .target(boat)
+                            .zoom(16)
+                            .bearing(0)
+                            .tilt(5)
+                            .build();
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                }
+            } finally {
+                // 100% guarantee that this always happens, even if
+                // your update method throws an exception
+                mHandler.postDelayed(mStatusChecker, mInterval);
+            }
+        }
+    };
+
+    void startRepeatingTask() {
+        mStatusChecker.run();
+    }
+
+    void stopRepeatingTask() {
+        mHandler.removeCallbacks(mStatusChecker);
+    }
 }
 

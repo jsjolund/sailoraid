@@ -34,6 +34,9 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.PolylineOptions;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -86,10 +89,12 @@ public class FeedbackActivity extends AppCompatActivity {
     private float x, y, z;
     private Button btnMap;
     //Location variables
-    private static final String TAG_LAT = "lat";
-    private static final String TAG_LONG = "lon";
-    private String latitude = "65.534439";
-    private String longitude = "22.386603";
+
+    static private List<LatLng> travelRoute = new ArrayList<LatLng>();
+    public static synchronized void getRoute(List<LatLng> output) {
+        output.addAll(travelRoute);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,8 +113,6 @@ public class FeedbackActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(FeedbackActivity.this, MapsActivity.class);
-                intent.putExtra(TAG_LAT, latitude);
-                intent.putExtra(TAG_LONG, longitude);
                 startActivity(intent);
             }
         });
@@ -445,7 +448,6 @@ public class FeedbackActivity extends AppCompatActivity {
                 //displayGattServices(myBTHandler.getBtLEConnection().getSupportedGattServices());
                 //myBTHandler.registerGattNotifications();
                 startRegNotifications();
-
             } else if (myBTHandler.getBtLEConnection().ACTION_DATA_AVAILABLE.equals(action)) {
                 displayData(intent.getStringExtra(myBTHandler.getBtLEConnection().EXTRA_DATA),intent.getStringExtra(myBTHandler.getBtLEConnection().EXTRA_TYPE));
             } else if (myBTHandler.getBtLEConnection().ACTION_GATT_SERVICE_NOTIFIED.equals(action)){
@@ -506,9 +508,12 @@ public class FeedbackActivity extends AppCompatActivity {
             else if (dataType.equals("Position")) {
                 data = data.replace(',', '.');
                 String[] pos = data.split(":");
-                latitude = pos[0];
-                longitude = pos[1];
+                float latitude = Float.parseFloat(pos[0]);
+                float longitude = Float.parseFloat(pos[1]);
                 float elevation = Float.parseFloat(pos[2]);
+                if (latitude != 0f && longitude != 0f) {
+                    travelRoute.add(new LatLng(latitude, longitude));
+                }
             }
         }
     }
