@@ -286,14 +286,12 @@ tBleStatus Add_Environmental_Sensor_Service(void)
 //    goto fail;
 
   /* Pressure Characteristic */
-  if (1)
-  { //FIXME
-    COPY_PRESS_CHAR_UUID(uuid);
-    ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
-    CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
-    GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &pressCharHandle);
-    if (ret != BLE_STATUS_SUCCESS)
-      goto fail;
+  COPY_PRESS_CHAR_UUID(uuid);
+  ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
+  CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
+  GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &pressCharHandle);
+  if (ret != BLE_STATUS_SUCCESS)
+    goto fail;
 
 //    charFormat.format = FORMAT_SINT24;
 //    charFormat.exp = -5;
@@ -309,16 +307,14 @@ tBleStatus Add_Environmental_Sensor_Service(void)
 //    ATTR_ACCESS_READ_ONLY, 0, 16, FALSE, &descHandle);
 //    if (ret != BLE_STATUS_SUCCESS)
 //      goto fail;
-  }
+
   /* Humidity Characteristic */
-  if (1)
-  {   //FIXME
-    COPY_HUMIDITY_CHAR_UUID(uuid);
-    ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
-    CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
-    GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &humidityCharHandle);
-    if (ret != BLE_STATUS_SUCCESS)
-      goto fail;
+  COPY_HUMIDITY_CHAR_UUID(uuid);
+  ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
+  CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
+  GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &humidityCharHandle);
+  if (ret != BLE_STATUS_SUCCESS)
+    goto fail;
 
 //    charFormat.format = FORMAT_SINT24;
 //    charFormat.exp = -1;
@@ -334,7 +330,6 @@ tBleStatus Add_Environmental_Sensor_Service(void)
 //    ATTR_ACCESS_READ_ONLY, 0, 16, FALSE, &descHandle);
 //    if (ret != BLE_STATUS_SUCCESS)
 //      goto fail;
-  }
   printf("Service ENV_SENS added. Handle 0x%04X, TEMP Charac handle: 0x%04X, PRESS Charac handle: 0x%04X, HUMID Charac handle: 0x%04X\n", envSensServHandle,
       tempCharHandle, pressCharHandle, humidityCharHandle);
   return BLE_STATUS_SUCCESS;
@@ -501,14 +496,26 @@ void Read_Request_CB(uint16_t handle)
   }
   else if (handle == tempCharHandle + 1)
   {
+    EUL_Value.AXIS_X = *((i32_t*) (&sensor.imu.roll));
+    EUL_Value.AXIS_Y = *((i32_t*) (&sensor.imu.pitch));
+    EUL_Value.AXIS_Z = *((i32_t*) (&sensor.imu.yaw));
+    Orientation_Update(&EUL_Value);
     Temp_Update(*((i32_t*) (&sensor.env.temperature)));
   }
   else if (handle == pressCharHandle + 1)
   {
+    EUL_Value.AXIS_X = *((i32_t*) (&sensor.imu.roll));
+    EUL_Value.AXIS_Y = *((i32_t*) (&sensor.imu.pitch));
+    EUL_Value.AXIS_Z = *((i32_t*) (&sensor.imu.yaw));
+    Orientation_Update(&EUL_Value);
     Press_Update(*((i32_t*) (&sensor.env.pressure)));
   }
   else if (handle == humidityCharHandle + 1)
   {
+    EUL_Value.AXIS_X = *((i32_t*) (&sensor.imu.roll));
+    EUL_Value.AXIS_Y = *((i32_t*) (&sensor.imu.pitch));
+    EUL_Value.AXIS_Z = *((i32_t*) (&sensor.imu.yaw));
+    Orientation_Update(&EUL_Value);
     Humidity_Update(*((i32_t*) (&sensor.env.humidity)));
   }
 

@@ -166,10 +166,14 @@ public class BTLEConnection extends Service {
     public void registerGattNotifications(){
         if (!(mServiceList.isEmpty())){
             if (mCharacteristicList == null || mCharacteristicList.isEmpty() || (listIterator >=  mCharacteristicList.size()) ) {
-                listIterator = 0;
-                mCharacteristicList  =
-                        mServiceList.get(serviceIterator).getCharacteristics();
-                serviceIterator += 1;
+                try {
+                    listIterator = 0;
+                    mCharacteristicList =
+                            mServiceList.get(serviceIterator).getCharacteristics();
+                    serviceIterator += 1;
+                } catch (IndexOutOfBoundsException e) {
+                    return; // FIXME: Should this do something else
+                }
             }
             if (serviceIterator <= mServiceList.size()) {
                 if (!mCharacteristicList.isEmpty() && listIterator < mCharacteristicList.size()) {
@@ -250,10 +254,12 @@ public class BTLEConnection extends Service {
             mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
                     UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
-            characteristic.addDescriptor(descriptor);
-            //descriptor.setValue(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE);
-            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-            mBluetoothGatt.writeDescriptor(descriptor);
+            if (descriptor != null) {
+                characteristic.addDescriptor(descriptor);
+                descriptor.setValue(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE);
+                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                mBluetoothGatt.writeDescriptor(descriptor);
+            }
         }
     }
 
@@ -291,7 +297,6 @@ public class BTLEConnection extends Service {
 
         } else if (UUID_FREE_FALL_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
-
             final byte[] freeFallInc = characteristic.getValue();
             intent.putExtra(EXTRA_TYPE, "Free fall");
             intent.putExtra(EXTRA_DATA, String.valueOf(freeFallInc[1]));
@@ -330,7 +335,7 @@ public class BTLEConnection extends Service {
             float lat = Float.intBitsToFloat(latInt);
             float elev = Float.intBitsToFloat(elevInt);
             intent.putExtra(EXTRA_TYPE, "Position");
-            intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f",lat,lon,elev)); // TODO
+            intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f",lat,lon,elev));
         }
         contx.sendBroadcast(intent);
     }
