@@ -1,5 +1,5 @@
 /*
- * serial.cpp
+ * serial.c
  *
  *  Created on: Jan 28, 2017
  *      Author: jsjolund
@@ -10,8 +10,8 @@
 typedef struct SerialHandle
 {
   volatile int rxIndex;
-  volatile uint8_t rxString[RX_BUFFER_MAX];
-  volatile uint8_t txString[TX_BUFFER_MAX];
+  uint8_t rxString[RX_BUFFER_MAX];
+  uint8_t txString[TX_BUFFER_MAX];
   volatile int txIndex, txOutdex;
   uint8_t rxBuffer;
   UART_HandleTypeDef *huart;
@@ -21,6 +21,7 @@ typedef struct SerialHandle
 static SerialHandle usbHandle;
 static SerialHandle gpsHandle;
 extern SensorState sensor;
+
 static int QueuePut(SerialHandle *h, uint8_t input)
 {
   if (h->txIndex == ((h->txOutdex - 1 + TX_BUFFER_MAX) % TX_BUFFER_MAX))
@@ -70,36 +71,36 @@ void SerialInit(UART_HandleTypeDef *usbHuartHandle, UART_HandleTypeDef *gpsHuart
 
 static void SendFromFIFO(SerialHandle *h)
 {
+  HAL_UART_IRQHandler(h->huart);
 
-//  // Sends a character from the FIFO through DMA
-//  HAL_UART_StateTypeDef uartState = HAL_UART_GetState(h->huart);
-//  if (uartState == HAL_UART_STATE_READY || uartState == HAL_UART_STATE_BUSY_RX)
-//  {
-//    if (h->txCplt)
-//    {
-//      h->txCplt = 0;
-//      int size = QueueGetSize(h);
-//      if (size > 0)
-//      {
-//        uint8_t c[size];
-//        QueueGetAll(h, c, size);
-//        while (HAL_UART_Transmit_DMA(h->huart, c, size) != HAL_OK)
-//          ;
-//      }
-//      else
-//      {
-//        h->txCplt = 1;
-//      }
-//    }
-//  }
-
+  // Sends characters from the FIFO to UART through DMA
   HAL_UART_StateTypeDef uartState = HAL_UART_GetState(h->huart);
-  if ((uartState == HAL_UART_STATE_READY) || (uartState == HAL_UART_STATE_BUSY_RX))
+  if (uartState == HAL_UART_STATE_READY || uartState == HAL_UART_STATE_BUSY_RX)
   {
-    uint8_t c;
-    if (QueueGet(h, &c))
-      while (HAL_UART_Transmit_DMA(h->huart, &c, 1) != HAL_OK)
-        ;
+    if (h->txCplt)
+    {
+      h->txCplt = 0;
+      int size = QueueGetSize(h);
+      if (size > 0)
+      {
+        if (h->txOutdex < h->txIndex)
+        {
+          while (HAL_UART_Transmit_DMA(h->huart, &h->txString[h->txOutdex], h->txIndex - h->txOutdex) != HAL_OK)
+            ;
+          h->txOutdex = h->txIndex;
+        }
+        else
+        {
+          while (HAL_UART_Transmit_DMA(h->huart, &h->txString[h->txOutdex], TX_BUFFER_MAX - h->txOutdex) != HAL_OK)
+            ;
+          h->txOutdex = 0;
+        }
+      }
+      else
+      {
+        h->txCplt = 1;
+      }
+    }
   }
 }
 

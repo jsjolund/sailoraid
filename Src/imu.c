@@ -14,8 +14,6 @@ static void *HUMIDITY_handle = NULL;
 static void *TEMPERATURE_handle = NULL;
 static void *PRESSURE_handle = NULL;
 
-//void IMU_Update()
-
 /**
  * @brief  Handles the GYRO axes data getting/sending
  * @param  Msg the GYRO part of the stream

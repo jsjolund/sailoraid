@@ -61,13 +61,6 @@ uint16_t orientServHandle, freeFallCharHandle, orientCharHandle;
 uint16_t gpsServHandle, gpsCharHandle;
 uint16_t envSensServHandle, tempCharHandle, pressCharHandle, humidityCharHandle;
 
-#if NEW_SERVICES
-uint16_t timeServHandle, secondsCharHandle, minuteCharHandle;
-uint16_t ledServHandle, ledButtonCharHandle;
-uint8_t ledState = 0;
-int previousMinuteValue = -1;
-extern uint8_t bnrg_expansion_board;
-#endif
 /**
  * @}
  */
@@ -84,26 +77,6 @@ do {\
                 uuid_struct[12] = uuid_12; uuid_struct[13] = uuid_13; uuid_struct[14] = uuid_14; uuid_struct[15] = uuid_15; \
 }while(0)
 
-#if NEW_SERVICES
-#define COPY_ACC_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x02,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_FREE_FALL_UUID(uuid_struct)    COPY_UUID_128(uuid_struct,0xe2,0x3e,0x78,0xa0, 0xcf,0x4a, 0x11,0xe1, 0x8f,0xfc, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_ACC_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x34,0x0a,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-
-#define COPY_ENV_SENS_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x42,0x82,0x1a,0x40, 0xe4,0x77, 0x11,0xe2, 0x82,0xd0, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_TEMP_CHAR_UUID(uuid_struct)         COPY_UUID_128(uuid_struct,0xa3,0x2e,0x55,0x20, 0xe4,0x77, 0x11,0xe2, 0xa9,0xe3, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_PRESS_CHAR_UUID(uuid_struct)        COPY_UUID_128(uuid_struct,0xcd,0x20,0xc4,0x80, 0xe4,0x8b, 0x11,0xe2, 0x84,0x0b, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_HUMIDITY_CHAR_UUID(uuid_struct)     COPY_UUID_128(uuid_struct,0x01,0xc5,0x0b,0x60, 0xe4,0x8c, 0x11,0xe2, 0xa0,0x73, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-
-// Time service: uuid = 0x08, 0x36, 0x6e, 0x80, 0xcf, 0x3a, 0x11, 0xe1, 0x9a, 0xb4, 0x00, 0x02, 0xa5, 0xd5, 0xc5, 0x1b
-//      straight uuid = 0x08366e80cf3a11e19ab40002a5d5c51b
-#define COPY_TIME_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x08,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_TIME_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x09,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_MINUTE_UUID(uuid_struct)        COPY_UUID_128(uuid_struct,0x0a,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-
-// LED service
-#define COPY_LED_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_LED_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x0c,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#else
 #define COPY_ACC_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x02,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_FREE_FALL_UUID(uuid_struct)    COPY_UUID_128(uuid_struct,0xe2,0x3e,0x78,0xa0, 0xcf,0x4a, 0x11,0xe1, 0x8f,0xfc, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_ACC_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x34,0x0a,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
@@ -115,7 +88,6 @@ do {\
 #define COPY_TEMP_CHAR_UUID(uuid_struct)         COPY_UUID_128(uuid_struct,0xa3,0x2e,0x55,0x20, 0xe4,0x77, 0x11,0xe2, 0xa9,0xe3, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_PRESS_CHAR_UUID(uuid_struct)        COPY_UUID_128(uuid_struct,0xcd,0x20,0xc4,0x80, 0xe4,0x8b, 0x11,0xe2, 0x84,0x0b, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_HUMIDITY_CHAR_UUID(uuid_struct)     COPY_UUID_128(uuid_struct,0x01,0xc5,0x0b,0x60, 0xe4,0x8c, 0x11,0xe2, 0xa0,0x73, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#endif
 
 /* Store Value into a buffer in Little Endian Format */
 #define STORE_LE_16(buf, val)    (((buf)[0] =  (uint8_t) (val)    ) , \
@@ -253,9 +225,6 @@ tBleStatus Add_Environmental_Sensor_Service(void)
 {
   tBleStatus ret;
   uint8_t uuid[16];
-//  uint16_t uuid16;
-//  charactFormat charFormat;
-//  uint16_t descHandle;
 
   COPY_ENV_SENS_SERVICE_UUID(uuid);
   ret = aci_gatt_add_serv(UUID_TYPE_128, uuid, PRIMARY_SERVICE, 10, &envSensServHandle);
@@ -270,21 +239,6 @@ tBleStatus Add_Environmental_Sensor_Service(void)
   if (ret != BLE_STATUS_SUCCESS)
     goto fail;
 
-//  charFormat.format = FORMAT_SINT24;
-//  charFormat.exp = -1;
-//  charFormat.unit = UNIT_TEMP_CELSIUS;
-//  charFormat.name_space = 0;
-//  charFormat.desc = 0;
-//
-//  uuid16 = CHAR_FORMAT_DESC_UUID;
-//
-//  ret = aci_gatt_add_char_desc(envSensServHandle, tempCharHandle,
-//  UUID_TYPE_16, (uint8_t *) &uuid16, 7, 7, (void *) &charFormat,
-//  ATTR_PERMISSION_NONE,
-//  ATTR_ACCESS_READ_ONLY, 0, 16, FALSE, &descHandle);
-//  if (ret != BLE_STATUS_SUCCESS)
-//    goto fail;
-
   /* Pressure Characteristic */
   COPY_PRESS_CHAR_UUID(uuid);
   ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
@@ -292,21 +246,6 @@ tBleStatus Add_Environmental_Sensor_Service(void)
   GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &pressCharHandle);
   if (ret != BLE_STATUS_SUCCESS)
     goto fail;
-
-//    charFormat.format = FORMAT_SINT24;
-//    charFormat.exp = -5;
-//    charFormat.unit = UNIT_PRESSURE_BAR;
-//    charFormat.name_space = 0;
-//    charFormat.desc = 0;
-//
-//    uuid16 = CHAR_FORMAT_DESC_UUID;
-//
-//    ret = aci_gatt_add_char_desc(envSensServHandle, pressCharHandle,
-//    UUID_TYPE_16, (uint8_t *) &uuid16, 7, 7, (void *) &charFormat,
-//    ATTR_PERMISSION_NONE,
-//    ATTR_ACCESS_READ_ONLY, 0, 16, FALSE, &descHandle);
-//    if (ret != BLE_STATUS_SUCCESS)
-//      goto fail;
 
   /* Humidity Characteristic */
   COPY_HUMIDITY_CHAR_UUID(uuid);
@@ -316,20 +255,6 @@ tBleStatus Add_Environmental_Sensor_Service(void)
   if (ret != BLE_STATUS_SUCCESS)
     goto fail;
 
-//    charFormat.format = FORMAT_SINT24;
-//    charFormat.exp = -1;
-//    charFormat.unit = UNIT_UNITLESS;
-//    charFormat.name_space = 0;
-//    charFormat.desc = 0;
-//
-//    uuid16 = CHAR_FORMAT_DESC_UUID;
-//
-//    ret = aci_gatt_add_char_desc(envSensServHandle, humidityCharHandle,
-//    UUID_TYPE_16, (uint8_t *) &uuid16, 7, 7, (void *) &charFormat,
-//    ATTR_PERMISSION_NONE,
-//    ATTR_ACCESS_READ_ONLY, 0, 16, FALSE, &descHandle);
-//    if (ret != BLE_STATUS_SUCCESS)
-//      goto fail;
   printf("Service ENV_SENS added. Handle 0x%04X, TEMP Charac handle: 0x%04X, PRESS Charac handle: 0x%04X, HUMID Charac handle: 0x%04X\n", envSensServHandle,
       tempCharHandle, pressCharHandle, humidityCharHandle);
   return BLE_STATUS_SUCCESS;
@@ -570,26 +495,6 @@ void HCI_Event_CB(void *pckt)
     evt_blue_aci *blue_evt = (void*) event_pckt->data;
     switch (blue_evt->ecode)
     {
-
-#if NEW_SERVICES
-    case EVT_BLUE_GATT_ATTRIBUTE_MODIFIED:
-    {
-      /* this callback is invoked when a GATT attribute is modified
-       extract callback data and pass to suitable handler function */
-      if (bnrg_expansion_board == IDB05A1)
-      {
-        evt_gatt_attr_modified_IDB05A1 *evt = (evt_gatt_attr_modified_IDB05A1*)blue_evt->data;
-        Attribute_Modified_CB(evt->attr_handle, evt->data_length, evt->att_data);
-      }
-      else
-      {
-        evt_gatt_attr_modified_IDB04A1 *evt = (evt_gatt_attr_modified_IDB04A1*)blue_evt->data;
-        Attribute_Modified_CB(evt->attr_handle, evt->data_length, evt->att_data);
-      }
-    }
-    break;
-#endif
-
     case EVT_BLUE_GATT_READ_PERMIT_REQ:
     {
       evt_gatt_read_permit_req *pr = (void*) blue_evt->data;
@@ -601,228 +506,5 @@ void HCI_Event_CB(void *pckt)
     break;
   }
 }
-
-#if NEW_SERVICES
-/**
- * @brief  Add a time service using a vendor specific profile
- * @param  None
- * @retval Status
- */
-tBleStatus Add_Time_Service(void)
-{
-  tBleStatus ret;
-  uint8_t uuid[16];
-
-  /* copy "Timer service UUID" defined above to 'uuid' local variable */
-  COPY_TIME_SERVICE_UUID(uuid);
-
-  /* 
-   * now add "Time service" to GATT server, service handle is returned
-   * via 'timeServHandle' parameter of aci_gatt_add_serv() API. 
-   * Please refer to 'BlueNRG Application Command Interface.pdf' for detailed
-   * API description 
-   */
-  ret = aci_gatt_add_serv(UUID_TYPE_128, uuid, PRIMARY_SERVICE, 7,
-      &timeServHandle);
-  if (ret != BLE_STATUS_SUCCESS) goto fail;
-
-  /* 
-   * now add "Seconds characteristic" to Time service, characteristic handle 
-   * is returned via 'secondsCharHandle' parameter of aci_gatt_add_char() API.
-   * This characteristic is read only, as specified by CHAR_PROP_READ parameter.
-   * Please refer to 'BlueNRG Application Command Interface.pdf' for detailed
-   * API description 
-   */
-  COPY_TIME_UUID(uuid);
-  ret = aci_gatt_add_char(timeServHandle, UUID_TYPE_128, uuid, 4,
-      CHAR_PROP_READ, ATTR_PERMISSION_NONE, 0,
-      16, 0, &secondsCharHandle);
-
-  if (ret != BLE_STATUS_SUCCESS) goto fail;
-
-  COPY_MINUTE_UUID(uuid);
-  /* 
-   * Add "Minutes characteristic" to "Time service". 
-   * This characteristic is readable as well as notifiable only, as specified 
-   * by CHAR_PROP_NOTIFY|CHAR_PROP_READ parameter below.   
-   */
-  ret = aci_gatt_add_char(timeServHandle, UUID_TYPE_128, uuid, 4,
-      CHAR_PROP_NOTIFY|CHAR_PROP_READ, ATTR_PERMISSION_NONE, 0,
-      16, 1, &minuteCharHandle);
-  if (ret != BLE_STATUS_SUCCESS) goto fail;
-
-  printf("Service TIME added. Handle 0x%04X, TIME Charac handle: 0x%04X\n",timeServHandle, secondsCharHandle);
-  return BLE_STATUS_SUCCESS;
-
-  /* return BLE_STATUS_ERROR if we reach this tag */
-  fail:
-  printf("Error while adding Time service.\n");
-  return BLE_STATUS_ERROR;
-}
-
-/**
- * @brief  Update seconds characteristic value of Time service.
- * @param  None
- * @retval Status
- */
-tBleStatus Seconds_Update(void)
-{
-  uint32_t val;
-  tBleStatus ret;
-
-  /* Obtain system tick value in milliseconds, and convert it to seconds. */
-  val = HAL_GetTick();
-  val = val/1000;
-
-  /* create a time[] array to pass as last argument of aci_gatt_update_char_value() API*/
-  const uint8_t time[4] =
-  { (val >> 24)&0xFF, (val >> 16)&0xFF, (val >> 8)&0xFF, (val)&0xFF};
-
-  /*
-   * Update value of "Seconds characteristic" using aci_gatt_update_char_value() API 
-   * Please refer to 'BlueNRG Application Command Interface.pdf' for detailed
-   * API description   
-   */
-  ret = aci_gatt_update_char_value(timeServHandle, secondsCharHandle, 0, 4,
-      time);
-
-  if (ret != BLE_STATUS_SUCCESS)
-  {
-    printf("Error while updating TIME characteristic.\n");
-    return BLE_STATUS_ERROR;
-  }
-  return BLE_STATUS_SUCCESS;
-}
-
-/**
- * @brief  Send a notification for a minute characteristic of time service.
- * @param  None
- * @retval Status
- */
-tBleStatus Minutes_Notify(void)
-{
-  uint32_t val;
-  uint32_t minuteValue;
-  tBleStatus ret;
-
-  /* Obtain system tick value in milliseconds */
-  val = HAL_GetTick();
-
-  /* update "Minutes characteristic" value iff it has changed w.r.t. previous 
-   * "minute" value. 
-   */
-  if((minuteValue=val/(60*1000))!=previousMinuteValue)
-  {
-    /* memorize this "minute" value for future usage */
-    previousMinuteValue = minuteValue;
-
-    /* create a time[] array to pass as last argument of aci_gatt_update_char_value() API*/
-    const uint8_t time[4] =
-    { (minuteValue >> 24)&0xFF, (minuteValue >> 16)&0xFF, (minuteValue >> 8)&0xFF, (minuteValue)&0xFF};
-
-    /*
-     * Update value of "Minutes characteristic" using aci_gatt_update_char_value() API
-     * Please refer to 'BlueNRG Application Command Interface.pdf' for detailed
-     * API description
-     */
-    ret = aci_gatt_update_char_value(timeServHandle, minuteCharHandle, 0, 4,
-        time);
-    if (ret != BLE_STATUS_SUCCESS)
-    {
-      printf("Error while updating TIME characteristic.\n");
-      return BLE_STATUS_ERROR;
-    }
-  }
-  return BLE_STATUS_SUCCESS;
-}
-
-/**
- * @brief  Updates "Seconds and Minutes characteristics" values.
- * @param  None
- * @retval None
- */
-void Update_Time_Characteristics(void)
-{
-  /* update "seconds and minutes characteristics" of time service */
-  Seconds_Update();
-  Minutes_Notify();
-}
-
-/*
- * @brief  Add LED button service using a vendor specific profile.
- * @param  None
- * @retval Status
- */
-tBleStatus Add_LED_Service(void)
-{
-  tBleStatus ret;
-  uint8_t uuid[16];
-
-  /* copy "LED service UUID" defined above to 'uuid' local variable */
-  COPY_LED_SERVICE_UUID(uuid);
-  /* 
-   * now add "LED service" to GATT server, service handle is returned
-   * via 'ledServHandle' parameter of aci_gatt_add_serv() API. 
-   * Please refer to 'BlueNRG Application Command Interface.pdf' for detailed
-   * API description 
-   */
-  ret = aci_gatt_add_serv(UUID_TYPE_128, uuid, PRIMARY_SERVICE, 7,
-      &ledServHandle);
-  if (ret != BLE_STATUS_SUCCESS) goto fail;
-
-  /* copy "LED button characteristic UUID" defined above to 'uuid' local variable */
-  COPY_LED_UUID(uuid);
-  /* 
-   * now add "LED button characteristic" to LED service, characteristic handle 
-   * is returned via 'ledButtonCharHandle' parameter of aci_gatt_add_char() API.
-   * This characteristic is writable, as specified by 'CHAR_PROP_WRITE' parameter.
-   * Please refer to 'BlueNRG Application Command Interface.pdf' for detailed
-   * API description 
-   */
-  ret = aci_gatt_add_char(ledServHandle, UUID_TYPE_128, uuid, 4,
-      CHAR_PROP_WRITE | CHAR_PROP_WRITE_WITHOUT_RESP, ATTR_PERMISSION_NONE, GATT_NOTIFY_ATTRIBUTE_WRITE,
-      16, 1, &ledButtonCharHandle);
-  if (ret != BLE_STATUS_SUCCESS) goto fail;
-
-  printf("Service LED BUTTON added. Handle 0x%04X, LED button Charac handle: 0x%04X\n",ledServHandle, ledButtonCharHandle);
-  return BLE_STATUS_SUCCESS;
-
-  fail:
-  printf("Error while adding LED service.\n");
-  return BLE_STATUS_ERROR;
-}
-
-/**
- * @brief  This function is called attribute value corresponding to 
- *         ledButtonCharHandle characteristic gets modified.
- * @param  Handle of the attribute
- * @param  Size of the modified attribute data
- * @param  Pointer to the modified attribute data
- * @retval None
- */
-void Attribute_Modified_CB(uint16_t handle, uint8_t data_length, uint8_t *att_data)
-{
-  /* If GATT client has modified 'LED button characteristic' value, toggle LED2 */
-  if(handle == ledButtonCharHandle + 1)
-  {
-    BSP_LED_Toggle(LED2);
-  }
-}
-#endif /* NEW_SERVICES */
-/**
- * @}
- */
-
-/**
- * @}
- */
-
-/**
- * @}
- */
-
-/**
- * @}
- */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

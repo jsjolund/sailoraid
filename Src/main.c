@@ -68,6 +68,19 @@ DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
+
+// System sample rates and USB/BT output rates
+// Lowest rate possible is 1/(0xffffffff/10^6) = 0.0002 Hz
+#define IMU_SAMPLE_RATE 100.0
+#define ENV_SAMPLE_RATE 1.0
+#define ADC_SAMPLE_RATE 1.0
+#define USB_ENV_OUTPUT_RATE 0.1
+#define USB_GPS_OUTPUT_RATE 1.0
+#define USB_IMU_OUTPUT_RATE 50.0
+#define BT_ENV_OUTPUT_RATE 1.0
+#define BT_GPS_OUTPUT_RATE 1.0
+#define BT_IMU_OUTPUT_RATE 30.0
+
 extern volatile uint8_t set_connectable;
 extern volatile int connected;
 volatile uint8_t adcFinished = 1;
@@ -76,6 +89,33 @@ static BOOL imuEcho = FALSE;
 static BOOL gpsEcho = FALSE;
 static BOOL envEcho = FALSE;
 SensorState sensor;
+
+typedef struct Task_Data
+{
+  uint32_t period;
+  uint32_t previous;
+} Task_Data;
+
+BOOL taskTimeout(Task_Data *data, TIM_HandleTypeDef *tim)
+{
+  uint32_t cnt = tim->Instance->CNT;
+  if (cnt - data->previous >= data->period)
+  {
+    data->previous += data->period;
+    return TRUE;
+  }
+  return FALSE;
+}
+
+static Task_Data imuSampleTask = { .period = (uint32_t) 1000000.0 / IMU_SAMPLE_RATE };
+static Task_Data envSampleTask = { .period = (uint32_t) 1000000.0 / ENV_SAMPLE_RATE };
+static Task_Data adcSampleTask = { .period = (uint32_t) 1000000.0 / ADC_SAMPLE_RATE };
+static Task_Data usbEnvOutputTask = { .period = (uint32_t) 1000000.0 / USB_ENV_OUTPUT_RATE };
+static Task_Data usbGpsOutputTask = { .period = (uint32_t) 1000000.0 / USB_GPS_OUTPUT_RATE };
+static Task_Data usbImuOutputTask = { .period = (uint32_t) 1000000.0 / USB_IMU_OUTPUT_RATE };
+static Task_Data btEnvOutputTask = { .period = (uint32_t) 1000000.0 / BT_ENV_OUTPUT_RATE };
+static Task_Data btGpsOutputTask = { .period = (uint32_t) 1000000.0 / BT_GPS_OUTPUT_RATE };
+static Task_Data btImuOutputTask = { .period = (uint32_t) 1000000.0 / BT_IMU_OUTPUT_RATE };
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -116,16 +156,19 @@ void User_Process(void)
 void IMUecho(BOOL echo)
 {
   imuEcho = echo;
+  usbImuOutputTask.previous = htim2.Instance->CNT - usbImuOutputTask.period;
 }
 
 void GPSecho(BOOL echo)
 {
   gpsEcho = echo;
+  usbGpsOutputTask.previous = htim2.Instance->CNT - usbGpsOutputTask.period;
 }
 
 void ENVecho(BOOL echo)
 {
   envEcho = echo;
+  usbEnvOutputTask.previous = htim2.Instance->CNT - usbEnvOutputTask.period;
 }
 
 /**
@@ -209,41 +252,11 @@ int main(void)
   /* IMU */
   InitIMU();
 
-  // System sample rates
-  int imuSampleRate = 100;
-  int envSampleRate = 1;
-  int adcSampleRate = 1;
-
-  // BT/USB utput rates in Hz
-  int usbEnvOutputRate = 1;
-  int usbGpsOutputRate = 1;
-  int usbImuOutputRate = 50;
-  int btEnvOutputRate = 1;
-  int btGpsOutputRate = 1;
-  int btImuOutputRate = 30;
-
   // Start the timer and calculate update periods
   HAL_TIM_Base_Init(&htim2);
   HAL_TIM_Base_Start(&htim2);
-  MadgwickInit(imuSampleRate);
-  uint32_t adcPeriod = 1000000 / adcSampleRate;
-  uint32_t adcPrevious = htim2.Instance->CNT;
-  uint32_t imuPeriod = 1000000 / imuSampleRate;
-  uint32_t imuPrevious = htim2.Instance->CNT;
-  uint32_t envPeriod = 1000000 / envSampleRate;
-  uint32_t envPrevious = htim2.Instance->CNT;
-  uint32_t usbImuPeriod = 1000000 / usbImuOutputRate;
-  uint32_t usbImuPrevious = htim2.Instance->CNT;
-  uint32_t usbGpsPeriod = 1000000 / usbGpsOutputRate;
-  uint32_t usbGpsPrevious = htim2.Instance->CNT;
-  uint32_t usbEnvPeriod = 1000000 / usbEnvOutputRate;
-  uint32_t usbEnvPrevious = htim2.Instance->CNT;
-  uint32_t btImuPeriod = 1000000 / btImuOutputRate;
-  uint32_t btImuPrevious = htim2.Instance->CNT;
-  uint32_t btGpsPeriod = 1000000 / btGpsOutputRate;
-  uint32_t btGpsPrevious = htim2.Instance->CNT;
-  uint32_t btEnvPeriod = 1000000 / btEnvOutputRate;
-  uint32_t btEnvPrevious = htim2.Instance->CNT;
+  MadgwickInit(IMU_SAMPLE_RATE);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -256,14 +269,8 @@ int main(void)
     HCI_Process();
     User_Process();
 
-#if NEW_SERVICES
-    Update_Time_Characteristics();
-#endif
-
-    uint32_t microsNow;
-
     /*** INPUTS ***/
-    if ((microsNow = htim2.Instance->CNT) - imuPrevious >= imuPeriod)
+    if (taskTimeout(&imuSampleTask, &htim2))
     {
       // Update the IMU
       Accelero_Sensor_Handler(&ACC_Value);
@@ -282,34 +289,30 @@ int main(void)
       sensor.imu.roll = MadgwickGetRoll();
       sensor.imu.pitch = -MadgwickGetPitch();
       sensor.imu.yaw = -MadgwickGetYaw();
-      imuPrevious += imuPeriod;
     }
-    if ((microsNow = htim2.Instance->CNT) - envPrevious >= envPeriod)
+    if (taskTimeout(&envSampleTask, &htim2))
     {
       // Update environment sensors
       Pressure_Sensor_Handler(&sensor.env.pressure);
       Humidity_Sensor_Handler(&sensor.env.humidity);
       Temperature_Sensor_Handler(&sensor.env.temperature);
-      envPrevious += envPeriod;
     }
-    if (adcFinished && (microsNow = htim2.Instance->CNT) - adcPrevious >= adcPeriod)
+    if (adcFinished && (taskTimeout(&adcSampleTask, &htim2)))
     {
       // Update ADC
       HAL_ADCEx_InjectedStart_IT(&hadc1);
       adcFinished = 0;
-      adcPrevious += adcPeriod;
     }
     /*** OUTPUTS ***/
-    if ((microsNow = htim2.Instance->CNT) - btImuPrevious >= btImuPeriod)
+    if (taskTimeout(&btImuOutputTask, &htim2))
     {
       // Update orientation, GPS and environmental data on Bluetooth GATT server
       EUL_Value.AXIS_X = *((i32_t*) (&sensor.imu.roll));
       EUL_Value.AXIS_Y = *((i32_t*) (&sensor.imu.pitch));
       EUL_Value.AXIS_Z = *((i32_t*) (&sensor.imu.yaw));
       Orientation_Update(&EUL_Value);
-      btImuPrevious += btImuPeriod;
     }
-    if ((microsNow = htim2.Instance->CNT) - btGpsPrevious >= btGpsPeriod)
+    if (taskTimeout(&btGpsOutputTask, &htim2))
     {
       // To avoid race conditions, disable GPS update while reading
       HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
@@ -318,21 +321,18 @@ int main(void)
       GPS_Value.AXIS_Z = *((i32_t*) (&sensor.gps.pos.elevation));
       GPS_Update(&GPS_Value);
       HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
-      btGpsPrevious += btGpsPeriod;
     }
-    if ((microsNow = htim2.Instance->CNT) - btEnvPrevious >= btEnvPeriod)
+    if (taskTimeout(&btEnvOutputTask, &htim2))
     {
       Temp_Update(*((i32_t*) (&sensor.env.temperature)));
       Humidity_Update(*((i32_t*) (&sensor.env.humidity)));
       Press_Update(*((i32_t*) (&sensor.env.pressure)));
-      btEnvPrevious += btEnvPeriod;
     }
-    if (imuEcho && (microsNow = htim2.Instance->CNT) - usbImuPrevious >= usbImuPeriod)
+    if (imuEcho && taskTimeout(&usbImuOutputTask, &htim2))
     {
       printf("%3.4f %3.4f %3.4f\r\n", sensor.imu.roll, sensor.imu.pitch, sensor.imu.yaw);
-      usbImuPrevious += usbImuPeriod;
     }
-    if (gpsEcho && (microsNow = htim2.Instance->CNT) - usbGpsPrevious >= usbGpsPeriod)
+    if (gpsEcho && taskTimeout(&usbGpsOutputTask, &htim2))
     {
       // To avoid race conditions, disable GPS update while reading
       HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
@@ -340,12 +340,10 @@ int main(void)
           sensor.gps.time.year, sensor.gps.time.hour, sensor.gps.time.min, sensor.gps.pos.latitude, sensor.gps.pos.longitude, sensor.gps.pos.elevation,
           sensor.gps.pos.speed, sensor.gps.pos.direction, sensor.gps.info.satUse, sensor.gps.info.satView);
       HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
-      usbGpsPrevious += usbGpsPeriod;
     }
-    if (envEcho && (microsNow = htim2.Instance->CNT) - usbEnvPrevious >= usbEnvPeriod)
+    if (envEcho && taskTimeout(&usbEnvOutputTask, &htim2))
     {
       printf("humidity %3.4f, pressure %3.4f, temperature %3.4f\r\n", sensor.env.humidity, sensor.env.pressure, sensor.env.temperature);
-      usbEnvPrevious += usbEnvPeriod;
     }
   }
   /* USER CODE END 3 */
