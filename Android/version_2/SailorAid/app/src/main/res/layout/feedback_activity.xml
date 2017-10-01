@@ -53,7 +53,7 @@
                         android:layout_width="100dp"/>
                     <TextView
                         android:layout_width="wrap_content"
-                        android:id="@+id/degreeText"
+                        android:id="@+id/tiltText"
                         android:textSize="10pt"
                         />
                 </TableRow>
@@ -164,7 +164,7 @@
                 <TextView
                     android:id="@+id/pressureText"
                     android:layout_width="wrap_content"
-                    android:textSize="14pt"
+                    android:textSize="12pt"
                     />
             </TableRow>
         </TableLayout>

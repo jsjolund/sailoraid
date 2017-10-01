@@ -16,8 +16,6 @@ import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,7 +33,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -192,17 +189,26 @@ public class FeedbackActivity extends AppCompatActivity {
         linearPressureLayout.removeView(mNeedleView);
     }
 
-    private void setDegreeText(int degree){
-        TextView tv = (TextView) findViewById(R.id.degreeText);
-        String ph = String.valueOf(degree) + "\u00B0";
+    private void setTiltText(float degree){
+        TextView tv = (TextView) findViewById(R.id.tiltText);
+        String ph = String.format("%.1f\u00B0", degree);
         tv.setText(ph);
     }
     private void setPressureText(float pressure){
         TextView tv = (TextView) findViewById(R.id.pressureText);
-        String ph = String.valueOf(pressure) + " Psi";
+        String ph = String.format("%.1f Psi", pressure);
         tv.setText(ph);
     }
-
+    private void setTempText(float degree){
+        TextView tv = (TextView) findViewById(R.id.tempText);
+        String ph = String.format("%.1f\u00B0C", degree);
+        tv.setText(ph);
+    }
+    private void setHumText(float degree){
+        TextView tv = (TextView) findViewById(R.id.humText);
+        String ph = String.format("%.1f%%", degree);
+        tv.setText(ph);
+    }
     /*
     Popup when searching for bluetooth devices
      */
@@ -481,29 +487,30 @@ public class FeedbackActivity extends AppCompatActivity {
                 this.x = Float.parseFloat(data);
                 mBoatView.setXYZ(this.x, this.y, this.z);
                 //mNeedleView.setPressure(abs(this.y)/10);
-                //setDegreeText((int) (this.x));
+                //setTiltText((int) (this.x));
                 //setPressureText((int) abs(this.y)/10);
+                setTiltText(this.x);
             }
             else if(dataType.equals("Temp")){
-                TextView tv = (TextView) findViewById(R.id.tempText);
-                tv.setText(String.valueOf(data));
+                data = data.replace(',', '.');
+                setTempText(Float.parseFloat(data));
             }
             else if(dataType.equals("Pressure")){
                 data = data.replace(',', '.');
                 float pressure = Float.parseFloat(data);
                 setPressureText(pressure);
-                mNeedleView.setPressure(pressure/10);
+                mNeedleView.setPressure(pressure/1000 - 1.01325f);
             }
             else if(dataType.equals("Free Fall")){
 
             }
             else if(dataType.equals("Humidity")){
-                TextView tv = (TextView) findViewById(R.id.humText);
-                tv.setText(data);
+                data = data.replace(',', '.');
+                setHumText(Float.parseFloat(data));
             }
             else if(dataType.equals("Heart")){
                 this.y = Byte.parseByte(data);
-                setDegreeText((int) this.y);
+                setTiltText((int) this.y);
             }
             else if (dataType.equals("Position")) {
                 data = data.replace(',', '.');
@@ -514,6 +521,7 @@ public class FeedbackActivity extends AppCompatActivity {
                 if (latitude != 0f && longitude != 0f) {
                     travelRoute.add(new LatLng(latitude, longitude));
                 }
+
             }
         }
     }
