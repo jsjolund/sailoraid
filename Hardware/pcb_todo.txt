@@ -1,0 +1,4 @@
+- HTS221 humidity and temperature sensor
+- LPS22HB pressure sensor
+- two load cell ADC
+- GPS nRST pin to MCU GPIO
