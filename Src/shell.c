@@ -35,6 +35,11 @@ void ShellExecute(char* string)
     fail = 0;
     ENVecho(TRUE);
   }
+  else if (strlen(token) == 6 && strncmp(token, "matlab", 1) == 0)
+  {
+    fail = 0;
+    MATLABecho(TRUE);
+  }
   if (fail)
   {
     printf("command not found: %s\r\n", string);

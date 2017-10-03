@@ -31,3 +31,12 @@ nmeaINFO GPSparse(char *str, int len)
   nmea_parse(&parser, str, len, &info);
   return info;
 }
+
+float NMEAtoGPS(float in_coords)
+{
+  float f = in_coords;
+  int firsttwodigits = ((int) f) / 100; //This assumes that f < 10000.
+  float nexttwodigits = f - (float) (firsttwodigits * 100);
+  float theFinalAnswer = (float) (firsttwodigits + nexttwodigits / 60.0);
+  return theFinalAnswer;
+}

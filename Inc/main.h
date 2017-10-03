@@ -160,6 +160,7 @@
 void IMUecho(BOOL echo);
 void GPSecho(BOOL echo);
 void ENVecho(BOOL echo);
+void MATLABecho(BOOL echo);
 
 /* USER CODE END Private defines */
 
@@ -167,6 +168,13 @@ void _Error_Handler(char *, int);
 
 #define Error_Handler() _Error_Handler(__FILE__, __LINE__)
 
+/**
+  * @}
+  */ 
+
+/**
+  * @}
+*/ 
 
 #endif /* __MAIN_H */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

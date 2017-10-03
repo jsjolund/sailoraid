@@ -77,6 +77,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 #define USB_ENV_OUTPUT_RATE 0.1
 #define USB_GPS_OUTPUT_RATE 1.0
 #define USB_IMU_OUTPUT_RATE 50.0
+#define USB_MATLAB_OUTPUT_RATE 50.0
 #define BT_ENV_OUTPUT_RATE 1.0
 #define BT_GPS_OUTPUT_RATE 1.0
 #define BT_IMU_OUTPUT_RATE 30.0
@@ -88,6 +89,7 @@ volatile uint8_t adcValues[] = { 0, 0, 0, 0 };
 static BOOL imuEcho = FALSE;
 static BOOL gpsEcho = FALSE;
 static BOOL envEcho = FALSE;
+static BOOL matlabEcho = FALSE;
 SensorState sensor;
 
 typedef struct Task_Data
@@ -113,6 +115,7 @@ static Task_Data adcSampleTask = { .period = (uint32_t) 1000000.0 / ADC_SAMPLE_R
 static Task_Data usbEnvOutputTask = { .period = (uint32_t) 1000000.0 / USB_ENV_OUTPUT_RATE };
 static Task_Data usbGpsOutputTask = { .period = (uint32_t) 1000000.0 / USB_GPS_OUTPUT_RATE };
 static Task_Data usbImuOutputTask = { .period = (uint32_t) 1000000.0 / USB_IMU_OUTPUT_RATE };
+static Task_Data usbMatlabOutputTask = { .period = (uint32_t) 1000000.0 / USB_MATLAB_OUTPUT_RATE };
 static Task_Data btEnvOutputTask = { .period = (uint32_t) 1000000.0 / BT_ENV_OUTPUT_RATE };
 static Task_Data btGpsOutputTask = { .period = (uint32_t) 1000000.0 / BT_GPS_OUTPUT_RATE };
 static Task_Data btImuOutputTask = { .period = (uint32_t) 1000000.0 / BT_IMU_OUTPUT_RATE };
@@ -169,6 +172,12 @@ void ENVecho(BOOL echo)
 {
   envEcho = echo;
   usbEnvOutputTask.previous = htim2.Instance->CNT - usbEnvOutputTask.period;
+}
+
+void MATLABecho(BOOL echo)
+{
+  matlabEcho = echo;
+  usbMatlabOutputTask.previous = htim2.Instance->CNT - usbMatlabOutputTask.period;
 }
 
 /**
@@ -344,6 +353,41 @@ int main(void)
     if (envEcho && taskTimeout(&usbEnvOutputTask, &htim2))
     {
       printf("humidity %3.4f, pressure %3.4f, temperature %3.4f\r\n", sensor.env.humidity, sensor.env.pressure, sensor.env.temperature);
+    }
+    if (matlabEcho && taskTimeout(&usbMatlabOutputTask, &htim2))
+    {
+      HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
+      printf("%3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %d %d %d %d %d %d %d %3.6f %3.6f %3.6f %3.6f %3.6f %d %d\r\n",
+          sensor.imu.ax,
+          sensor.imu.ay,
+          sensor.imu.az,
+          sensor.imu.gx,
+          sensor.imu.gy,
+          sensor.imu.gz,
+          sensor.imu.mx,
+          sensor.imu.my,
+          sensor.imu.mz,
+          sensor.imu.roll,
+          sensor.imu.pitch,
+          sensor.imu.yaw,
+          sensor.env.humidity,
+          sensor.env.pressure,
+          sensor.env.temperature,
+          sensor.gps.time.day,
+          sensor.gps.time.month,
+          sensor.gps.time.year,
+          sensor.gps.time.hour,
+          sensor.gps.time.min,
+          sensor.gps.time.sec,
+          sensor.gps.time.hsec,
+          sensor.gps.pos.latitude,
+          sensor.gps.pos.longitude,
+          sensor.gps.pos.elevation,
+          sensor.gps.pos.speed,
+          sensor.gps.pos.direction,
+          sensor.gps.info.satUse,
+          sensor.gps.info.satView);
+      HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
     }
   }
   /* USER CODE END 3 */
