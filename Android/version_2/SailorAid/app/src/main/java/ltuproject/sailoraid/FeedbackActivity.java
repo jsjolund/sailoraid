@@ -38,13 +38,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import ltuproject.sailoraid.bluetooth.AcceptConnection;
 import ltuproject.sailoraid.bluetooth.BTHandler;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
 import ltuproject.sailoraid.bluetooth.SampleGattAttributes;
+import ltuproject.sailoraid.graphics.BoatView;
+import ltuproject.sailoraid.graphics.NeedleView;
+import ltuproject.sailoraid.graphics.RotatableGLView;
 
 import static android.bluetooth.BluetoothDevice.BOND_BONDED;
 import static java.lang.Math.abs;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_COMPASS;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_FREE_FALL;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_HUMIDITY;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_INCLINE;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_POSITION;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_PRESSURE;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_TEMPERATURE;
 
 /**
  * Created by Henrik on 2017-09-05.
@@ -55,10 +64,26 @@ public class FeedbackActivity extends AppCompatActivity {
     private static final String PAIRED_LIST = "Paired devices";
     private static final String DISCOVERED_LIST = "Discovered devices";
     private static final String LE_LIST = "LE devices";
+
+
+    private static final float BOAT_SCALE_X = 2.8f;
+    private static final float BOAT_SCALE_Y = 2.8f;
+    private static final float NEEDLE_SCALE_X = 2.8f;
+    private static final float NEEDLE_SCALE_Y = 1.0f;
+    private static final float COMPASS_SCALE_X = 3.2f;
+    private static final float COMPASS_SCALE_Y = 3.2f;
+    private static final float COMPASS_BOAT_SCALE_X = 0.5f;
+    private static final float COMPASS_BOAT_SCALE_Y = 0.6f;
+
+    private static final float DRIFT_ARROW_SCALE_X = 1.0f;
+    private static final float DRIFT_ARROW_SCALE_Y = 3.0f;
+
+    private static final float NEEDLE_BOTTOM_POS = -1.5f;
+    private static final float DRIFT_ARROW_CENTER = 3.6f;
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
     private SampleGattAttributes sampleGattAttributes;
-
+    private float currentIncline = 0;
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_COARSE_LOCATION = 999;
     private static final long SCAN_PERIOD = 10000;
@@ -70,17 +95,22 @@ public class FeedbackActivity extends AppCompatActivity {
     private AlertDialog.Builder popDialog;
     private AlertDialog alertpop;
     private BluetoothDevice chosenDevice;
-    private AcceptConnection btServer;
     private boolean hasPermission;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics;
     private BTHandler myBTHandler;
-    private BluetoothGattService mGattService;
+    private RotatableGLView mInclineBoatView;
+    private RotatableGLView mCompassView;
+    private RotatableGLView mBoatDriftView;
+    private RotatableGLView mPressureNeedleView;
+    private RotatableGLView mCompassBoatView;
+    private RotatableGLView mLeftDriftView;
+    private RotatableGLView mRightDriftView;
 
     /*
     Gyro from phone for demo
      */
-    BoatView mBoatView;
-    NeedleView mNeedleView;
+    private BoatView mBoatView;
+    private NeedleView mNeedleView;
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private float x, y, z;
@@ -98,9 +128,9 @@ public class FeedbackActivity extends AppCompatActivity {
         setContentView(R.layout.feedback_activity);
 
         btnMap = (Button) findViewById(R.id.mapviewbtn);
-
         initFilter();
-        initBTconn();
+        initBTConn();
+        displayDynamicPics();
 
         /**
          * Change to map activity and sending location coordinates to intent
@@ -115,14 +145,38 @@ public class FeedbackActivity extends AppCompatActivity {
         });
     }
 
-    public void initBTconn(){
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.unregisterReceiver(mReceiver);
+        this.unregisterReceiver(mGattUpdateReceiver);
+        cleanPop();
+        myBTHandler.scanLeDevice(mLeScanCallback, false);
+        myBTHandler.closeGatt();
+        myBTHandler = null;
+        removeDynamicPics();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        myBTHandler.scanLeDevice(mLeScanCallback, false);
+
+    }
+
+    public void initBTConn(){
         myBTHandler = new BTHandler(this);
         if(!myBTHandler.getBtAdapter().isEnabled()) {
             turnOn();
         }
         checkLocationPermission();
         if(hasPermission){
-            cleanPop();
+            //cleanPop();
             setPopDialog(LE_LIST);
             BTArrayAdapter.clear();
             alertpop = popDialog.show();
@@ -149,44 +203,64 @@ public class FeedbackActivity extends AppCompatActivity {
         filter.addAction(BTLEConnection.ACTION_GATT_SERVICE_NOTIFIED);
         this.registerReceiver(mGattUpdateReceiver, filter);
     }
-    @Override
-    protected void onResume() {
-        super.onResume();
-        displayDynamicPics();
+
+    private float dipToPixels(int dipValue){
+        final float scale = getResources().getDisplayMetrics().scaledDensity;
+        float scaledSize = (getResources().getDimensionPixelSize(dipValue) / scale);
+        return scaledSize;
     }
 
     private void displayDynamicPics(){
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.boatalignmentholder);
-        mBoatView = new BoatView(getApplicationContext(),
-                BitmapFactory.decodeResource(getResources(), R.drawable.boat_alignement));
-        mBoatView.setZOrderOnTop(true);    // necessary
-        linearLayout.addView(mBoatView);
+         mInclineBoatView = new RotatableGLView(this, BitmapFactory.decodeResource(getResources(),
+                 R.drawable.boat_alignement),
+                 BOAT_SCALE_X, BOAT_SCALE_Y);
+        linearLayout.addView(mInclineBoatView.getGlView());
 
+        mInclineBoatView.moveGL(0, -0.3f);
         LinearLayout linearPressureLayout = (LinearLayout) findViewById(R.id.pressureMeter);
-        mNeedleView = new NeedleView(getApplicationContext(),
-                BitmapFactory.decodeResource(getResources(), R.drawable.needle));
-        mNeedleView.setZOrderOnTop(true);
-        linearPressureLayout.addView(mNeedleView);
+        mPressureNeedleView = new RotatableGLView(this,
+                BitmapFactory.decodeResource(getResources(), R.drawable.needle),
+                NEEDLE_SCALE_X, NEEDLE_SCALE_Y);
+        linearPressureLayout.addView(mPressureNeedleView.getGlView());
+
+        // Range of move needle Min moveGL -1.5f, max moveGl 1.2f
+        mPressureNeedleView.moveGL(0,NEEDLE_BOTTOM_POS);
+        LinearLayout linearCompassLayout = (LinearLayout) findViewById(R.id.driftImg);
+        mCompassView = new RotatableGLView(this,
+                BitmapFactory.decodeResource(getResources(), R.drawable.compass), BitmapFactory.decodeResource(getResources(), R.drawable.rowboat),
+                COMPASS_SCALE_Y, COMPASS_SCALE_X, COMPASS_BOAT_SCALE_X, COMPASS_BOAT_SCALE_Y);
+        linearCompassLayout.addView(mCompassView.getGlView());
+        mCompassView.moveGL2(0.02f,0);
+        LinearLayout leftDriftLayout = (LinearLayout) findViewById(R.id.leftDrift);
+        mLeftDriftView = new RotatableGLView(this,
+                BitmapFactory.decodeResource(getResources(), R.drawable.left_drift_arrow),
+                DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+        leftDriftLayout.addView(mLeftDriftView.getGlView());
+
+        LinearLayout rightDriftLayout = (LinearLayout) findViewById(R.id.rightDrift);
+        mRightDriftView = new RotatableGLView(this,
+                BitmapFactory.decodeResource(getResources(), R.drawable.right_drift_arrow),
+                DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+        rightDriftLayout.addView(mRightDriftView.getGlView());
+        mLeftDriftView.moveGL(DRIFT_ARROW_CENTER,0);
+        mRightDriftView.moveGL(-DRIFT_ARROW_CENTER,0);
+        // Max resize ARROW_SCALE*x = 12 also move from center with -x/6
+        /*float x = 12f;
+        mLeftDriftView.resizeGL(DRIFT_ARROW_SCALE_X*x, DRIFT_ARROW_SCALE_Y);
+        mLeftDriftView.moveGL(DRIFT_ARROW_CENTER-x/6, 0);
+
+        mRightDriftView.resizeGL(DRIFT_ARROW_SCALE_X*x, DRIFT_ARROW_SCALE_Y);
+        mRightDriftView.moveGL(-DRIFT_ARROW_CENTER+x/6, 0);*/
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        this.unregisterReceiver(mReceiver);
-        this.unregisterReceiver(mGattUpdateReceiver);
-        cleanPop();
-        myBTHandler.scanLeDevice(mLeScanCallback, false);
-        myBTHandler.closeGatt();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        myBTHandler.scanLeDevice(mLeScanCallback, false);
-        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.boatalignmentholder);
-        linearLayout.removeView(mBoatView);
-        LinearLayout linearPressureLayout = (LinearLayout) findViewById(R.id.pressureMeter);
-        linearPressureLayout.removeView(mNeedleView);
+    private void removeDynamicPics(){
+        mInclineBoatView.clearRenderer();
+        mCompassView.clearRenderer();
+        mPressureNeedleView.clearRenderer();
+        mInclineBoatView = null;
+        mCompassView = null;
+        mPressureNeedleView = null;
     }
 
     private void setTiltText(float degree){
@@ -475,36 +549,62 @@ public class FeedbackActivity extends AppCompatActivity {
 
     private void displayData(String data, String dataType) {
         if (data != null) {
-            if(dataType.equals("Incline")){
-                /*String[] accelerometer = data.split(":");
-                String x = accelerometer[0]; // this will contain "Fruit"
-                String y = accelerometer[1]; // this will contain " they taste good"
-                String z = accelerometer[2]; // this will contain " they taste good"
-                this.x = Float.parseFloat(x);
-                this.y = Float.parseFloat(y);
-                this.z = Float.parseFloat(z);*/
+            if(dataType.equals(DATA_TYPE_INCLINE)){
+                // Get Roll, pitch and yaw
+                String[] accelerometer = data.split(":");
 
-                this.x = Float.parseFloat(data);
-                mBoatView.setXYZ(this.x, this.y, this.z);
-                //mNeedleView.setPressure(abs(this.y)/10);
-                //setTiltText((int) (this.x));
-                //setPressureText((int) abs(this.y)/10);
+                this.x = Float.parseFloat(accelerometer[0]);
+                this.y = Float.parseFloat(accelerometer[1]);
+                this.z = Float.parseFloat(accelerometer[2]);
+
+
+                mInclineBoatView.rotateGl(this.x);
+                // Rotates compass with pitch
+                mCompassView.rotateGl(this.y);
+                // Rotates Boat bearing with Yaw
+                mCompassView.rotateGl2(this.z);
+                // Use pitch for testing drifting feedback
+                if(this.y >=0){
+                    // Max resize ARROW_SCALE*x = 12 also move from center with -x/6
+                    mLeftDriftView.resizeGL(DRIFT_ARROW_SCALE_X*this.y/15, DRIFT_ARROW_SCALE_Y);
+                    mLeftDriftView.moveGL(DRIFT_ARROW_CENTER-this.y/90, 0);
+                    mRightDriftView.resizeGL(DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+                    mRightDriftView.moveGL(-DRIFT_ARROW_CENTER, 0);
+                } else{
+                    mLeftDriftView.resizeGL(DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+                    mLeftDriftView.moveGL(DRIFT_ARROW_CENTER, 0);
+                    mRightDriftView.resizeGL(DRIFT_ARROW_SCALE_X*(-this.y/15), DRIFT_ARROW_SCALE_Y);
+                    mRightDriftView.moveGL(-DRIFT_ARROW_CENTER-this.y/90, 0);
+                }
+
+
+
+
+                mInclineBoatView.requestRender();
+                mCompassView.requestRender();
                 setTiltText(this.x);
             }
-            else if(dataType.equals("Temp")){
+            else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
                 data = data.replace(',', '.');
                 setTempText(Float.parseFloat(data));
             }
-            else if(dataType.equals("Pressure")){
+            else if(dataType.equals(DATA_TYPE_PRESSURE)){
                 data = data.replace(',', '.');
                 float pressure = Float.parseFloat(data);
                 setPressureText(pressure);
-                mNeedleView.setPressure(pressure/1000 - 1.01325f);
+                //mNeedleView.setPressure(pressure/1000 - 1.01325f);
+                /* Todo
+                    Range of move needle Min moveGL -1.5f, max moveGl 1.2f
+                    No calibration made
+                */
+                mPressureNeedleView.moveGL(0, pressure/1000 - 1.01325f);
+
+                mPressureNeedleView.requestRender();
             }
-            else if(dataType.equals("Free Fall")){
+            else if(dataType.equals(DATA_TYPE_FREE_FALL)){
 
             }
-            else if(dataType.equals("Humidity")){
+            else if(dataType.equals(DATA_TYPE_HUMIDITY)){
                 data = data.replace(',', '.');
                 setHumText(Float.parseFloat(data));
             }
@@ -512,7 +612,7 @@ public class FeedbackActivity extends AppCompatActivity {
                 this.y = Byte.parseByte(data);
                 setTiltText((int) this.y);
             }
-            else if (dataType.equals("Position")) {
+            else if (dataType.equals(DATA_TYPE_POSITION)) {
                 data = data.replace(',', '.');
                 String[] pos = data.split(":");
                 float latitude = Float.parseFloat(pos[0]);
@@ -522,6 +622,16 @@ public class FeedbackActivity extends AppCompatActivity {
                     travelRoute.add(new LatLng(latitude, longitude));
                 }
 
+            }
+            else if (dataType.equals(DATA_TYPE_COMPASS)){
+                //String[] accelerometer = data.split(":");
+
+                this.z = Float.parseFloat(data);
+
+                // Rotates Boat bearing with Yaw
+                mCompassView.rotateGl2(this.z);
+
+                mCompassView.requestRender();
             }
         }
     }
@@ -563,7 +673,6 @@ public class FeedbackActivity extends AppCompatActivity {
         Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         this.startActivityForResult(turnOn, REQUEST_ENABLE_BT);
         while(!myBTHandler.getBtAdapter().isEnabled()){
-
         }
     }
 
