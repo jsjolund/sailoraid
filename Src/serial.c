@@ -155,6 +155,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
   char rxChar;
   if (huartHandle == usbHandle.huart)
   {
+    if (usbHandle.rxBuffer == '\n')
+      return;
     GPSecho(FALSE);
     IMUecho(FALSE);
     ENVecho(FALSE);

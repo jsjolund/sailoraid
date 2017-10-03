@@ -1,5 +1,5 @@
-%serialPort = 'COM1';
-serialPort = '/dev/ttyACM1';
+%serialPort = 'COM1'; % Windows
+serialPort = '/dev/ttyACM1'; % Linux
 
 if exist('s', 'var')
     try
@@ -7,11 +7,11 @@ if exist('s', 'var')
     catch
     end
     delete(s);
-    clear s;
+    clear all;
 end
 
 nPointsInFigure = 1000;  % number of "sliding points" in your figure
-step = 0.1;         % X points spacing
+step = 0.01;         % X points spacing
 xVals = linspace(-(nPointsInFigure-1)*step,0,nPointsInFigure); % prepare empty data for the plot
 yVals = NaN(nPointsInFigure,1);
 
@@ -20,15 +20,21 @@ fig = figure(1);
 hp = plot( xVals , yVals ); % Generate the plot (with empty data) it will be passed to the callback.
 ylim([-3 3]);
 
-s = serial(serialPort','BaudRate',115200);
+s = serial(serialPort');
 if (s.Status == 'closed')
+    s.BaudRate = 115200;
     s.ReadAsyncMode = 'continuous';
     s.InputBufferSize = 1000;
     s.Terminator = 'CR/LF';
     s.BytesAvailableFcnMode = 'terminator';
-    s.BytesAvailableFcn = {@Serial_OnDataReceived,hp,step}
+    s.BytesAvailableFcn = {@Serial_OnDataReceived,hp,step};
     s.Timeout = 5;
     fopen(s);
+    fprintf(s,strcat(sprintf('\r\n\r\n\r\n'),'matlab',sprintf('\r\n')));
+    fscanf(s);
+    fclose(s);
+    delete(s);
+    clear s;
 end
 
 function Serial_OnDataReceived(obj,event,hp,step)
