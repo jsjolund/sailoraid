@@ -1,5 +1,5 @@
 %serialPort = 'COM1'; % Windows
-serialPort = '/dev/ttyACM1'; % Linux
+serialPort = '/dev/ttyACM3'; % Linux
 
 if exist('s', 'var')
     try
@@ -7,84 +7,105 @@ if exist('s', 'var')
     catch
     end
     delete(s);
-    clear all;
+    clear s;
 end
 
-nPointsInFigure = 1000;  % number of "sliding points" in your figure
+% Create a figure to plot into
+nPointsInFigure = 500;  % Number of "sliding points" in your figure
 step = 0.01;         % X points spacing
-xVals = linspace(-(nPointsInFigure-1)*step,0,nPointsInFigure); % prepare empty data for the plot
+xVals = linspace(-(nPointsInFigure-1)*step,0,nPointsInFigure); % Prepare empty data for the plot
 yVals = NaN(nPointsInFigure,1);
-
 fig = figure(1);
-
 hp = plot( xVals , yVals ); % Generate the plot (with empty data) it will be passed to the callback.
 ylim([-3 3]);
 
-s = serial(serialPort');
+% Start listening to sensor data
+s = serial(serialPort);
 if (s.Status == 'closed')
     s.BaudRate = 115200;
     s.ReadAsyncMode = 'continuous';
-    s.InputBufferSize = 1000;
-    s.Terminator = 'CR/LF';
-    s.BytesAvailableFcnMode = 'terminator';
+    s.InputBufferSize = 1024;
+    s.BytesAvailableFcnMode = 'byte';
+    s.ByteOrder = 'littleEndian';
+    s.BytesAvailableFcnCount = 30*4;
     s.BytesAvailableFcn = {@Serial_OnDataReceived,hp,step};
-    s.Timeout = 5;
+    s.Timeout = 1;
+    % Open the serial connection
     fopen(s);
-    fprintf(s,strcat(sprintf('\r\n\r\n\r\n'),'matlab',sprintf('\r\n')));
-    fscanf(s);
+    % Start the sensor value stream
+    fprintf(s,sprintf('\r\nmatlab\r\n'));
+    % Block until we read something, handle in callback
+    fread(s);
+    % Close the serial connection
     fclose(s);
     delete(s);
     clear s;
 end
 
 function Serial_OnDataReceived(obj,event,hp,step)
-    xVals = get(hp,'XData') ; % retrieve the X values from the plot
-    yVals = get(hp,'YData') ; % retrieve the Y values from the plot
-
+    xVals = get(hp,'XData');
+    yVals = get(hp,'YData');
+    
+    % Read the serial stream
     while obj.BytesAvailable > 0
-        arr = strsplit(fgetl(obj), ' ');
-        if length(arr) ~= 29
-            return
+        % Read data as float array
+        [sensordata,count] = fread(obj, 30*4, 'float32');
+        
+        % If last float is not NaN, we need to sync the stream
+        if ~isnan(sensordata(30))
+            nanCnt = 0;
+            while 1
+                [sensordata,~] = fread(obj, 1, 'uint8');
+                if sensordata(1) == 255
+                    nanCnt = nanCnt+1;
+                else
+                    nanCnt = 0;
+                end
+                if nanCnt == 4
+                    break;
+                end
+            end
+            continue;
         end
-        data = str2double(arr);
-
-        sensor.imu.ax = (data(1));
-        sensor.imu.ay = (data(2));
-        sensor.imu.az = (data(3));
-        sensor.imu.gx = (data(4));
-        sensor.imu.gy = (data(5));
-        sensor.imu.gz = (data(6));
-        sensor.imu.mx = (data(7));
-        sensor.imu.my = (data(8));
-        sensor.imu.mz = (data(9));
-        sensor.imu.roll = (data(10));
-        sensor.imu.pitch = (data(11));
-        sensor.imu.yaw = (data(12));
-        sensor.env.humidity = (data(13));
-        sensor.env.pressure = (data(14));
-        sensor.env.temperature = (data(15));
-        sensor.gps.time.day = int32(data(16));
-        sensor.gps.time.month = int32(data(17));
-        sensor.gps.time.year = int32(data(18));
-        sensor.gps.time.hour = int32(data(19));
-        sensor.gps.time.min = int32(data(20));
-        sensor.gps.time.sec = int32(data(21));
-        sensor.gps.time.hsec = int32(data(22));
-        sensor.gps.pos.latitude = (data(23));
-        sensor.gps.pos.longitude = (data(24));
-        sensor.gps.pos.elevation = (data(25));
-        sensor.gps.pos.speed = (data(26));
-        sensor.gps.pos.direction = (data(27));
-        sensor.gps.info.satUse = int32(data(28));
-        sensor.gps.info.satView = int32(data(29));
-
+        % Store in struct with fields
+        sensor.imu.ax = sensordata(1);
+        sensor.imu.ay = sensordata(2);
+        sensor.imu.az = sensordata(3);
+        sensor.imu.gx = sensordata(4);
+        sensor.imu.gy = sensordata(5);
+        sensor.imu.gz = sensordata(6);
+        sensor.imu.mx = sensordata(7);
+        sensor.imu.my = sensordata(8);
+        sensor.imu.mz = sensordata(9);
+        sensor.imu.roll = sensordata(10);
+        sensor.imu.pitch = sensordata(11);
+        sensor.imu.yaw = sensordata(12);
+        sensor.env.humidity = sensordata(13);
+        sensor.env.pressure = sensordata(14);
+        sensor.env.temperature = sensordata(15);
+        sensor.gps.time.year = typecast(sensordata(18),'int32');
+        sensor.gps.time.month = typecast(sensordata(17),'int32');
+        sensor.gps.time.day = typecast(sensordata(16),'int32');
+        sensor.gps.time.hour = typecast(sensordata(19),'int32');
+        sensor.gps.time.min = typecast(sensordata(20),'int32');
+        sensor.gps.time.sec = typecast(sensordata(21),'int32');
+        sensor.gps.time.hsec = typecast(sensordata(22),'int32');
+        sensor.gps.pos.latitude = sensordata(23);
+        sensor.gps.pos.longitude = sensordata(24);
+        sensor.gps.pos.elevation = sensordata(25);
+        sensor.gps.pos.speed = sensordata(26);
+        sensor.gps.pos.direction = sensordata(27);
+        sensor.gps.info.satUse = typecast(sensordata(28),'int32');
+        sensor.gps.info.satView = typecast(sensordata(29),'int32');
+        
+        plotvar = sensor.imu.az;
+        
         % do stuff with the data
         yVals = circshift(yVals,-1);
-        yVals(end) = sensor.imu.az;
+        yVals(end) = plotvar;
         xVals = circshift(xVals,-1);
         xVals(end) = xVals(end-1) + step;
-        set(hp, 'XData', xVals, 'YData', yVals); % update the plot with the new values
+        set(hp, 'XData', xVals, 'YData', yVals);
         drawnow limitrate
     end
-
 end

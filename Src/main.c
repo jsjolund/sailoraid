@@ -77,7 +77,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 #define USB_ENV_OUTPUT_RATE 0.1
 #define USB_GPS_OUTPUT_RATE 1.0
 #define USB_IMU_OUTPUT_RATE 50.0
-#define USB_MATLAB_OUTPUT_RATE 100.0
+#define USB_MATLAB_OUTPUT_RATE 60.0
 #define BT_ENV_OUTPUT_RATE 1.0
 #define BT_GPS_OUTPUT_RATE 1.0
 #define BT_IMU_OUTPUT_RATE 30.0
@@ -357,37 +357,10 @@ int main(void)
     if (matlabEcho && taskTimeout(&usbMatlabOutputTask, &htim2))
     {
       HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
-      printf("%3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %3.6f %d %d %d %d %d %d %d %3.6f %3.6f %3.6f %3.6f %3.6f %d %d\r\n",
-          sensor.imu.ax,
-          sensor.imu.ay,
-          sensor.imu.az,
-          sensor.imu.gx,
-          sensor.imu.gy,
-          sensor.imu.gz,
-          sensor.imu.mx,
-          sensor.imu.my,
-          sensor.imu.mz,
-          sensor.imu.roll,
-          sensor.imu.pitch,
-          sensor.imu.yaw,
-          sensor.env.humidity,
-          sensor.env.pressure,
-          sensor.env.temperature,
-          sensor.gps.time.day,
-          sensor.gps.time.month,
-          sensor.gps.time.year,
-          sensor.gps.time.hour,
-          sensor.gps.time.min,
-          sensor.gps.time.sec,
-          sensor.gps.time.hsec,
-          sensor.gps.pos.latitude,
-          sensor.gps.pos.longitude,
-          sensor.gps.pos.elevation,
-          sensor.gps.pos.speed,
-          sensor.gps.pos.direction,
-          sensor.gps.info.satUse,
-          sensor.gps.info.satView);
+      SerialUsbTransmit((char*)&sensor, sizeof(sensor));
       HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
+      char sync[] = {0xff, 0xff, 0xff, 0xff};
+      SerialUsbTransmit(sync,4);
     }
   }
   /* USER CODE END 3 */

@@ -13,14 +13,14 @@ typedef struct IMUstate
   float ax, ay, az;
   float gx, gy, gz;
   float mx, my, mz;
-  float yaw, pitch, roll;
+  float roll, pitch, yaw;
 } IMUstate;
 
 typedef struct ENVstate
 {
-  float temperature;
   float humidity;
   float pressure;
+  float temperature;
 } EnvState;
 
 typedef struct GPSdateTime
