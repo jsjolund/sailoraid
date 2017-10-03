@@ -45,6 +45,14 @@ public class BTLEConnection extends Service {
     private ArrayList<BluetoothGattService> mServiceList;
     private List<BluetoothGattCharacteristic> mCharacteristicList;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
+    public static final String DATA_TYPE_INCLINE = "Incline";
+    public static final String DATA_TYPE_POSITION = "Position";
+    public static final String DATA_TYPE_PRESSURE = "Pressure";
+    public static final String DATA_TYPE_HUMIDITY = "Humidity";
+    public static final String DATA_TYPE_TEMPERATURE = "Temperature";
+    public static final String DATA_TYPE_COMPASS = "Compass";
+    public static final String DATA_TYPE_FREE_FALL = "Free fall";
+    public static final String DATA_TYPE_SOG = "Speed";
 
     private int mConnectionState = STATE_DISCONNECTED;
 
@@ -85,6 +93,8 @@ public class BTLEConnection extends Service {
             UUID.fromString(SampleGattAttributes.PRESSURE_MEASUREMENT);
     public final static UUID UUID_HUMIDITY_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.HUMIDITY_MEASUREMENT);
+    public final static UUID UUID_COMPASS_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.COMPASS_MEASUREMENT);
 
 
     private Context contx;
@@ -256,7 +266,8 @@ public class BTLEConnection extends Service {
                 || UUID_HUMIDITY_MEASUREMENT.equals(characteristic.getUuid())
                 || UUID_TEMP_MEASUREMENT.equals(characteristic.getUuid())
                 //|| UUID_FREE_FALL_MEASUREMENT.equals(characteristic.getUuid())
-                || UUID_GPS_MEASUREMENT.equals(characteristic.getUuid())) {
+                || UUID_GPS_MEASUREMENT.equals(characteristic.getUuid())
+                || UUID_COMPASS_MEASUREMENT.equals(characteristic.getUuid())) {
             mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
                     UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
@@ -305,28 +316,28 @@ public class BTLEConnection extends Service {
             float roll = euler[0];
             float pitch = euler[1];
             float yaw = euler[2];
-            intent.putExtra(EXTRA_TYPE, "Incline");
-            intent.putExtra(EXTRA_DATA, String.valueOf(roll));
+            intent.putExtra(EXTRA_TYPE, DATA_TYPE_INCLINE);
+            intent.putExtra(EXTRA_DATA, String.valueOf(roll) +":" +String.valueOf(pitch) + ":" + String.valueOf(yaw));
 
         } else if (UUID_FREE_FALL_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
             final byte[] freeFallInc = characteristic.getValue();
-            intent.putExtra(EXTRA_TYPE, "Free fall");
+            intent.putExtra(EXTRA_TYPE, DATA_TYPE_FREE_FALL);
             intent.putExtra(EXTRA_DATA, String.valueOf(freeFallInc[1]));
 
         } else if (UUID_TEMP_MEASUREMENT.equals(characteristic.getUuid())) {
             float temperature = bytesToFloats(characteristic.getValue())[0];
-            intent.putExtra(EXTRA_TYPE, "Temp");
+            intent.putExtra(EXTRA_TYPE, DATA_TYPE_TEMPERATURE);
             intent.putExtra(EXTRA_DATA, String.valueOf(temperature));
 
         } else if (UUID_PRESSURE_MEASUREMENT.equals(characteristic.getUuid())) {
             float pressure = bytesToFloats(characteristic.getValue())[0];
-            intent.putExtra(EXTRA_TYPE, "Pressure");
+            intent.putExtra(EXTRA_TYPE, DATA_TYPE_PRESSURE);
             intent.putExtra(EXTRA_DATA, String.valueOf(pressure));
 
         } else if (UUID_HUMIDITY_MEASUREMENT.equals(characteristic.getUuid())) {
             float humidity = bytesToFloats(characteristic.getValue())[0];
-            intent.putExtra(EXTRA_TYPE, "Humidity");
+            intent.putExtra(EXTRA_TYPE, DATA_TYPE_HUMIDITY);
             intent.putExtra(EXTRA_DATA, String.valueOf(humidity));
 
         } else if (UUID_GPS_MEASUREMENT.equals(characteristic.getUuid())) {
@@ -334,8 +345,16 @@ public class BTLEConnection extends Service {
             float lon = coords[0];
             float lat = coords[1];
             float elev = coords[2];
-            intent.putExtra(EXTRA_TYPE, "Position");
+            intent.putExtra(EXTRA_TYPE, DATA_TYPE_POSITION);
             intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f", lat, lon, elev));
+        } else if (UUID_COMPASS_MEASUREMENT.equals(characteristic.getUuid())){
+            // Yaw might still be used as it is but should be added compass values to this
+            float[] euler = bytesToFloats(characteristic.getValue());
+            float roll = euler[0];
+            float pitch = euler[1];
+            float yaw = euler[2];
+            intent.putExtra(EXTRA_TYPE, DATA_TYPE_COMPASS);
+            intent.putExtra(EXTRA_DATA, String.valueOf(yaw));
         }
         contx.sendBroadcast(intent);
     }

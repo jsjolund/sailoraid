@@ -29,6 +29,8 @@ public class BTHandler {
     private static final String LE_LIST = "LE devices";
 
 
+
+
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_COARSE_LOCATION = 999;
     private static final long SCAN_PERIOD = 10000;

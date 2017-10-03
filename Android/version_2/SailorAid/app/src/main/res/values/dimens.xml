@@ -4,6 +4,8 @@
     <dimen name="image_height">300dp</dimen>
     <dimen name="n_image_width">250dp</dimen>
     <dimen name="n_image_height">25dp</dimen>
+    <dimen name="boat_image_height">150dp</dimen>
+    <dimen name="boat_image_width">100dp</dimen>
 
     <dimen name="padding">20dp</dimen>
 </resources>
