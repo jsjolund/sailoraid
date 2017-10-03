@@ -1,0 +1,4 @@
+- HTS221 humidity and temperature sensor (see page 17 in Docs/X-Nucleo-IKS01A2.pdf)
+- LPS22HB pressure sensor (see page 17 in Docs/X-Nucleo-IKS01A2.pdf)
+- two load cell ADC
+- GPS nRST pin to MCU GPIO
