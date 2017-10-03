@@ -29,6 +29,7 @@ void GPSinit(void)
 nmeaINFO GPSparse(char *str, int len)
 {
   nmea_parse(&parser, str, len, &info);
+  nmea_parser_buff_clear(&parser);
   return info;
 }
 
