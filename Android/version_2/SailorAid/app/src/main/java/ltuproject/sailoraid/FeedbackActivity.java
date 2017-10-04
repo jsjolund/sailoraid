@@ -22,17 +22,26 @@ import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +50,7 @@ import java.util.List;
 import ltuproject.sailoraid.bluetooth.BTHandler;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
 import ltuproject.sailoraid.bluetooth.SampleGattAttributes;
+import ltuproject.sailoraid.datalog.SailLog;
 import ltuproject.sailoraid.graphics.BoatView;
 import ltuproject.sailoraid.graphics.NeedleView;
 import ltuproject.sailoraid.graphics.RotatableGLView;
@@ -105,14 +115,11 @@ public class FeedbackActivity extends AppCompatActivity {
     private RotatableGLView mCompassBoatView;
     private RotatableGLView mLeftDriftView;
     private RotatableGLView mRightDriftView;
-
+    private SailLog log;
+    private boolean logging = false;
     /*
     Gyro from phone for demo
      */
-    private BoatView mBoatView;
-    private NeedleView mNeedleView;
-    private SensorManager mSensorManager;
-    private Sensor mAccelerometer;
     private float x, y, z;
     private Button btnMap;
     //Location variables
@@ -125,13 +132,20 @@ public class FeedbackActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.feedback_activity);
 
         btnMap = (Button) findViewById(R.id.mapviewbtn);
+
         initFilter();
         initBTConn();
         displayDynamicPics();
 
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.feedback_toolbar);
+        setSupportActionBar(myToolbar);
         /**
          * Change to map activity and sending location coordinates to intent
          */
@@ -208,6 +222,51 @@ public class FeedbackActivity extends AppCompatActivity {
         final float scale = getResources().getDisplayMetrics().scaledDensity;
         float scaledSize = (getResources().getDimensionPixelSize(dipValue) / scale);
         return scaledSize;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.feedback_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.start_log:
+                if (!logging){
+                    log = new SailLog(this);
+                    log.initLogData();
+                    log.writeToLog("Yoyo");
+                    logging = true;
+                    Toast.makeText(getApplicationContext(), "Logging started!", Toast.LENGTH_SHORT).show();
+                    item.setIcon(getDrawable(R.drawable.loggo));
+                } else{
+                    item.setIcon(getDrawable(R.drawable.loggo));
+                    logging = false;
+                }
+                // User chose the "Settings" item, show the app settings UI...
+                return true;
+
+            case R.id.stop_log:
+                if (logging){
+                    //log.stopLogData();
+                    String logText = log.readLog();
+                    TextView tv = (TextView) findViewById(R.id.feedbackText);
+                    tv.setText(logText);
+                    logging = false;
+                }
+                // User chose the "Favorite" action, mark the current item
+                // as a favorite...
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
     }
 
     private void displayDynamicPics(){
