@@ -17,7 +17,7 @@
 #include "state.h"
 
 #define RX_BUFFER_MAX 512
-#define TX_BUFFER_MAX 1024
+#define TX_BUFFER_MAX 512
 
 void SerialInit(UART_HandleTypeDef *usbHuartHandle, UART_HandleTypeDef *gpsHuartHandle);
 void SerialUsbTransmit(char *ptr, int len);

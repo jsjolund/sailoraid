@@ -1,5 +1,5 @@
 %% Start listening to sensor data
-function serial_read(serialPort,cbFunc)
+function serialRead(serialPort,cbFunc)
 if exist('s', 'var')
     try
         fclose(s);
@@ -16,14 +16,14 @@ if (s.Status == 'closed')
     s.ByteOrder = 'littleEndian';
     s.BytesAvailableFcnMode = 'byte';
     s.BytesAvailableFcnCount = 30*4;
-    set(s,'BytesAvailableFcn',{@serial_receive,cbFunc})
+    set(s,'BytesAvailableFcn',{@serialReceive,cbFunc})
     s.Timeout = 2;
     % Open the serial connection
     fprintf('Opening connection.\n')
     fopen(s);
     % Start the sensor value stream
     fprintf(s,sprintf('\r\n\r\nmatlab\r\n'));
-    pause(1);
+    pause(2);
     % Close the serial connection
     fprintf('Closing connection.\n')
     fclose(s);
@@ -33,7 +33,7 @@ end
 end
 
 %% Read the serial stream
-function serial_receive(obj,~,cbFunc)
+function serialReceive(obj,~,cbFunc)
 % fprintf('receive\n');
 while obj.BytesAvailable > 0 
     % Read data as float array
