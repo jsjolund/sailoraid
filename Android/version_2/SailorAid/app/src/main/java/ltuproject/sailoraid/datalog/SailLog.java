@@ -14,10 +14,22 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.EmptyStackException;
+import java.util.zip.Inflater;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_COMPASS;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_FREE_FALL;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_HUMIDITY;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_INCLINE;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_POSITION;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_PRESSURE;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_SOG;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_TEMPERATURE;
 /**
  * Created by Henrik on 2017-10-03.
  */
@@ -33,10 +45,26 @@ public class SailLog {
     private BufferedReader br;
     private FileInputStream fis;
     private InputStreamReader isr;
+    private ArrayList<String[]> posDataList;
+    private ArrayList<String[]> imuDataList;
+    private ArrayList<String[]> compassDataList;
+    private ArrayList<String[]> pressureDataList;
+    private ArrayList<String[]> sogDataList;
+    private int avgIncline, maxIncline, avgDrift, totalDrift, avgPressure, maxPressure;
+    private float avgSOG, topSOG;
 
     public SailLog(Context context){
-        fileName = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) +".txt";
+        fileName = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date()) +".txt";
         this.context = context;
+    }
+    public SailLog(Context context, String fileName){
+        this.fileName = fileName;
+        this.context = context;
+        posDataList = new ArrayList<String[]>();
+        imuDataList = new ArrayList<String[]>();
+        compassDataList = new ArrayList<String[]>();
+        pressureDataList = new ArrayList<String[]>();
+        sogDataList = new ArrayList<String[]>();
     }
 
     public void initLogData(){
@@ -69,7 +97,7 @@ public class SailLog {
             e.printStackTrace();
         }
         try {
-            outPut = "<" +data +">";
+            outPut = data +"\n";
             bwriter.append(outPut);
         }
         catch (IOException e) {
@@ -88,17 +116,28 @@ public class SailLog {
         }
     }
 
-    public String readLog(){
-        String text = "";
-        String line;
+    public void readLog(){
+        String data;
             /* Reads from the text file */
 
         try{
             fis = new FileInputStream(outFile);
             isr = new InputStreamReader(fis);
             br = new BufferedReader(isr);
-            while((line = br.readLine()) != null){
-                text += line;
+            while((data = br.readLine()) != null){
+                String[] splitLines = data.split(":");
+                String type = splitLines[0];
+                if(type.equals(DATA_TYPE_INCLINE)){
+                    imuDataList.add(splitLines);
+                } else if (type.equals(DATA_TYPE_PRESSURE)){
+                    pressureDataList.add(splitLines);
+                } else if (type.equals(DATA_TYPE_COMPASS)){
+                    compassDataList.add(splitLines);
+                } else if (type.equals(DATA_TYPE_POSITION)){
+                    posDataList.add(splitLines);
+                } else if (type.equals(DATA_TYPE_SOG)){
+                    sogDataList.add(splitLines);
+                }
             }
             br.close();
             isr.close();
@@ -106,6 +145,92 @@ public class SailLog {
         }catch (IOException e){
             e.printStackTrace();
         }
-        return text;
+        calcIMUData();
+        calcPressureData();
+        calcSOGData();
+    }
+
+    public ArrayList<String[]> getPosDataList(){
+        return posDataList;
+    }
+    public ArrayList<String[]> getImuDataList(){
+        return imuDataList;
+    }
+    private void calcIMUData(){
+        int total = 0;
+        int max = 0;
+        for (String[] data : imuDataList){
+            int x = Integer.parseInt(data[2]);
+            total += x;
+            if (abs(x) > abs(max)){
+                max = x;
+            }
+        }
+        int avg = total/imuDataList.size();
+        this.avgIncline = avg;
+        this.maxIncline = max;
+    }
+    public float getAvgSOG(){
+        return avgSOG;
+    }
+
+    public float getTopSOG(){
+        return topSOG;
+    }
+    public int getAvgDrift(){
+        return avgDrift;
+    }
+    public int getTotalDrift(){
+        return totalDrift;
+    }
+    public int getMaxIncline(){
+        return maxIncline;
+    }
+    public int getAvgIncline(){
+        return avgIncline;
+    }
+    public int getAvgPressure(){
+        return avgPressure;
+    }
+    public int getMaxPressure(){
+        return maxPressure;
+    }
+
+    private void calcSOGData(){
+        float total = 0;
+        float max = 0;
+        for (String[] data : sogDataList){
+            float x = Float.parseFloat(data[2]);
+            total += x;
+            if (abs(x) > abs(max)){
+                max = x;
+            }
+        }
+        avgSOG = total/sogDataList.size();
+        topSOG = max;
+    }
+
+    private void calcPressureData(){
+        int total = 0;
+        int max = 0;
+        for (String[] data : pressureDataList){
+            int x = Integer.parseInt(data[2]);
+            total += x;
+            if (abs(x) > abs(max)){
+                max = x;
+            }
+        }
+        maxPressure = max;
+        avgPressure = total/pressureDataList.size();
+    }
+
+    public ArrayList<String[]> getCompassDataList(){
+        return compassDataList;
+    }
+    public ArrayList<String[]> getPressureDataList(){
+        return pressureDataList;
+    }
+    public ArrayList<String[]> getSogDataList(){
+        return sogDataList;
     }
 }

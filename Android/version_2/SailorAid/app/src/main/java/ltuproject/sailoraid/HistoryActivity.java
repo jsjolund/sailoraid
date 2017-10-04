@@ -23,10 +23,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import org.w3c.dom.Text;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import ltuproject.sailoraid.datalog.SailLog;
 
@@ -41,8 +44,16 @@ public class HistoryActivity extends AppCompatActivity {
     private String fileName;
     private Menu mMenu;
     private Toolbar myToolbar;
-    private Button readLogbtn;
-    private TextView maxIncHolder, avgIncHolder;
+    private Button readLogBtn, mapLobBtn;
+    private TextView maxIncHolder, avgIncHolder, maxDriftHolder, totalDriftHolder, avgSOGHolder, topSOGHolder, maxPressureHolder, avgPressureHolder;
+    private SailLog sailLog;
+
+    public static ArrayList<String[]> posDataList;
+    private ArrayList<String[]> imuDataList;
+    private ArrayList<String[]> compassDataList;
+    private ArrayList<String[]> pressureDataList;
+    private ArrayList<String[]> sogDataList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,15 +63,26 @@ public class HistoryActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.history_activity);
 
-        readLogbtn = (Button)findViewById(R.id.readLogBtn);
+        myToolbar = (Toolbar) findViewById(R.id.history_toolbar);
+        setSupportActionBar(myToolbar);
+
+        myToolbar.setVisibility(View.GONE);
+        readLogBtn = (Button)findViewById(R.id.readLogBtn);
+        mapLobBtn = (Button) findViewById(R.id.mapLogBtn);
+        mapLobBtn.setVisibility(View.GONE);
         maxIncHolder = (TextView) findViewById(R.id.maxIncHolder);
         avgIncHolder = (TextView) findViewById(R.id.avgIncHolder);
+        maxDriftHolder = (TextView) findViewById(R.id.maxDriftHolder);
+        totalDriftHolder = (TextView) findViewById(R.id.totalDriftHolder);
+        avgSOGHolder = (TextView) findViewById(R.id.avgSOGHolder);
+        topSOGHolder = (TextView) findViewById(R.id.topSOGHolder);
+        avgPressureHolder = (TextView) findViewById(R.id.avgPressureHolder);
+        maxPressureHolder = (TextView) findViewById(R.id.maxPressureHolder);
 
 
 
-
-        assert readLogbtn != null;
-        readLogbtn.setOnClickListener(new View.OnClickListener(){
+        assert readLogBtn != null;
+        readLogBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 // feedback button function
@@ -68,8 +90,17 @@ public class HistoryActivity extends AppCompatActivity {
             }
         });
 
+        assert mapLobBtn != null;
+        mapLobBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // feedback button function
+                Intent intent = new Intent(HistoryActivity.this, MapsActivity.class);
+                intent.putExtra("log", "log");
+                startActivity(intent);
+            }
+        });
     }
-
 
     private void showLogsPopup(){
         ArrayList<String> files = getAllLogs(getExternalFilesDir(
@@ -98,23 +129,22 @@ public class HistoryActivity extends AppCompatActivity {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        String toast = "Read log nr: " +fileName;
-                        Toast.makeText(getApplicationContext(), toast, Toast.LENGTH_SHORT).show();
-                        myToolbar = (Toolbar) findViewById(R.id.history_toolbar);
-                        setSupportActionBar(myToolbar);
-                        readLogbtn.setVisibility(View.GONE);
-                        TextView maxIncText = (TextView) findViewById(R.id.maxIncText);
-                        TextView avgIncText = (TextView) findViewById(R.id.avgIncText);
-                        maxIncText.setVisibility(View.VISIBLE);
-                        avgIncText.setVisibility(View.VISIBLE);
-                        maxIncHolder.setVisibility(View.VISIBLE);
-                        avgIncHolder.setVisibility(View.VISIBLE);
-                        maxIncHolder.setText("340 degrees yo");
-                        avgIncHolder.setText("-23 degrees");
-                        ImageView iv = (ImageView) findViewById(R.id.sailorView);
-                        iv.setImageDrawable(getDrawable(R.drawable.sailor_sad));
-                        TextView sScore = (TextView) findViewById(R.id.sailorScoreText);
-                        sScore.setText("Your Sailor Score was: 14! \n Not so happy then.");
+
+                        if (fileName != null){
+                            String toast = "Read log nr: " +fileName;
+                            Toast.makeText(getApplicationContext(), toast, Toast.LENGTH_SHORT).show();
+                            readLogBtn.setVisibility(View.GONE);
+                            myToolbar.setVisibility(View.VISIBLE);
+                            mapLobBtn.setVisibility(View.VISIBLE);
+                            showTextViews();
+                            getLogDataToArray();
+                            ImageView iv = (ImageView) findViewById(R.id.sailorView);
+                            iv.setImageDrawable(getDrawable(R.drawable.sailor_sad));
+                            TextView sScore = (TextView) findViewById(R.id.sailorScoreText);
+                            sScore.setText("Your Sailor Score was: 14! \n Not so happy then.");
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Your need to choose a file!", Toast.LENGTH_SHORT).show();
+                        }
                     }
                     });
         popDialog.create();
@@ -133,6 +163,57 @@ public class HistoryActivity extends AppCompatActivity {
         return result;
     }
 
+    private void setTravelRoute(ArrayList<String[]> posList){
+        for (String[] loc : posList){{
+            logTravelRoute.add(new LatLng(Float.parseFloat(loc[2]), Float.parseFloat(loc[3])));
+        }}
+
+    }
+    static private List<LatLng> logTravelRoute = new ArrayList<LatLng>();
+    public static synchronized void getRoute(List<LatLng> output) {
+        output.addAll(logTravelRoute);
+    }
+
+    private void showTextViews(){
+        TextView maxIncText = (TextView) findViewById(R.id.maxIncText);
+        TextView avgIncText = (TextView) findViewById(R.id.avgIncText);
+        TextView maxDriftText = (TextView) findViewById(R.id.maxDriftText);
+        TextView totalDriftText = (TextView) findViewById(R.id.totalDriftText);
+        TextView avgSOGText = (TextView) findViewById(R.id.avgSOGText);
+        TextView topSOGText = (TextView) findViewById(R.id.topSOGText);
+        TextView avgPressureText = (TextView) findViewById(R.id.avgPressureText);
+        TextView maxPressureText = (TextView) findViewById(R.id.maxPressureText);
+        maxIncText.setVisibility(View.VISIBLE);
+        avgIncText.setVisibility(View.VISIBLE);
+        maxDriftText.setVisibility(View.VISIBLE);
+        totalDriftText.setVisibility(View.VISIBLE);
+        avgSOGText.setVisibility(View.VISIBLE);
+        topSOGText.setVisibility(View.VISIBLE);
+        avgPressureText.setVisibility(View.VISIBLE);
+        maxPressureText.setVisibility(View.VISIBLE);
+        maxIncHolder.setVisibility(View.VISIBLE);
+        avgIncHolder.setVisibility(View.VISIBLE);
+        maxDriftHolder.setVisibility(View.VISIBLE);
+        totalDriftHolder.setVisibility(View.VISIBLE);
+        avgSOGHolder.setVisibility(View.VISIBLE);
+        topSOGHolder.setVisibility(View.VISIBLE);
+        avgPressureHolder.setVisibility(View.VISIBLE);
+        maxPressureHolder.setVisibility(View.VISIBLE);
+    }
+
+    private void getLogDataToArray(){
+        sailLog = new SailLog(getApplicationContext(), fileName);
+        sailLog.initLogData();
+        sailLog.readLog();
+        posDataList = sailLog.getPosDataList();
+        setTravelRoute(posDataList);
+        maxIncHolder.setText(String.valueOf(sailLog.getMaxIncline()));
+        avgIncHolder.setText(String.valueOf(sailLog.getAvgIncline()));
+        avgSOGHolder.setText(String.valueOf(sailLog.getAvgSOG()));
+        topSOGHolder.setText(String.valueOf(sailLog.getTopSOG()));
+        avgPressureHolder.setText(String.valueOf(sailLog.getAvgPressure()));
+        maxPressureHolder.setText(String.valueOf(sailLog.getMaxPressure()));
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -147,7 +228,6 @@ public class HistoryActivity extends AppCompatActivity {
                 showLogsPopup();
                 // User chose the "Settings" item, show the app settings UI...
                 return true;
-
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.

@@ -39,14 +39,15 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/readLogBtn"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/historyMainText"
-            android:background="@drawable/read"/>
+    <Button
+        android:id="@+id/readLogBtn"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/historyMainText"
+        android:background="@drawable/read"/>
+
     <TextView
         android:id="@+id/avgIncText"
         android:layout_width="wrap_content"
@@ -61,6 +62,7 @@
         android:visibility="gone"
         app:layout_constraintLeft_toRightOf="@id/avgIncText"
         app:layout_constraintTop_toBottomOf="@id/historyMainText"/>
+
     <TextView
         android:id="@+id/maxIncText"
         android:layout_width="wrap_content"
@@ -75,6 +77,97 @@
         android:visibility="gone"
         app:layout_constraintLeft_toRightOf="@id/maxIncText"
         app:layout_constraintTop_toBottomOf="@id/avgIncHolder"/>
+
+    <TextView
+        android:id="@+id/maxDriftText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/maxIncText"
+        android:text="Max Incline: "/>
+    <TextView
+        android:id="@+id/maxDriftHolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintLeft_toRightOf="@id/maxDriftText"
+        app:layout_constraintTop_toBottomOf="@id/maxIncHolder"/>
+
+    <TextView
+        android:id="@+id/totalDriftText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/maxDriftText"
+        android:text="Total Drift: "/>
+    <TextView
+        android:id="@+id/totalDriftHolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintLeft_toRightOf="@id/totalDriftText"
+        app:layout_constraintTop_toBottomOf="@id/maxDriftHolder"/>
+
+    <TextView
+        android:id="@+id/avgSOGText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/totalDriftText"
+        android:text="Avg SOG:  "/>
+    <TextView
+        android:id="@+id/avgSOGHolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintLeft_toRightOf="@id/avgSOGText"
+        app:layout_constraintTop_toBottomOf="@id/totalDriftHolder"/>
+
+    <TextView
+        android:id="@+id/topSOGText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/avgSOGText"
+        android:text="Top SOG:  "/>
+    <TextView
+        android:id="@+id/topSOGHolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintLeft_toRightOf="@id/topSOGText"
+        app:layout_constraintTop_toBottomOf="@id/avgSOGHolder"/>
+
+    <TextView
+        android:id="@+id/maxPressureText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/topSOGText"
+        android:text="Max pressure:  "/>
+    <TextView
+        android:id="@+id/maxPressureHolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintLeft_toRightOf="@id/maxPressureText"
+        app:layout_constraintTop_toBottomOf="@id/topSOGHolder"/>
+
+    <TextView
+        android:id="@+id/avgPressureText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/maxPressureText"
+        android:text="Avg Pressure:  "/>
+    <TextView
+        android:id="@+id/avgPressureHolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintLeft_toRightOf="@id/maxPressureText"
+        app:layout_constraintTop_toBottomOf="@id/maxPressureHolder"/>
+
     <TextView
         android:id="@+id/sailorScoreText"
         android:layout_width="wrap_content"
@@ -83,7 +176,32 @@
         android:textSize="16pt"
         app:layout_constraintLeft_toRightOf="@id/maxIncText"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/mapLogBtn"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
+
+    <Button
+        android:id="@+id/mapLogBtn"
+        android:background="@drawable/maplog"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/sailorScoreText"
+        app:layout_constraintTop_toBottomOf="@id/avgPressureHolder"
+        android:text="MAPLOG"
+        android:gravity="top"
+        android:textAlignment="gravity"/>
+    <Button
+        android:id="@+id/graphLogBtn"
+        android:background="@drawable/graph"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:layout_constraintLeft_toRightOf="@id/mapLogBtn"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/sailorScoreText"
+        app:layout_constraintTop_toBottomOf="@id/avgPressureHolder"
+        android:text="Graphs"/>
+
 
 </android.support.constraint.ConstraintLayout>

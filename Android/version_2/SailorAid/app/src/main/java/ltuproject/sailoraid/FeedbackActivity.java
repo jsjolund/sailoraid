@@ -43,9 +43,12 @@ import com.google.android.gms.maps.model.LatLng;
 
 import org.w3c.dom.Text;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import ltuproject.sailoraid.bluetooth.BTHandler;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
@@ -57,12 +60,14 @@ import ltuproject.sailoraid.graphics.RotatableGLView;
 
 import static android.bluetooth.BluetoothDevice.BOND_BONDED;
 import static java.lang.Math.abs;
+import static java.lang.Math.random;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_COMPASS;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_FREE_FALL;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_HUMIDITY;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_INCLINE;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_POSITION;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_PRESSURE;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_SOG;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_TEMPERATURE;
 
 /**
@@ -238,7 +243,8 @@ public class FeedbackActivity extends AppCompatActivity {
                 if (!logging){
                     log = new SailLog(this);
                     log.initLogData();
-                    log.writeToLog("Yoyo");
+                    writeCrapToLog();
+                    //log.writeToLog("Yoyo");
                     logging = true;
                     Toast.makeText(getApplicationContext(), "Logging started!", Toast.LENGTH_SHORT).show();
                     item.setIcon(getDrawable(R.drawable.loggo));
@@ -252,9 +258,8 @@ public class FeedbackActivity extends AppCompatActivity {
             case R.id.stop_log:
                 if (logging){
                     //log.stopLogData();
-                    String logText = log.readLog();
+                    //log.readLog();
                     TextView tv = (TextView) findViewById(R.id.feedbackText);
-                    tv.setText(logText);
                     logging = false;
                 }
                 // User chose the "Favorite" action, mark the current item
@@ -739,4 +744,41 @@ public class FeedbackActivity extends AppCompatActivity {
         myBTHandler.getBtAdapter().disable();
     }
 
+
+    public void writeCrapToLog(){
+        String time = "";
+        String x = "";
+        String speed = "";
+        String pressure = "";
+        String longitude = "";
+        String lattitude = "";
+        String compass = "";
+        Random xRand = new Random();
+        Random pressureRand = new Random();
+        Random longRand = new Random();
+        Random lattRand = new Random();
+        Random speedRand = new Random();
+        Random compRand = new Random();
+
+        float minLong = 65.4f;
+        float maxLong = 65.5f;
+        float minLatt = 22.5f;
+        float maxLatt = 22.6f;
+        float minXSpeed = 0.0f;
+        float maxXSpeed = 30.0f;
+        for (int i=0;i<100;i++){
+            x = String.valueOf((xRand.nextInt(180)) - 90);
+            speed = String.valueOf(speedRand.nextFloat()* (maxXSpeed - minXSpeed) + minXSpeed);
+            pressure = String.valueOf((pressureRand.nextInt(500)) +750);
+            longitude = String.valueOf(longRand.nextFloat() * (maxLong - minLong) +minLong);
+            lattitude = String.valueOf(lattRand.nextFloat() * (maxLatt - minLatt) +minLatt);
+            compass = String.valueOf(compRand.nextInt(360));
+            time = new SimpleDateFormat("HHmmss").format(new Date());
+            log.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +compass);
+            log.writeToLog(DATA_TYPE_INCLINE +":" +time  +":" +x);
+            log.writeToLog(DATA_TYPE_SOG +":" +time  +":" +speed);
+            log.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" + pressure);
+            log.writeToLog(DATA_TYPE_POSITION +":" +time  +":" + longitude +":" +lattitude);
+        }
+    }
 }
