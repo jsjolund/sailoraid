@@ -13,7 +13,7 @@
 #include <string.h>
 
 void GPSinit(void);
-nmeaINFO GPSparse(char *str, int len);
+void GPSparse(char *str, int len, nmeaINFO *info);
 float NMEAtoGPS(float in_coords);
 
 #endif /* GPS_H_ */

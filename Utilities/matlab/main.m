@@ -3,7 +3,7 @@ clear -global;
 clear;
 
 %serialPort = 'COM1'; % Windows
-serialPort = '/dev/ttyACM0'; % Linux
+serialPort = '/dev/ttyACM3'; % Linux
 
 realTimePlot();
 

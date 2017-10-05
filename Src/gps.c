@@ -7,15 +7,8 @@
 
 #include "gps.h"
 
-static nmeaINFO info;
-static nmeaPARSER parser;
-
 void GPSinit(void)
 {
-  nmea_zero_INFO(&info);
-  nmea_parser_init(&parser);
-//  nmea_parser_destroy(&parser);
-
   HAL_Delay(1000);
   HAL_GPIO_WritePin(GPS_NRST_GPIO_Port, GPS_NRST_Pin, GPIO_PIN_SET); // low
   HAL_Delay(50);
@@ -26,11 +19,14 @@ void GPSinit(void)
   HAL_GPIO_WritePin(GPS_ON_OFF_GPIO_Port, GPS_ON_OFF_Pin, GPIO_PIN_RESET);
 }
 
-nmeaINFO GPSparse(char *str, int len)
+void GPSparse(char *str, int len, nmeaINFO *info)
 {
-  nmea_parse(&parser, str, len, &info);
+  nmeaPARSER parser;
+//  nmea_zero_INFO(&info);
+  nmea_parser_init(&parser);
+  nmea_parse(&parser, str, len, info);
   nmea_parser_buff_clear(&parser);
-  return info;
+  nmea_parser_destroy(&parser);
 }
 
 float NMEAtoGPS(float in_coords)

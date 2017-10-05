@@ -23,6 +23,7 @@ typedef struct SerialHandle
 
 static SerialHandle usbHandle;
 static SerialHandle gpsHandle;
+static nmeaINFO gpsInfo;
 extern SensorState sensor;
 
 static int QueuePut(SerialHandle *h, uint8_t input)
@@ -83,6 +84,9 @@ void SerialInit(UART_HandleTypeDef *usbHuartHandle, UART_HandleTypeDef *gpsHuart
   usbHandle.txCplt = 1;
   gpsHandle.huart = gpsHuartHandle;
   gpsHandle.txCplt = 1;
+
+  nmea_zero_INFO(&gpsInfo);
+
   // Initiate automatic receive through DMA one character at a time
   HAL_UART_Receive_DMA(usbHandle.huart, &usbHandle.rxBuffer, sizeof(usbHandle.rxBuffer));
   HAL_UART_Receive_DMA(gpsHandle.huart, &gpsHandle.rxBuffer, sizeof(gpsHandle.rxBuffer));
@@ -193,21 +197,21 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
     {
       h->rxString[h->rxIndex++] = '\r';
       h->rxString[h->rxIndex++] = '\n';
-      nmeaINFO info = GPSparse(row, strlen(row));
-      sensor.gps.time.year = info.utc.year + 1900;
-      sensor.gps.time.month = info.utc.mon + 1;
-      sensor.gps.time.day = info.utc.day;
-      sensor.gps.time.hour = info.utc.hour;
-      sensor.gps.time.min = info.utc.min;
-      sensor.gps.time.sec = info.utc.sec;
-      sensor.gps.time.hsec = info.utc.hsec;
-      sensor.gps.pos.elevation = info.elv;
-      sensor.gps.pos.latitude = NMEAtoGPS(info.lat);
-      sensor.gps.pos.longitude = NMEAtoGPS(info.lon);
-      sensor.gps.info.satUse = info.satinfo.inuse;
-      sensor.gps.info.satView = info.satinfo.inview;
-      sensor.gps.pos.speed = info.speed;
-      sensor.gps.pos.direction = info.direction;
+      GPSparse(row, strlen(row), &gpsInfo);
+      sensor.gps.time.year = gpsInfo.utc.year + 1900;
+      sensor.gps.time.month = gpsInfo.utc.mon + 1;
+      sensor.gps.time.day = gpsInfo.utc.day;
+      sensor.gps.time.hour = gpsInfo.utc.hour;
+      sensor.gps.time.min = gpsInfo.utc.min;
+      sensor.gps.time.sec = gpsInfo.utc.sec;
+      sensor.gps.time.hsec = gpsInfo.utc.hsec;
+      sensor.gps.pos.elevation = gpsInfo.elv;
+      sensor.gps.pos.latitude = NMEAtoGPS(gpsInfo.lat);
+      sensor.gps.pos.longitude = NMEAtoGPS(gpsInfo.lon);
+      sensor.gps.info.satUse = gpsInfo.satinfo.inuse;
+      sensor.gps.info.satView = gpsInfo.satinfo.inview;
+      sensor.gps.pos.speed = gpsInfo.speed;
+      sensor.gps.pos.direction = gpsInfo.direction;
     }
     else if (h == &usbHandle)
     {
