@@ -243,10 +243,11 @@ public class FeedbackActivity extends AppCompatActivity {
                 if (!logging){
                     log = new SailLog(this);
                     log.initLogData();
+                    Toast.makeText(getApplicationContext(), "Simulated Logging started!", Toast.LENGTH_SHORT).show();
                     writeCrapToLog();
                     //log.writeToLog("Yoyo");
                     logging = true;
-                    Toast.makeText(getApplicationContext(), "Logging started!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Logging finished!", Toast.LENGTH_SHORT).show();
                     item.setIcon(getDrawable(R.drawable.loggo));
                 } else{
                     item.setIcon(getDrawable(R.drawable.loggo));
@@ -766,7 +767,7 @@ public class FeedbackActivity extends AppCompatActivity {
         float maxLatt = 22.6f;
         float minXSpeed = 0.0f;
         float maxXSpeed = 30.0f;
-        for (int i=0;i<100;i++){
+        for (int i=0;i<3600;i++){
             x = String.valueOf((xRand.nextInt(180)) - 90);
             speed = String.valueOf(speedRand.nextFloat()* (maxXSpeed - minXSpeed) + minXSpeed);
             pressure = String.valueOf((pressureRand.nextInt(500)) +750);

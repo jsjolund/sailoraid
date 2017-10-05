@@ -176,7 +176,6 @@
         android:textSize="16pt"
         app:layout_constraintLeft_toRightOf="@id/maxIncText"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/mapLogBtn"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
 
@@ -189,9 +188,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toTopOf="@id/sailorScoreText"
         app:layout_constraintTop_toBottomOf="@id/avgPressureHolder"
-        android:text="MAPLOG"
-        android:gravity="top"
-        android:textAlignment="gravity"/>
+        android:text="MAPLOG"/>
     <Button
         android:id="@+id/graphLogBtn"
         android:background="@drawable/graph"

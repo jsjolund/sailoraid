@@ -166,8 +166,12 @@ public class SailLog {
                 max = x;
             }
         }
-        int avg = total/imuDataList.size();
-        this.avgIncline = avg;
+
+        if (imuDataList.isEmpty()){
+            this.avgIncline = 0;
+        } else{
+            this.avgIncline = total/imuDataList.size();
+        }
         this.maxIncline = max;
     }
     public float getAvgSOG(){
@@ -206,7 +210,11 @@ public class SailLog {
                 max = x;
             }
         }
-        avgSOG = total/sogDataList.size();
+        if (sogDataList.isEmpty()){
+            avgSOG = 0;
+        } else{
+            avgSOG = total/sogDataList.size();
+        }
         topSOG = max;
     }
 
@@ -220,8 +228,12 @@ public class SailLog {
                 max = x;
             }
         }
+        if (pressureDataList.isEmpty()){
+            avgPressure = 0;
+        } else{
+            avgPressure = total/pressureDataList.size();
+        }
         maxPressure = max;
-        avgPressure = total/pressureDataList.size();
     }
 
     public ArrayList<String[]> getCompassDataList(){
