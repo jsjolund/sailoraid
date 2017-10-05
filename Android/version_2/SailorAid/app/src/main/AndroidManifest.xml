@@ -48,6 +48,8 @@
             <action android:name="ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_CONNECTED" />
         </activity>
         <activity android:name=".HistoryActivity" />
+
+        <activity android:name=".GraphActivity" />
     </application>
 
 </manifest>

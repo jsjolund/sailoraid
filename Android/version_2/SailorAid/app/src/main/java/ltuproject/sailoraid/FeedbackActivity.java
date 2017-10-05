@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -241,9 +242,9 @@ public class FeedbackActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.start_log:
                 if (!logging){
+                    Toast.makeText(getApplicationContext(), "Simulated Logging started!", Toast.LENGTH_SHORT).show();
                     log = new SailLog(this);
                     log.initLogData();
-                    Toast.makeText(getApplicationContext(), "Simulated Logging started!", Toast.LENGTH_SHORT).show();
                     writeCrapToLog();
                     //log.writeToLog("Yoyo");
                     logging = true;
@@ -581,10 +582,14 @@ public class FeedbackActivity extends AppCompatActivity {
                 mConnected = true;
                 tv.setText(R.string.connected);
                 invalidateOptionsMenu();
+                //MenuItem item = (MenuItem) findViewById(R.id.boat_connection);
+                //item.setIcon(getDrawable(R.drawable.pico_connected));
             } else if (myBTHandler.getBtLEConnection().ACTION_GATT_DISCONNECTED.equals(action)) {
                 mConnected = false;
                 tv.setText(R.string.disconnected);
                 invalidateOptionsMenu();
+                //MenuItem item = (MenuItem) findViewById(R.id.boat_connection);
+                //item.setIcon(getDrawable(R.drawable.pico_disconnected));
             } else if (myBTHandler.getBtLEConnection().
                     ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the
@@ -623,11 +628,11 @@ public class FeedbackActivity extends AppCompatActivity {
                 this.z = Float.parseFloat(accelerometer[2]);
 
 
-                mInclineBoatView.rotateGl(this.x);
+                mInclineBoatView.rotateGl((int) this.x);
                 // Rotates compass with pitch
-                mCompassView.rotateGl(this.y);
+                mCompassView.rotateGl((int) this.z);
                 // Rotates Boat bearing with Yaw
-                mCompassView.rotateGl2(this.z);
+                //mCompassView.rotateGl2(this.z);
                 // Use pitch for testing drifting feedback
                 if(this.y >=0){
                     // Max resize ARROW_SCALE*x = 12 also move from center with -x/6
@@ -645,8 +650,8 @@ public class FeedbackActivity extends AppCompatActivity {
 
 
 
-                mInclineBoatView.requestRender();
-                mCompassView.requestRender();
+                //mInclineBoatView.requestRender();
+                //mCompassView.requestRender();
                 setTiltText(this.x);
             }
             else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
@@ -664,7 +669,7 @@ public class FeedbackActivity extends AppCompatActivity {
                 */
                 mPressureNeedleView.moveGL(0, pressure/1000 - 1.01325f);
 
-                mPressureNeedleView.requestRender();
+              //  mPressureNeedleView.requestRender();
             }
             else if(dataType.equals(DATA_TYPE_FREE_FALL)){
 
@@ -696,7 +701,7 @@ public class FeedbackActivity extends AppCompatActivity {
                 // Rotates Boat bearing with Yaw
                 mCompassView.rotateGl2(this.z);
 
-                mCompassView.requestRender();
+               // mCompassView.requestRender();
             }
         }
     }
