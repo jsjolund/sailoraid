@@ -25,8 +25,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import org.w3c.dom.Text;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,11 +42,11 @@ public class HistoryActivity extends AppCompatActivity {
     private String fileName;
     private Menu mMenu;
     private Toolbar myToolbar;
-    private Button readLogBtn, mapLobBtn;
+    private Button readLogBtn, mapLogBtn, graphLogBtn;
     private TextView maxIncHolder, avgIncHolder, maxDriftHolder, totalDriftHolder, avgSOGHolder, topSOGHolder, maxPressureHolder, avgPressureHolder;
     private SailLog sailLog;
 
-    public static ArrayList<String[]> posDataList;
+    private ArrayList<String[]> posDataList;
     private ArrayList<String[]> imuDataList;
     private ArrayList<String[]> compassDataList;
     private ArrayList<String[]> pressureDataList;
@@ -68,8 +66,8 @@ public class HistoryActivity extends AppCompatActivity {
 
         myToolbar.setVisibility(View.GONE);
         readLogBtn = (Button)findViewById(R.id.readLogBtn);
-        mapLobBtn = (Button) findViewById(R.id.mapLogBtn);
-        mapLobBtn.setVisibility(View.GONE);
+        mapLogBtn = (Button) findViewById(R.id.mapLogBtn);
+        graphLogBtn = (Button) findViewById(R.id.graphLogBtn);
         maxIncHolder = (TextView) findViewById(R.id.maxIncHolder);
         avgIncHolder = (TextView) findViewById(R.id.avgIncHolder);
         maxDriftHolder = (TextView) findViewById(R.id.maxDriftHolder);
@@ -90,8 +88,17 @@ public class HistoryActivity extends AppCompatActivity {
             }
         });
 
-        assert mapLobBtn != null;
-        mapLobBtn.setOnClickListener(new View.OnClickListener() {
+        assert graphLogBtn != null;
+        graphLogBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // feedback button function
+                Intent intent = new Intent(HistoryActivity.this, GraphActivity.class);
+                startActivity(intent);
+            }
+        });
+        assert mapLogBtn != null;
+        mapLogBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // feedback button function
@@ -134,13 +141,16 @@ public class HistoryActivity extends AppCompatActivity {
                             String toast = "Read log nr: " +fileName;
                             Toast.makeText(getApplicationContext(), toast, Toast.LENGTH_SHORT).show();
                             readLogBtn.setVisibility(View.GONE);
+                            mapLogBtn.setVisibility(View.VISIBLE);
+                            graphLogBtn.setVisibility(View.VISIBLE);
                             myToolbar.setVisibility(View.VISIBLE);
-                            mapLobBtn.setVisibility(View.VISIBLE);
+                            mapLogBtn.setVisibility(View.VISIBLE);
                             showTextViews();
                             getLogDataToArray();
                             ImageView iv = (ImageView) findViewById(R.id.sailorView);
                             iv.setImageDrawable(getDrawable(R.drawable.sailor_sad));
                             TextView sScore = (TextView) findViewById(R.id.sailorScoreText);
+                            sScore.setVisibility(View.VISIBLE);
                             sScore.setText("Your Sailor Score was: 14! \n Not so happy then.");
                         } else {
                             Toast.makeText(getApplicationContext(), "Your need to choose a file!", Toast.LENGTH_SHORT).show();
@@ -164,16 +174,52 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void setTravelRoute(ArrayList<String[]> posList){
+        logTravelRoute.clear();
         for (String[] loc : posList){{
             logTravelRoute.add(new LatLng(Float.parseFloat(loc[2]), Float.parseFloat(loc[3])));
         }}
-
     }
     static private List<LatLng> logTravelRoute = new ArrayList<LatLng>();
-    public static synchronized void getRoute(List<LatLng> output) {
+    public static void getRoute(List<LatLng> output) {
         output.addAll(logTravelRoute);
     }
 
+    private void setInclineData(){
+        ArrayList<String[]> inclineList = new ArrayList<String[]>();
+        inclineList = sailLog.getImuDataList();
+        logInclineData.clear();
+        for (String[] loc : inclineList){{
+            logInclineData.add(loc);
+        }}
+    }
+
+    private void setPressureData(){
+        ArrayList<String[]> inclineList = sailLog.getPressureDataList();
+        logPressureData.clear();
+        for (String[] loc : inclineList){{
+            logPressureData.add(loc);
+        }}
+    }
+
+    private void setSOGData(){
+        ArrayList<String[]> inclineList = sailLog.getSogDataList();
+        logSOGData.clear();
+        for (String[] loc : inclineList){{
+            logSOGData.add(loc);
+        }}
+    }
+    static private List<String[]> logInclineData = new ArrayList<String[]>();
+    public static void getInclineData(List<String[]> output) {
+        output.addAll(logInclineData);
+    }
+    static private List<String[]> logPressureData = new ArrayList<String[]>();
+    public static void getPressureData(List<String[]> output) {
+        output.addAll(logPressureData);
+    }
+    static private List<String[]> logSOGData = new ArrayList<String[]>();
+    public static void getSOGData(List<String[]> output) {
+        output.addAll(logSOGData);
+    }
     private void showTextViews(){
         TextView maxIncText = (TextView) findViewById(R.id.maxIncText);
         TextView avgIncText = (TextView) findViewById(R.id.avgIncText);
@@ -213,7 +259,12 @@ public class HistoryActivity extends AppCompatActivity {
         topSOGHolder.setText(String.valueOf(sailLog.getTopSOG()));
         avgPressureHolder.setText(String.valueOf(sailLog.getAvgPressure()));
         maxPressureHolder.setText(String.valueOf(sailLog.getMaxPressure()));
+        setInclineData();
+        setSOGData();
+        setPressureData();
     }
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

@@ -15,6 +15,13 @@
     <item android:id="@+id/stop_log"
         android:title="Stop log"
         android:icon="@drawable/stoplog"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item android:id="@+id/boat_connection"
+        android:title="Connected"
+        android:icon="@drawable/pico_disconnected"
+        android:visible="true"
         app:showAsAction="ifRoom" />
 
 </menu>
