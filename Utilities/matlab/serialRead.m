@@ -85,8 +85,14 @@ sensor.gps.pos.direction = data(27);
 sensor.gps.info.satUse = typecast(single(data(28)),'int32');
 sensor.gps.info.satView = typecast(single(data(29)),'int32');
 % Add a timestamp
-[~,~,~,hours,minutes,seconds] = datevec(now);
-sensor.timestamp = uint64(1000*(3600*hours + 60*minutes + seconds));
+sensor.sys.dateTime = datevec(now);
+try
+    % Store time in milliseconds since last update
+    sensor.sys.deltaTime = toc()*1000;
+catch
+    sensor.sys.deltaTime = 0;
+end
+tic();
 % User callback
 callback(sensor);
 end
