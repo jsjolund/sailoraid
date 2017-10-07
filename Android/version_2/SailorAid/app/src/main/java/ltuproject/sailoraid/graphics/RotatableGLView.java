@@ -61,7 +61,7 @@ public class RotatableGLView extends GLSurfaceView {
         //plane.z = 1.7f;
         //plane.rx = -65;
         // Load the texture.
-        plane.loadBitmap(bitmap);
+        plane.loadBitmap(bitmap);   
         // Add the plane to the renderer.
         renderer.addMesh(plane);
     }

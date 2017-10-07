@@ -7,10 +7,45 @@
     android:layout_height="match_parent"
     tools:context="ltuproject.sailoraid.GraphActivity"
     android:background="@color/background">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="Incline"
+        android:gravity="center"
+        android:textSize="12pt"
+        android:id="@+id/graphinclineText"/>
     <com.jjoe64.graphview.GraphView
         android:layout_width="match_parent"
         android:layout_height="200dip"
-        android:id="@+id/graph" />
+        app:layout_constraintTop_toBottomOf="@id/graphinclineText"
+        android:id="@+id/graph_incline" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pressure"
+        app:layout_constraintTop_toBottomOf="@id/graph_incline"
+        android:textSize="12pt"
+        android:gravity="center"
+        android:id="@+id/graphpressureText"/>
+    <com.jjoe64.graphview.GraphView
+        android:layout_width="match_parent"
+        android:layout_height="200dip"
+        app:layout_constraintTop_toBottomOf="@id/graphpressureText"
+        android:id="@+id/graph_pressure" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Speed over ground"
+        android:textSize="12pt"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/graph_pressure"
+        android:id="@+id/graphSOGText"/>
+    <com.jjoe64.graphview.GraphView
+        android:layout_width="match_parent"
+        android:layout_height="200dip"
+        app:layout_constraintTop_toBottomOf="@id/graphSOGText"
+        android:id="@+id/graph_sog" />
 
 
 </android.support.constraint.ConstraintLayout>

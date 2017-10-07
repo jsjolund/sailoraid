@@ -766,12 +766,13 @@ public class FeedbackActivity extends AppCompatActivity {
         Random speedRand = new Random();
         Random compRand = new Random();
 
-        float minLong = 65.4f;
-        float maxLong = 65.5f;
-        float minLatt = 22.5f;
-        float maxLatt = 22.6f;
+        float minLong = -68.4f;
+        float maxLong = 7.3f;
+        float minLatt = -176.29f;
+        float maxLatt = -83.5f;
         float minXSpeed = 0.0f;
         float maxXSpeed = 30.0f;
+        int t = 0;
         for (int i=0;i<3600;i++){
             x = String.valueOf((xRand.nextInt(180)) - 90);
             speed = String.valueOf(speedRand.nextFloat()* (maxXSpeed - minXSpeed) + minXSpeed);
@@ -779,12 +780,16 @@ public class FeedbackActivity extends AppCompatActivity {
             longitude = String.valueOf(longRand.nextFloat() * (maxLong - minLong) +minLong);
             lattitude = String.valueOf(lattRand.nextFloat() * (maxLatt - minLatt) +minLatt);
             compass = String.valueOf(compRand.nextInt(360));
-            time = new SimpleDateFormat("HHmmss").format(new Date());
+            time = String.valueOf(t);
+            t++;
             log.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +compass);
             log.writeToLog(DATA_TYPE_INCLINE +":" +time  +":" +x);
             log.writeToLog(DATA_TYPE_SOG +":" +time  +":" +speed);
             log.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" + pressure);
-            log.writeToLog(DATA_TYPE_POSITION +":" +time  +":" + longitude +":" +lattitude);
+            if (t %100 == 0){
+                log.writeToLog(DATA_TYPE_POSITION +":" +time  +":" + longitude +":" +lattitude);
+            }
+
         }
     }
 }

@@ -28,21 +28,36 @@ public class GraphActivity extends AppCompatActivity {
         List<String[]> inclineList = new ArrayList<String[]>();
         HistoryActivity.getInclineData(inclineList);
         List<String[]> pressureList = new ArrayList<String[]>();
-        HistoryActivity.getInclineData(pressureList);
+        HistoryActivity.getPressureData(pressureList);
         List<String[]> sogList = new ArrayList<String[]>();
-        HistoryActivity.getInclineData(sogList);
+        HistoryActivity.getSOGData(sogList);
 
         populateGraphs(inclineList, pressureList, sogList);
     }
 
     public void populateGraphs(List<String[]> inclineList, List<String[]> pressureList, List<String[]> sogList){
-        GraphView graph = (GraphView) findViewById(R.id.graph);
-
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
+        GraphView graphI = (GraphView) findViewById(R.id.graph_incline);
+        GraphView graphP = (GraphView) findViewById(R.id.graph_pressure);
+        GraphView graphS = (GraphView) findViewById(R.id.graph_sog);
+        LineGraphSeries<DataPoint> seriesIncline = new LineGraphSeries<>();
+        LineGraphSeries<DataPoint> seriesPressure = new LineGraphSeries<>();
+        LineGraphSeries<DataPoint> seriesSOG = new LineGraphSeries<>();
         for (String[] data : inclineList){
-            DataPoint dp = new DataPoint(Float.parseFloat(data[1]), Float.parseFloat(data[2]));
-            series.appendData(dp, true, inclineList.size());
+            DataPoint dp = new DataPoint(Integer.parseInt(data[1]), Integer.parseInt(data[2]));
+            seriesIncline.appendData(dp, true, inclineList.size());
         }
-        graph.addSeries(series);
+
+        for (String[] data : pressureList){
+            DataPoint dp = new DataPoint(Integer.parseInt(data[1]), Integer.parseInt(data[2]));
+            seriesPressure.appendData(dp, true, pressureList.size());
+        }
+
+        for (String[] data : sogList){
+            DataPoint dp = new DataPoint(Float.parseFloat(data[1]), Float.parseFloat(data[2]));
+            seriesSOG.appendData(dp, true, sogList.size());
+        }
+        graphP.addSeries(seriesIncline);
+        graphI.addSeries(seriesPressure);
+        graphS.addSeries(seriesSOG);
     }
 }
