@@ -1,4 +1,17 @@
-- HTS221 humidity and temperature sensor (see page 17 in Docs/X-Nucleo-IKS01A2.pdf)
-- LPS22HB pressure sensor (see page 17 in Docs/X-Nucleo-IKS01A2.pdf)
-- two load cell ADC
-- GPS nRST pin to MCU GPIO
+Rev 2: (X = Done)
+X - HTS221 humidity and temperature sensor (see page 17 in Docs/X-						Nucleo-IKS01A2.pdf)
+X - LPS22HB pressure sensor (see page 17 in Docs/X-Nucleo-IKS01A2.pdf)
+X - two load cell ADC
+X - GPS nRST pin to MCU GPIO
+---------------------------------- edits
+* nRST st to PC0
+* GPS nRST set to PC1
+* Load cell 1 set to PC4
+* Added Load cell 2 set to PC5
+* LPS22HB DRDY set to PB10
+* LPS22HB SA0 set to PB13
+* HTS221 DRDY set to PB25
+* IMU LPS (Pressure) & HTS(Humidity) set to jumper activate;
+	Pulling jumpers will save some power.
+* LSM6DSL separate VDDIO decoupler deleted, shares with VDD.
+* Measurement nodes added

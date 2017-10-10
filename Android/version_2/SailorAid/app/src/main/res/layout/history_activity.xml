@@ -85,7 +85,7 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/maxIncText"
-        android:text="Max Incline: "/>
+        android:text="Max Drift: "/>
     <TextView
         android:id="@+id/maxDriftHolder"
         android:layout_width="wrap_content"
