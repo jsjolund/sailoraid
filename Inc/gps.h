@@ -9,11 +9,14 @@
 #define GPS_H_
 
 #include "main.h"
-#include "nmea/nmea.h"
+#include "state.h"
+#include <nmealib/info.h>
+#include <nmealib/parser.h>
+#include <nmealib/nmath.h>
 #include <string.h>
 
 void GPSinit(void);
-void GPSparse(char *str, int len, nmeaINFO *info);
+void GPSparse(char *str, int len, NmeaInfo *info, GPSstate *gps);
 float NMEAtoGPS(float in_coords);
 
 #endif /* GPS_H_ */

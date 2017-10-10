@@ -1,19 +1,16 @@
 %% Script which logs sensor values from serial port and can plot real-time
 clear -global;
 clear;
-
 %serialPort = 'COM1'; % Windows
-serialPort = '/dev/ttyACM3'; % Linux
-
+serialPort = '/dev/ttyACM0'; % Linux
 realTimePlot();
-
 % Start reading from serial
 serialRead(serialPort, @sensorUpdateCallback);
-
 % Plot from sensor log
 global sensorLog
-imu = [sensorLog.imu];
-plot([sensorLog.timestamp],[imu.az])
+imuLog = [sensorLog.imu];
+timeLog = [sensorLog.sys];
+plot([timeLog.dateTime]./1.0e+04,[imuLog.az])
 fprintf('Program terminated.\n');
     
 %% This callback is run when sensor values are updated
@@ -29,7 +26,7 @@ end
 % Create a figure to plot into
 function realTimePlot()
 global hp step
-nPointsInFigure = 250;  % Number of "sliding points" in your figure
+nPointsInFigure = 300;  % Number of "sliding points" in your figure
 step = 0.01;         % X points spacing
 xVals = linspace(-(nPointsInFigure-1)*step, 0, nPointsInFigure); % Prepare empty data for the plot
 yVals = NaN(nPointsInFigure, 1);

@@ -40,7 +40,6 @@
 								<option id="com.atollic.truestudio.gcc.directories.select.330946435" name="Include path" superClass="com.atollic.truestudio.gcc.directories.select" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../Drivers/STM32F4xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="../Lib/BSP/X-NUCLEO-53L0A1"/>
-									<listOptionValue builtIn="false" value="../Lib/nmealib/src"/>
 									<listOptionValue builtIn="false" value="../Lib/nmealib/include"/>
 									<listOptionValue builtIn="false" value="../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
@@ -117,6 +116,20 @@
 							<tool id="com.atollic.truestudio.ar.base.1186430235" name="Archiver" superClass="com.atollic.truestudio.ar.base"/>
 						</toolChain>
 					</folderInfo>
+					<folderInfo id="com.atollic.truestudio.exe.debug.1518366166.1412496978" name="/" resourcePath="Lib/nmealib/doc">
+						<toolChain id="com.atollic.truestudio.exe.debug.toolchain.1479244347" name="Atollic ARM Tools" superClass="com.atollic.truestudio.exe.debug.toolchain" unusedChildren="">
+							<option id="com.atollic.truestudio.general.runtimelib.937606395.1600789564" name="Runtime Library" superClass="com.atollic.truestudio.general.runtimelib.937606395"/>
+							<option id="com.atollic.truestudio.toolchain_options.mcu.1776217845.1390588529" name="Microcontroller" superClass="com.atollic.truestudio.toolchain_options.mcu.1776217845"/>
+							<option id="com.atollic.truestudio.toolchain_options.vendor.993246712.1946280698" name="Vendor name" superClass="com.atollic.truestudio.toolchain_options.vendor.993246712"/>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.as.1389888008" name="Assembler" superClass="com.atollic.truestudio.exe.debug.toolchain.as.1545899283"/>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.gcc.625603057" name="C Compiler" superClass="com.atollic.truestudio.exe.debug.toolchain.gcc.1836874447"/>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.ld.1052768868" name="C Linker" superClass="com.atollic.truestudio.exe.debug.toolchain.ld.1444973427"/>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.gpp.50668593" name="C++ Compiler" superClass="com.atollic.truestudio.exe.debug.toolchain.gpp.981298185"/>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.ldcc.1123666538" name="C++ Linker" superClass="com.atollic.truestudio.exe.debug.toolchain.ldcc.428260"/>
+							<tool id="com.atollic.truestudio.ar.base.152134170" name="Archiver" superClass="com.atollic.truestudio.ar.base.1186430235"/>
+							<tool id="com.atollic.truestudio.exe.debug.toolchain.secoutput.789678074" name="Other" superClass="com.atollic.truestudio.exe.debug.toolchain.secoutput.839033486"/>
+						</toolChain>
+					</folderInfo>
 					<fileInfo id="com.atollic.truestudio.exe.debug.1518366166.1139903888" name="stm32_bluenrg_ble.h" rcbsApplicability="disable" resourcePath="bluenrg-stack/BSP/X-NUCLEO-IDB0xA1/stm32_bluenrg_ble.h" toolsToInvoke=""/>
 					<folderInfo id="com.atollic.truestudio.exe.debug.1518366166.230890412" name="/" resourcePath="bluenrg-stack/Middlewares/ST/STM32_BlueNRG/Prof_Periph">
 						<toolChain id="com.atollic.truestudio.exe.debug.toolchain.1665569381" name="Atollic ARM Tools" superClass="com.atollic.truestudio.exe.debug.toolchain" unusedChildren="">
@@ -147,8 +160,7 @@
 						<entry excluding="stm32xx_it.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Inc"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Lib/BSP"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Lib/Middlewares"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Lib/nmealib/include"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Lib/nmealib/src"/>
+						<entry excluding="doc|eclipse|samples|test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Lib/nmealib"/>
 						<entry excluding="stm32xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Src"/>
 						<entry excluding="Middlewares/ST/STM32_BlueNRG/Prof_Periph|Middlewares/ST/TimerServer|BSP/STM32F4xx-Nucleo/stm32f4xx_nucleo_bluenrg_dma_lp.h|Middlewares/ST/STM32_BlueNRG/BLE_ANCS_Lib|Middlewares/ST/STM32_BlueNRG/Prof_Periph_Lib|Middlewares/ST/STM32_BlueNRG/Prof_Centr|Middlewares/ST/STM32_BlueNRG/Prof_Centr_Lib|Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/hci/controller/bluenrg_utils_small.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="bluenrg-stack"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="startup"/>

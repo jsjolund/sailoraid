@@ -23,7 +23,7 @@ typedef struct SerialHandle
 
 static SerialHandle usbHandle;
 static SerialHandle gpsHandle;
-static nmeaINFO gpsInfo;
+static NmeaInfo gpsInfo;
 extern SensorState sensor;
 
 static int QueuePut(SerialHandle *h, uint8_t input)
@@ -85,7 +85,7 @@ void SerialInit(UART_HandleTypeDef *usbHuartHandle, UART_HandleTypeDef *gpsHuart
   gpsHandle.huart = gpsHuartHandle;
   gpsHandle.txCplt = 1;
 
-  nmea_zero_INFO(&gpsInfo);
+  nmeaInfoClear(&gpsInfo);
 
   // Initiate automatic receive through DMA one character at a time
   HAL_UART_Receive_DMA(usbHandle.huart, &usbHandle.rxBuffer, sizeof(usbHandle.rxBuffer));
@@ -197,21 +197,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
     {
       h->rxString[h->rxIndex++] = '\r';
       h->rxString[h->rxIndex++] = '\n';
-      GPSparse(row, strlen(row), &gpsInfo);
-      sensor.gps.time.year = gpsInfo.utc.year + 1900;
-      sensor.gps.time.month = gpsInfo.utc.mon + 1;
-      sensor.gps.time.day = gpsInfo.utc.day;
-      sensor.gps.time.hour = gpsInfo.utc.hour;
-      sensor.gps.time.min = gpsInfo.utc.min;
-      sensor.gps.time.sec = gpsInfo.utc.sec;
-      sensor.gps.time.hsec = gpsInfo.utc.hsec;
-      sensor.gps.pos.elevation = gpsInfo.elv;
-      sensor.gps.pos.latitude = NMEAtoGPS(gpsInfo.lat);
-      sensor.gps.pos.longitude = NMEAtoGPS(gpsInfo.lon);
-      sensor.gps.info.satUse = gpsInfo.satinfo.inuse;
-      sensor.gps.info.satView = gpsInfo.satinfo.inview;
-      sensor.gps.pos.speed = gpsInfo.speed;
-      sensor.gps.pos.direction = gpsInfo.direction;
+      GPSparse(row, strlen(row), &gpsInfo, &sensor.gps);
     }
     else if (h == &usbHandle)
     {

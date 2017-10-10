@@ -19,14 +19,32 @@ void GPSinit(void)
   HAL_GPIO_WritePin(GPS_ON_OFF_GPIO_Port, GPS_ON_OFF_Pin, GPIO_PIN_RESET);
 }
 
-void GPSparse(char *str, int len, nmeaINFO *info)
+void GPSparse(char *str, int len, NmeaInfo *info, GPSstate *gps)
 {
-  nmeaPARSER parser;
-//  nmea_zero_INFO(&info);
-  nmea_parser_init(&parser);
-  nmea_parse(&parser, str, len, info);
-  nmea_parser_buff_clear(&parser);
-  nmea_parser_destroy(&parser);
+  NmeaParser parser;
+  NmeaPosition dpos;
+
+  nmeaParserInit(&parser, 0);
+
+  nmeaParserParse(&parser, str, len, info);
+  nmeaMathInfoToPosition(info, &dpos);
+
+  nmeaParserDestroy(&parser);
+
+  gps->time.year = info->utc.year;
+  gps->time.month = info->utc.mon;
+  gps->time.day = info->utc.day;
+  gps->time.hour = info->utc.hour;
+  gps->time.min = info->utc.min;
+  gps->time.sec = info->utc.sec;
+  gps->time.hsec = info->utc.hsec;
+  gps->pos.elevation = info->elevation;
+  gps->pos.latitude = dpos.lat;
+  gps->pos.longitude = dpos.lon;
+  gps->info.satUse = info->satellites.inUseCount;
+  gps->info.satView = info->satellites.inViewCount;
+  gps->pos.speed = info->speed;
+  gps->pos.direction = info->track;
 }
 
 float NMEAtoGPS(float in_coords)

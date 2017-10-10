@@ -163,7 +163,7 @@ tBleStatus Orientation_Update(AxesRaw_t *data)
 
   if (ret != BLE_STATUS_SUCCESS)
   {
-    printf("Error while updating ACC characteristic.\n");
+    printf("Error while updating ORIENT characteristic.\n");
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
@@ -407,41 +407,38 @@ void Read_Request_CB(uint16_t handle)
 
   if (handle == orientCharHandle + 1)
   {
-    EUL_Value.AXIS_X = *((i32_t*) (&sensor.imu.roll));
-    EUL_Value.AXIS_Y = *((i32_t*) (&sensor.imu.pitch));
-    EUL_Value.AXIS_Z = *((i32_t*) (&sensor.imu.yaw));
+    i32_t* x = (i32_t*) &sensor.imu.roll;
+    i32_t* y = (i32_t*) &sensor.imu.pitch;
+    i32_t* z = (i32_t*) (&sensor.imu.yaw);
+    EUL_Value.AXIS_X = *x;
+    EUL_Value.AXIS_Y = *y;
+    EUL_Value.AXIS_Z = *z;
     Orientation_Update(&EUL_Value);
   }
   else if (handle == gpsCharHandle + 1)
   {
-    GPS_Value.AXIS_X = *((i32_t*) (&sensor.gps.pos.longitude));
-    GPS_Value.AXIS_Y = *((i32_t*) (&sensor.gps.pos.latitude));
-    GPS_Value.AXIS_Z = *((i32_t*) (&sensor.gps.pos.elevation));
+    i32_t* x = (i32_t*) &sensor.gps.pos.longitude;
+    i32_t* y = (i32_t*) &sensor.gps.pos.latitude;
+    i32_t* z = (i32_t*) &sensor.gps.pos.elevation;
+    GPS_Value.AXIS_X = *x;
+    GPS_Value.AXIS_Y = *y;
+    GPS_Value.AXIS_Z = *z;
     GPS_Update(&GPS_Value);
   }
   else if (handle == tempCharHandle + 1)
   {
-    EUL_Value.AXIS_X = *((i32_t*) (&sensor.imu.roll));
-    EUL_Value.AXIS_Y = *((i32_t*) (&sensor.imu.pitch));
-    EUL_Value.AXIS_Z = *((i32_t*) (&sensor.imu.yaw));
-    Orientation_Update(&EUL_Value);
-    Temp_Update(*((i32_t*) (&sensor.env.temperature)));
+    i32_t* v = (i32_t*) &sensor.env.temperature;
+    Temp_Update(*v);
   }
   else if (handle == pressCharHandle + 1)
   {
-    EUL_Value.AXIS_X = *((i32_t*) (&sensor.imu.roll));
-    EUL_Value.AXIS_Y = *((i32_t*) (&sensor.imu.pitch));
-    EUL_Value.AXIS_Z = *((i32_t*) (&sensor.imu.yaw));
-    Orientation_Update(&EUL_Value);
-    Press_Update(*((i32_t*) (&sensor.env.pressure)));
+    i32_t* v = (i32_t*) &sensor.env.pressure;
+    Press_Update(*v);
   }
   else if (handle == humidityCharHandle + 1)
   {
-    EUL_Value.AXIS_X = *((i32_t*) (&sensor.imu.roll));
-    EUL_Value.AXIS_Y = *((i32_t*) (&sensor.imu.pitch));
-    EUL_Value.AXIS_Z = *((i32_t*) (&sensor.imu.yaw));
-    Orientation_Update(&EUL_Value);
-    Humidity_Update(*((i32_t*) (&sensor.env.humidity)));
+    i32_t* v = (i32_t*) &sensor.env.humidity;
+    Humidity_Update(*v);
   }
 
   //EXIT:

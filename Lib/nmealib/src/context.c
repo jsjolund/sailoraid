@@ -1,67 +1,134 @@
 /*
+ * This file is part of nmealib.
  *
- * NMEA library
- * URL: http://nmea.sourceforge.net
- * Author: Tim (xtimor@gmail.com)
- * Licence: http://www.gnu.org/licenses/lgpl.html
- * $Id: context.c 17 2008-03-11 11:56:11Z xtimor $
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "nmea/context.h"
+#include <nmealib/context.h>
 
-#include <string.h>
+#include <nmealib/util.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-nmeaPROPERTY * nmea_property()
-{
-    static nmeaPROPERTY prop = {
-        0, 0, NMEA_DEF_PARSEBUFF
-        };
+/**
+ * The structure with the nmealib context.
+ */
+typedef struct _NmeaContext {
+  volatile NmeaContextPrintFunction traceFunction;
+  volatile NmeaContextPrintFunction errorFunction;
+} NmeaContext;
 
-    return &prop;
+/** The nmealib context */
+static NmeaContext nmealibContext = {
+    .traceFunction = NULL,
+    .errorFunction = NULL };
+
+NmeaContextPrintFunction nmeaContextSetTraceFunction(NmeaContextPrintFunction traceFunction) {
+  NmeaContextPrintFunction r = nmealibContext.traceFunction;
+  nmealibContext.traceFunction = traceFunction;
+  return r;
 }
 
-void nmea_trace(const char *str, ...)
-{
-    int size;
-    va_list arg_list;
-    char buff[NMEA_DEF_PARSEBUFF];
-    nmeaTraceFunc func = nmea_property()->trace_func;
+NmeaContextPrintFunction nmeaContextSetErrorFunction(NmeaContextPrintFunction errorFunction) {
+  NmeaContextPrintFunction r = nmealibContext.errorFunction;
+  nmealibContext.errorFunction = errorFunction;
+  return r;
+}
 
-    if(func)
-    {
-        va_start(arg_list, str);
-        size = NMEA_POSIX(vsnprintf)(&buff[0], NMEA_DEF_PARSEBUFF - 1, str, arg_list);
-        va_end(arg_list);
+void nmeaContextTraceBuffer(const char *s, size_t sz) {
+  NmeaContextPrintFunction f = nmealibContext.traceFunction;
+  if (f && s && sz) {
+    (*f)(s, sz);
+  }
+}
 
-        if(size > 0)
-            (*func)(&buff[0], size);
+#define nmeaContextBufferEnlarge(buf, sz) { \
+  if (!(buf = realloc(buf, sz))) { \
+    /* can't be covered in a test */ \
+    goto out; \
+  } \
+}
+
+void nmeaContextTrace(const char *s, ...) {
+  NmeaContextPrintFunction f = nmealibContext.traceFunction;
+  if (s && f) {
+    va_list args;
+    va_list argsCopy;
+    char *buf = NULL;
+    size_t bufSz = NMEALIB_BUFFER_CHUNK_SIZE;
+    int printedChars;
+
+    va_start(args, s);
+    va_copy(argsCopy, args);
+
+    nmeaContextBufferEnlarge(buf, bufSz);
+    buf[0] = '\0';
+
+    printedChars = vsnprintf(buf, bufSz, s, args);
+    if (printedChars <= 0) {
+      goto out;
     }
-}
-
-void nmea_trace_buff(const char *buff, int buff_size)
-{
-    nmeaTraceFunc func = nmea_property()->trace_func;
-    if(func && buff_size)
-        (*func)(buff, buff_size);
-}
-
-void nmea_error(const char *str, ...)
-{
-    int size;
-    va_list arg_list;
-    char buff[NMEA_DEF_PARSEBUFF];
-    nmeaErrorFunc func = nmea_property()->error_func;
-
-    if(func)
-    {
-        va_start(arg_list, str);
-        size = NMEA_POSIX(vsnprintf)(&buff[0], NMEA_DEF_PARSEBUFF - 1, str, arg_list);
-        va_end(arg_list);
-
-        if(size > 0)
-            (*func)(&buff[0], size);
+    if ((size_t) printedChars >= bufSz) {
+      bufSz = (size_t) printedChars + 1;
+      nmeaContextBufferEnlarge(buf, bufSz);
+      printedChars = vsnprintf(buf, bufSz, s, argsCopy);
     }
+
+    buf[bufSz - 1] = '\0';
+
+    (*f)(buf, (size_t) printedChars);
+
+out:
+    va_end(argsCopy);
+    va_end(args);
+    free(buf);
+  }
+}
+
+void nmeaContextError(const char *s, ...) {
+  NmeaContextPrintFunction f = nmealibContext.errorFunction;
+  if (s && f) {
+    va_list args;
+    va_list argsCopy;
+    char *buf = NULL;
+    size_t bufSz = NMEALIB_BUFFER_CHUNK_SIZE;
+    int printedChars;
+
+    va_start(args, s);
+    va_copy(argsCopy, args);
+
+    nmeaContextBufferEnlarge(buf, bufSz);
+    buf[0] = '\0';
+
+    printedChars = vsnprintf(buf, bufSz, s, args);
+    if (printedChars <= 0) {
+      goto out;
+    }
+    if ((size_t) printedChars >= bufSz) {
+      bufSz = (size_t) printedChars + 1;
+      nmeaContextBufferEnlarge(buf, bufSz);
+      printedChars = vsnprintf(buf, bufSz, s, argsCopy);
+    }
+
+    buf[bufSz - 1] = '\0';
+
+    (*f)(buf, (size_t) printedChars);
+
+out:
+    va_end(argsCopy);
+    va_end(args);
+    free(buf);
+  }
 }

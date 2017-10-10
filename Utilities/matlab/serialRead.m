@@ -20,6 +20,7 @@ if (s.Status == 'closed')
     s.Timeout = 2;
     % Open the serial connection
     fprintf('Opening connection...\n')
+    fprintf('Press Ctrl+C to stop recording...\n')
     fopen(s);
     pause(1);
     % Start the sensor value stream
