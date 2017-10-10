@@ -1,22 +1,35 @@
 %% Script which logs sensor values from serial port and can plot real-time
+% Press Ctrl+C in the Command Window to stop reading and recording.
+
 clear -global;
 clear;
 %serialPort = 'COM1'; % Windows
 serialPort = '/dev/ttyACM0'; % Linux
-realTimePlot();
+
+% Can be removed for faster logging
+% realTimePlot();
+
 % Start reading from serial
 serialRead(serialPort, @sensorUpdateCallback);
+
 % Plot from sensor log
 global sensorLog
 imuLog = [sensorLog.imu];
 timeLog = [sensorLog.sys];
-plot([timeLog.dateTime]./1.0e+04,[imuLog.az])
+plot([timeLog.absTime],[imuLog.az])
 fprintf('Program terminated.\n');
     
 %% This callback is run when sensor values are updated
 function sensorUpdateCallback(sensor)
 global hp sensorLog
 sensorLog = [sensorLog, sensor];
+sensorLog(1).sys.deltaTime = 0;
+sensorLog(1).sys.absTime = 0;
+l = length(sensorLog);
+if l > 1
+    sensorLog(l).sys.absTime = sensorLog(l).sys.deltaTime + sensorLog(l-1).sys.absTime;
+end
+
 if ishghandle(hp)
     realTimePlotUpdate(sensor);
 end
