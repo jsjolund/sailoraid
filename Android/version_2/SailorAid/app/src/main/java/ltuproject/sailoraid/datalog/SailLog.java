@@ -50,12 +50,17 @@ public class SailLog {
     private ArrayList<String[]> compassDataList;
     private ArrayList<String[]> pressureDataList;
     private ArrayList<String[]> sogDataList;
-    private int avgIncline, maxIncline, avgDrift, totalDrift, avgPressure, maxPressure;
-    private float avgSOG, topSOG;
+    private ArrayList<String[]> tempDataList;
+    private ArrayList<String[]> humDataList;
+    private float avgIncline, maxIncline;
+    private int avgDrift, totalDrift;
+    private float avgSOG, topSOG, avgPressure, maxPressure;
+    private boolean isLoggin;
 
     public SailLog(Context context){
         fileName = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date()) +".txt";
         this.context = context;
+        isLoggin = true;
     }
     public SailLog(Context context, String fileName){
         this.fileName = fileName;
@@ -65,6 +70,9 @@ public class SailLog {
         compassDataList = new ArrayList<String[]>();
         pressureDataList = new ArrayList<String[]>();
         sogDataList = new ArrayList<String[]>();
+        tempDataList = new ArrayList<String[]>();
+        humDataList = new ArrayList<String[]>();
+        isLoggin = false;
     }
 
     public void initLogData(){
@@ -116,6 +124,9 @@ public class SailLog {
         }
     }
 
+    public void finalizeLog(){
+        isLoggin = false;
+    }
     public void readLog(){
         String data;
             /* Reads from the text file */
@@ -137,6 +148,10 @@ public class SailLog {
                     posDataList.add(splitLines);
                 } else if (type.equals(DATA_TYPE_SOG)){
                     sogDataList.add(splitLines);
+                } else if (type.equals(DATA_TYPE_TEMPERATURE)){
+                    tempDataList.add(splitLines);
+                } else if (type.equals(DATA_TYPE_HUMIDITY)){
+                    humDataList.add(splitLines);
                 }
             }
             br.close();
@@ -157,16 +172,15 @@ public class SailLog {
         return imuDataList;
     }
     private void calcIMUData(){
-        int total = 0;
-        int max = 0;
+        float total = 0;
+        float max = 0;
         for (String[] data : imuDataList){
-            int x = Integer.parseInt(data[2]);
+            float x = Float.parseFloat(data[2]);
             total += x;
             if (abs(x) > abs(max)){
                 max = x;
             }
         }
-
         if (imuDataList.isEmpty()){
             this.avgIncline = 0;
         } else{
@@ -187,16 +201,16 @@ public class SailLog {
     public int getTotalDrift(){
         return totalDrift;
     }
-    public int getMaxIncline(){
+    public float getMaxIncline(){
         return maxIncline;
     }
-    public int getAvgIncline(){
+    public float getAvgIncline(){
         return avgIncline;
     }
-    public int getAvgPressure(){
+    public float getAvgPressure(){
         return avgPressure;
     }
-    public int getMaxPressure(){
+    public float getMaxPressure(){
         return maxPressure;
     }
 
@@ -219,10 +233,10 @@ public class SailLog {
     }
 
     private void calcPressureData(){
-        int total = 0;
-        int max = 0;
+        float total = 0;
+        float max = 0;
         for (String[] data : pressureDataList){
-            int x = Integer.parseInt(data[2]);
+            float x = Float.parseFloat(data[2]);
             total += x;
             if (abs(x) > abs(max)){
                 max = x;
@@ -244,5 +258,15 @@ public class SailLog {
     }
     public ArrayList<String[]> getSogDataList(){
         return sogDataList;
+    }
+    public ArrayList<String[]> getTempDataList(){
+        return tempDataList;
+    }
+    public ArrayList<String[]> getHumDataList(){
+        return humDataList;
+    }
+
+    public Boolean isLogging(){
+        return isLoggin;
     }
 }

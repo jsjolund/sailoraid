@@ -51,6 +51,8 @@ public class HistoryActivity extends AppCompatActivity {
     private ArrayList<String[]> compassDataList;
     private ArrayList<String[]> pressureDataList;
     private ArrayList<String[]> sogDataList;
+    private ArrayList<String[]> tempDataList;
+    private ArrayList<String[]> humDataList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -204,9 +206,20 @@ public class HistoryActivity extends AppCompatActivity {
     private void setSOGData(){
         ArrayList<String[]> inclineList = sailLog.getSogDataList();
         logSOGData.clear();
-        for (String[] loc : inclineList){{
-            logSOGData.add(loc);
-        }}
+        if (inclineList.size() > 0){
+            for (String[] loc : inclineList){{
+                logSOGData.add(loc);
+            }}
+        }
+    }
+    private void setCompassData(){
+        ArrayList<String[]> inclineList = sailLog.getCompassDataList();
+        logCompassData.clear();
+        if (inclineList.size() > 0){
+            for (String[] loc : inclineList){{
+                logCompassData.add(loc);
+            }}
+        }
     }
     static private List<String[]> logInclineData = new ArrayList<String[]>();
     public static void getInclineData(List<String[]> output) {
@@ -220,6 +233,19 @@ public class HistoryActivity extends AppCompatActivity {
     public static void getSOGData(List<String[]> output) {
         output.addAll(logSOGData);
     }
+    static private List<String[]> logCompassData = new ArrayList<String[]>();
+    public static void getCompassData(List<String[]> output) {
+        output.addAll(logCompassData);
+    }
+    static private List<String[]> logHumData = new ArrayList<String[]>();
+    public static void getHumData(List<String[]> output) {
+        output.addAll(logHumData);
+    }
+    static private List<String[]> logTempData = new ArrayList<String[]>();
+    public static void getTempData(List<String[]> output) {
+        output.addAll(logTempData);
+    }
+
     private void showTextViews(){
         TextView maxIncText = (TextView) findViewById(R.id.maxIncText);
         TextView avgIncText = (TextView) findViewById(R.id.avgIncText);
@@ -262,6 +288,7 @@ public class HistoryActivity extends AppCompatActivity {
         setInclineData();
         setSOGData();
         setPressureData();
+        setCompassData();
     }
 
 

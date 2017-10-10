@@ -145,7 +145,7 @@ public class FeedbackActivity extends AppCompatActivity {
         setContentView(R.layout.feedback_activity);
 
         btnMap = (Button) findViewById(R.id.mapviewbtn);
-
+        log = null;
         initFilter();
         initBTConn();
         displayDynamicPics();
@@ -245,13 +245,14 @@ public class FeedbackActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Simulated Logging started!", Toast.LENGTH_SHORT).show();
                     log = new SailLog(this);
                     log.initLogData();
-                    writeCrapToLog();
+                    //writeCrapToLog();
                     //log.writeToLog("Yoyo");
                     logging = true;
                     Toast.makeText(getApplicationContext(), "Logging finished!", Toast.LENGTH_SHORT).show();
                     item.setIcon(getDrawable(R.drawable.loggo));
                 } else{
                     item.setIcon(getDrawable(R.drawable.loggo));
+                    log.finalizeLog();
                     logging = false;
                 }
                 // User chose the "Settings" item, show the app settings UI...
@@ -619,6 +620,7 @@ public class FeedbackActivity extends AppCompatActivity {
 
     private void displayData(String data, String dataType) {
         if (data != null) {
+            String time = new SimpleDateFormat("HHmmssSSS").format(new Date());
             if(dataType.equals(DATA_TYPE_INCLINE)){
                 // Get Roll, pitch and yaw
                 String[] accelerometer = data.split(":");
@@ -631,6 +633,14 @@ public class FeedbackActivity extends AppCompatActivity {
                 mInclineBoatView.rotateGl((int) this.x);
                 // Rotates compass with pitch
                 mCompassView.rotateGl((int) this.z);
+                if(log != null){
+                    if (log.isLogging()){
+                        log.writeToLog(DATA_TYPE_INCLINE +":" +time  +":" +x);
+                        log.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +z);
+                    }
+
+                }
+
                 // Rotates Boat bearing with Yaw
                 //mCompassView.rotateGl2(this.z);
                 // Use pitch for testing drifting feedback
@@ -646,17 +656,16 @@ public class FeedbackActivity extends AppCompatActivity {
                     mRightDriftView.resizeGL(DRIFT_ARROW_SCALE_X*(-this.y/15), DRIFT_ARROW_SCALE_Y);
                     mRightDriftView.moveGL(-DRIFT_ARROW_CENTER-this.y/90, 0);
                 }
-
-
-
-
-                //mInclineBoatView.requestRender();
-                //mCompassView.requestRender();
                 setTiltText(this.x);
             }
             else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
                 data = data.replace(',', '.');
                 setTempText(Float.parseFloat(data));
+                if (log != null){
+                    if (log.isLogging()){
+                        log.writeToLog(DATA_TYPE_TEMPERATURE +":" +time +":" +data);
+                    }
+                }
             }
             else if(dataType.equals(DATA_TYPE_PRESSURE)){
                 data = data.replace(',', '.');
@@ -668,6 +677,11 @@ public class FeedbackActivity extends AppCompatActivity {
                     No calibration made
                 */
                 mPressureNeedleView.moveGL(0, pressure/1000 - 1.01325f);
+                if (log != null){
+                    if (log.isLogging()){
+                        log.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" + pressure);
+                    }
+                }
 
               //  mPressureNeedleView.requestRender();
             }
@@ -677,6 +691,11 @@ public class FeedbackActivity extends AppCompatActivity {
             else if(dataType.equals(DATA_TYPE_HUMIDITY)){
                 data = data.replace(',', '.');
                 setHumText(Float.parseFloat(data));
+                if(log != null) {
+                    if (log.isLogging()){
+                        log.writeToLog(DATA_TYPE_HUMIDITY + ":" + time + ":" + data);
+                    }
+                }
             }
             else if(dataType.equals("Heart")){
                 this.y = Byte.parseByte(data);
@@ -690,17 +709,26 @@ public class FeedbackActivity extends AppCompatActivity {
                 float elevation = Float.parseFloat(pos[2]);
                 if (latitude != 0f && longitude != 0f) {
                     travelRoute.add(new LatLng(latitude, longitude));
+                    if(log != null) {
+                        if (log.isLogging()){
+                            log.writeToLog(DATA_TYPE_POSITION + ":" + time + ":" + longitude + ":" + latitude);
+                        }
+                    }
                 }
 
             }
             else if (dataType.equals(DATA_TYPE_COMPASS)){
                 //String[] accelerometer = data.split(":");
-
+                data = data.replace(',', '.');
                 this.z = Float.parseFloat(data);
 
                 // Rotates Boat bearing with Yaw
                 mCompassView.rotateGl2(this.z);
-
+                if(log != null) {
+                    if (log.isLogging()){
+                        log.writeToLog(DATA_TYPE_COMPASS + ":" + time + ":" + z);
+                    }
+                }
                // mCompassView.requestRender();
             }
         }
@@ -757,7 +785,7 @@ public class FeedbackActivity extends AppCompatActivity {
         String speed = "";
         String pressure = "";
         String longitude = "";
-        String lattitude = "";
+        String latitude = "";
         String compass = "";
         Random xRand = new Random();
         Random pressureRand = new Random();
@@ -778,7 +806,7 @@ public class FeedbackActivity extends AppCompatActivity {
             speed = String.valueOf(speedRand.nextFloat()* (maxXSpeed - minXSpeed) + minXSpeed);
             pressure = String.valueOf((pressureRand.nextInt(500)) +750);
             longitude = String.valueOf(longRand.nextFloat() * (maxLong - minLong) +minLong);
-            lattitude = String.valueOf(lattRand.nextFloat() * (maxLatt - minLatt) +minLatt);
+            latitude = String.valueOf(lattRand.nextFloat() * (maxLatt - minLatt) +minLatt);
             compass = String.valueOf(compRand.nextInt(360));
             time = String.valueOf(t);
             t++;
@@ -787,7 +815,7 @@ public class FeedbackActivity extends AppCompatActivity {
             log.writeToLog(DATA_TYPE_SOG +":" +time  +":" +speed);
             log.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" + pressure);
             if (t %100 == 0){
-                log.writeToLog(DATA_TYPE_POSITION +":" +time  +":" + longitude +":" +lattitude);
+                log.writeToLog(DATA_TYPE_POSITION +":" +time  +":" + longitude +":" +latitude);
             }
 
         }
