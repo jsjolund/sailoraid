@@ -39,19 +39,11 @@ void GPSparse(char *str, int len, NmeaInfo *info, GPSstate *gps)
   gps->time.sec = info->utc.sec;
   gps->time.hsec = info->utc.hsec;
   gps->pos.elevation = info->elevation;
-  gps->pos.latitude = dpos.lat;
-  gps->pos.longitude = dpos.lon;
+  gps->pos.latitude = nmeaMathRadianToDegree(dpos.lat);
+  gps->pos.longitude = nmeaMathRadianToDegree(dpos.lon);
   gps->info.satUse = info->satellites.inUseCount;
   gps->info.satView = info->satellites.inViewCount;
   gps->pos.speed = info->speed;
   gps->pos.direction = info->track;
 }
 
-float NMEAtoGPS(float in_coords)
-{
-  float f = in_coords;
-  int firsttwodigits = ((int) f) / 100; //This assumes that f < 10000.
-  float nexttwodigits = f - (float) (firsttwodigits * 100);
-  float theFinalAnswer = (float) (firsttwodigits + nexttwodigits / 60.0);
-  return theFinalAnswer;
-}

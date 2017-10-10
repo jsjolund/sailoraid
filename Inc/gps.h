@@ -17,6 +17,5 @@
 
 void GPSinit(void);
 void GPSparse(char *str, int len, NmeaInfo *info, GPSstate *gps);
-float NMEAtoGPS(float in_coords);
 
 #endif /* GPS_H_ */
