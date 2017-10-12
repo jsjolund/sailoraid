@@ -20,7 +20,8 @@ if (s.Status == 'closed')
     s.Timeout = 2;
     % Open the serial connection
     fprintf('Opening connection...\n')
-    fprintf('Press Ctrl+C to stop recording...\n')
+    fprintf('Press Ctrl+C to stop recording.\n')
+    tic();
     fopen(s);
     pause(1);
     % Start the sensor value stream
@@ -53,6 +54,7 @@ if ~isnan(data(30))
             break;
         end
     end
+    fprintf('Recording.');
     return;
 end
 % Store in struct with fields
@@ -87,13 +89,17 @@ sensor.gps.info.satUse = typecast(single(data(28)),'int32');
 sensor.gps.info.satView = typecast(single(data(29)),'int32');
 % Add a timestamp
 sensor.sys.dateTime = datevec(now);
-try
-    % Store time in milliseconds since last update
-    sensor.sys.deltaTime = toc()*1000;
-catch
-    sensor.sys.deltaTime = 0;
-end
+% Store time in milliseconds since last update
+sensor.sys.deltaTime = toc()*1000;
 tic();
+% Absolute time in ms
+global absTime
+if isempty(absTime)
+absTime = 0;
+end
+absTime = absTime + sensor.sys.deltaTime;
+sensor.sys.absTime = absTime;
+
 % User callback
 callback(sensor);
 end
