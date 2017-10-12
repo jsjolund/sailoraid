@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="ltuproject.sailoraid.FeedbackActivity">
+
+    <!-- "Mark Favorite", should appear as action button if possible -->
+    <item
+        android:id="@+id/start_log"
+        android:icon="@drawable/log"
+        android:title="Log"
+        app:showAsAction="ifRoom"/>
+
+    <!-- Settings, should always be in the overflow -->
+    <item android:id="@+id/stop_log"
+        android:title="Stop log"
+        android:icon="@drawable/stoplog"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item android:id="@+id/boat_connection"
+        android:title="Connected"
+        android:icon="@drawable/pico_disconnected"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+
+</menu>
