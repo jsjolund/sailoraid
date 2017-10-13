@@ -48,6 +48,7 @@
 #include "serial.h"
 #include "MadgwickAHRS.h"
 #include "state.h"
+#include "range.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -259,7 +260,15 @@ int main(void)
   GPSinit();
 
   /* IMU */
-  InitIMU();
+  IMUinit();
+
+  /* Range */
+//  VL53L0X_Dev_t VL53L0XDev = { .Id = 0, .DevLetter = 'l', .I2cHandle = &hi2c1, .I2cDevAddr = 0x52 };
+//  Range_Sensor_Init(&VL53L0XDev);
+//  RangingConfig_e rangingConfig = LONG_RANGE;
+//  Range_Sensor_Setup_Single_Shot(&VL53L0XDev, rangingConfig);
+//  VL53L0X_RangingMeasurementData_t rangingMeasurementData;
+//  int printRangeSensor = 0;
 
   // Start the timer and calculate update periods
   HAL_TIM_Base_Init(&htim2);
@@ -278,6 +287,28 @@ int main(void)
     HCI_Process();
     User_Process();
 
+//    if (printRangeSensor)
+//    {
+//      /* Call All-In-One blocking API function */
+//      int status = VL53L0X_PerformSingleRangingMeasurement(&VL53L0XDev, &rangingMeasurementData);
+//      if (status == 0)
+//      {
+//        /* Push data logging to UART */
+//        printf("%d,%d,%d,%d\n", VL53L0XDev.Id, rangingMeasurementData.RangeStatus, rangingMeasurementData.RangeMilliMeter,
+//            rangingMeasurementData.SignalRateRtnMegaCps);
+//
+//        Range_Sensor_Set_New_Range(&VL53L0XDev, &rangingMeasurementData);
+//        /* Display distance in cm */
+//        if (rangingMeasurementData.RangeStatus == 0)
+//        {
+//          printf("%3dc\n", (int) VL53L0XDev.LeakyRange / 10);
+//        }
+//        else
+//        {
+//          printf("----\n");
+//        }
+//      }
+//    }
     /*** INPUTS ***/
     if (taskTimeout(&imuSampleTask, &htim2))
     {
@@ -357,10 +388,10 @@ int main(void)
     if (matlabEcho && taskTimeout(&usbMatlabOutputTask, &htim2))
     {
       HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
-      SerialUsbTransmit((char*)&sensor, sizeof(sensor));
+      SerialUsbTransmit((char*) &sensor, sizeof(sensor));
       HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
-      char sync[] = {0xff, 0xff, 0xff, 0xff};
-      SerialUsbTransmit(sync,4);
+      char sync[] = { 0xff, 0xff, 0xff, 0xff };
+      SerialUsbTransmit(sync, 4);
     }
   }
   /* USER CODE END 3 */

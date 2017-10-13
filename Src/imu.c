@@ -133,7 +133,7 @@ void Temperature_Sensor_Handler(float *TEMPERATURE_Value)
  * @param  None
  * @retval None
  */
-void InitIMU(void)
+void IMUinit(void)
 {
   /* Try to use automatic discovery. By default use LSM6DSL on board */
   BSP_ACCELERO_Init(ACCELERO_SENSORS_AUTO, &ACCELERO_handle);
