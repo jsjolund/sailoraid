@@ -3,7 +3,7 @@
 clear -global;
 clear;
 %serialPort = 'COM1'; % Windows
-serialPort = '/dev/ttyACM3'; % Linux
+serialPort = '/dev/ttyACM0'; % Linux
 
 % Can be removed for faster logging
 % realTimePlot();
@@ -12,12 +12,12 @@ serialPort = '/dev/ttyACM3'; % Linux
 serialRead(serialPort, @sensorUpdateCallback);
 
 % Plot from sensor log after serial read stopped
-% global sensorLog
+global sensorLog
 % imuLog = [sensorLog.imu];
 % timeLog = [sensorLog.sys];
 % plot([timeLog.absTime],[imuLog.az])
 fprintf('Program terminated.\n');
-    
+
 %% This callback is run when sensor values are updated
 function sensorUpdateCallback(sensor)
 global hp sensorLog
@@ -34,12 +34,16 @@ end
 % Create a figure to plot into
 function realTimePlot()
 global hp step
-nPointsInFigure = 300;  % Number of "sliding points" in your figure
-step = 0.01;         % X points spacing
-xVals = linspace(-(nPointsInFigure-1)*step, 0, nPointsInFigure); % Prepare empty data for the plot
+% Number of "sliding points" in your figure
+nPointsInFigure = 300;
+% X points spacing
+step = 0.01;
+% Prepare empty data for the plot
+xVals = linspace(-(nPointsInFigure-1)*step, 0, nPointsInFigure);
 yVals = NaN(nPointsInFigure, 1);
 figure(1);
-hp = plot(xVals , yVals); % Generate the plot (with empty data) it will be passed to the callback.
+% Generate the plot (with empty data) it will be passed to the callback.
+hp = plot(xVals , yVals);
 ylim([-3 3]);
 end
 
