@@ -16,6 +16,6 @@
 #include <string.h>
 
 void GPSinit(void);
-void GPSparse(char *str, int len, NmeaInfo *info, GPSstate *gps);
+void GPSparse(char *str, int len, NmeaInfo *info, GPSstate_t *gps);
 
 #endif /* GPS_H_ */

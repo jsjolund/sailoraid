@@ -19,7 +19,7 @@ void GPSinit(void)
   HAL_GPIO_WritePin(GPS_ON_OFF_GPIO_Port, GPS_ON_OFF_Pin, GPIO_PIN_RESET);
 }
 
-void GPSparse(char *str, int len, NmeaInfo *info, GPSstate *gps)
+void GPSparse(char *str, int len, NmeaInfo *info, GPSstate_t *gps)
 {
   NmeaParser parser;
   NmeaPosition dpos;

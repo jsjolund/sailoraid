@@ -45,6 +45,10 @@ static int LeakyFactorFix8 = (int) (0.6 * 256);
  */
 void Range_Sensor_Init(VL53L0X_Dev_t *VL53L0XDev)
 {
+  HAL_GPIO_WritePin(RANGE_SHDN_GPIO_Port, RANGE_SHDN_Pin, GPIO_PIN_RESET);
+  HAL_Delay(10);
+  HAL_GPIO_WritePin(RANGE_SHDN_GPIO_Port, RANGE_SHDN_Pin, GPIO_PIN_SET);
+
   uint16_t Id;
   int status;
   int FinalAddress;

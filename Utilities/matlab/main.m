@@ -3,7 +3,7 @@
 clear -global;
 clear;
 %serialPort = 'COM1'; % Windows
-serialPort = '/dev/ttyACM0'; % Linux
+serialPort = '/dev/ttyACM3'; % Linux
 
 % Can be removed for faster logging
 % realTimePlot();
@@ -44,7 +44,7 @@ yVals = NaN(nPointsInFigure, 1);
 figure(1);
 % Generate the plot (with empty data) it will be passed to the callback.
 hp = plot(xVals , yVals);
-ylim([-3 3]);
+ylim([-100 100]);
 end
 
 % Update the plot by circle shifting the values as needed
@@ -53,7 +53,7 @@ global hp step
 xVals = get(hp,'XData');
 yVals = get(hp,'YData');
 yVals = circshift(yVals,-1);
-yVals(end) = sensor.imu.az; % Plot variable
+yVals(end) = sensor.range.range0; % Plot variable
 xVals = circshift(xVals,-1);
 xVals(end) = xVals(end-1) + step;
 set(hp, 'XData', xVals, 'YData', yVals);

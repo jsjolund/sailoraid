@@ -15,7 +15,7 @@ if (s.Status == 'closed')
     s.InputBufferSize = 1024;
     s.ByteOrder = 'littleEndian';
     s.BytesAvailableFcnMode = 'byte';
-    s.BytesAvailableFcnCount = 30*4;
+    s.BytesAvailableFcnCount = 31*4;
     s.Timeout = 2;
     % Open the serial connection
     fprintf('Opening connection...\n')
@@ -39,9 +39,9 @@ end
 %% Read the serial stream
 function serialReceive(obj,~,callback)
 % Read data as float array
-[data,~] = fread(obj, obj.BytesAvailableFcnCount, 'float32');
+[data,~] = fread(obj, 31*4, 'float32');
 % If last float is not NaN, we need to sync the stream
-if ~isnan(data(30))
+if ~isnan(data(31))
     fprintf('\nSynchronizing...\n');
     ffCnt = 0;
     while 1
@@ -89,6 +89,7 @@ sensor.gps.pos.speed        = data(26);
 sensor.gps.pos.direction    = data(27);
 sensor.gps.info.satUse      = ftoi(data(28));
 sensor.gps.info.satView     = ftoi(data(29));
+sensor.range.range0         = ftoi(data(30));
 
 % Add a timestamp
 sensor.sys.dateTime = now;

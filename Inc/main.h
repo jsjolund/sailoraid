@@ -76,13 +76,17 @@
 #define BNRG_SPI_MISO_GPIO_Port GPIOA
 #define BNRG_SPI_MOSI_Pin GPIO_PIN_7
 #define BNRG_SPI_MOSI_GPIO_Port GPIOA
-#define LOAD_CELL_ADC_Pin GPIO_PIN_4
-#define LOAD_CELL_ADC_GPIO_Port GPIOC
+#define LOAD_CELL_0_ADC_Pin GPIO_PIN_4
+#define LOAD_CELL_0_ADC_GPIO_Port GPIOC
+#define LOAD_CELL_1_ADC_Pin GPIO_PIN_5
+#define LOAD_CELL_1_ADC_GPIO_Port GPIOC
 #define LPS22H_INT1_O_Pin GPIO_PIN_10
 #define LPS22H_INT1_O_GPIO_Port GPIOB
 #define LPS22H_INT1_O_EXTI_IRQn EXTI15_10_IRQn
 #define GPS_ON_OFF_Pin GPIO_PIN_7
 #define GPS_ON_OFF_GPIO_Port GPIOC
+#define RANGE_SHDN_Pin GPIO_PIN_9
+#define RANGE_SHDN_GPIO_Port GPIOC
 #define BNRG_SPI_RESET_Pin GPIO_PIN_8
 #define BNRG_SPI_RESET_GPIO_Port GPIOA
 #define GPS_USART_TX_Pin GPIO_PIN_9
@@ -161,6 +165,7 @@ void IMUecho(BOOL echo);
 void GPSecho(BOOL echo);
 void ENVecho(BOOL echo);
 void MATLABecho(BOOL echo);
+void RangeEcho(BOOL echo);
 
 /* USER CODE END Private defines */
 

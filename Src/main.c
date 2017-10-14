@@ -75,10 +75,12 @@ DMA_HandleTypeDef hdma_usart2_tx;
 #define IMU_SAMPLE_RATE 100.0
 #define ENV_SAMPLE_RATE 1.0
 #define ADC_SAMPLE_RATE 1.0
+#define RANGE_SAMPLE_RATE 10.0
 #define USB_ENV_OUTPUT_RATE 0.1
 #define USB_GPS_OUTPUT_RATE 1.0
 #define USB_IMU_OUTPUT_RATE 50.0
-#define USB_MATLAB_OUTPUT_RATE 80.0
+#define USB_RANGE_OUTPUT_RATE 10.0
+#define USB_MATLAB_OUTPUT_RATE 70.0
 #define BT_ENV_OUTPUT_RATE 1.0
 #define BT_GPS_OUTPUT_RATE 1.0
 #define BT_IMU_OUTPUT_RATE 30.0
@@ -87,16 +89,13 @@ extern volatile uint8_t set_connectable;
 extern volatile int connected;
 volatile uint8_t adcFinished = 1;
 volatile uint8_t adcValues[] = { 0, 0, 0, 0 };
-static BOOL imuEcho = FALSE;
-static BOOL gpsEcho = FALSE;
-static BOOL envEcho = FALSE;
-static BOOL matlabEcho = FALSE;
-SensorState sensor;
+SensorState_t sensor;
 
 typedef struct Task_Data
 {
   uint32_t period;
   uint32_t previous;
+  BOOL echo;
 } Task_Data;
 
 BOOL taskTimeout(Task_Data *data, TIM_HandleTypeDef *tim)
@@ -113,9 +112,11 @@ BOOL taskTimeout(Task_Data *data, TIM_HandleTypeDef *tim)
 static Task_Data imuSampleTask = { .period = (uint32_t) 1000000.0 / IMU_SAMPLE_RATE };
 static Task_Data envSampleTask = { .period = (uint32_t) 1000000.0 / ENV_SAMPLE_RATE };
 static Task_Data adcSampleTask = { .period = (uint32_t) 1000000.0 / ADC_SAMPLE_RATE };
+static Task_Data rangeSampleTask = { .period = (uint32_t) 1000000.0 / RANGE_SAMPLE_RATE };
 static Task_Data usbEnvOutputTask = { .period = (uint32_t) 1000000.0 / USB_ENV_OUTPUT_RATE };
 static Task_Data usbGpsOutputTask = { .period = (uint32_t) 1000000.0 / USB_GPS_OUTPUT_RATE };
 static Task_Data usbImuOutputTask = { .period = (uint32_t) 1000000.0 / USB_IMU_OUTPUT_RATE };
+static Task_Data usbRangeOutputTask = { .period = (uint32_t) 1000000.0 / USB_RANGE_OUTPUT_RATE };
 static Task_Data usbMatlabOutputTask = { .period = (uint32_t) 1000000.0 / USB_MATLAB_OUTPUT_RATE };
 static Task_Data btEnvOutputTask = { .period = (uint32_t) 1000000.0 / BT_ENV_OUTPUT_RATE };
 static Task_Data btGpsOutputTask = { .period = (uint32_t) 1000000.0 / BT_GPS_OUTPUT_RATE };
@@ -157,28 +158,35 @@ void User_Process(void)
   }
 }
 
+static void SetEcho(BOOL echo, Task_Data *task)
+{
+  task->echo = echo;
+  task->previous = htim2.Instance->CNT - task->period;
+}
+
 void IMUecho(BOOL echo)
 {
-  imuEcho = echo;
-  usbImuOutputTask.previous = htim2.Instance->CNT - usbImuOutputTask.period;
+  SetEcho(echo, &usbImuOutputTask);
 }
 
 void GPSecho(BOOL echo)
 {
-  gpsEcho = echo;
-  usbGpsOutputTask.previous = htim2.Instance->CNT - usbGpsOutputTask.period;
+  SetEcho(echo, &usbGpsOutputTask);
 }
 
 void ENVecho(BOOL echo)
 {
-  envEcho = echo;
-  usbEnvOutputTask.previous = htim2.Instance->CNT - usbEnvOutputTask.period;
+  SetEcho(echo, &usbEnvOutputTask);
+}
+
+void RangeEcho(BOOL echo)
+{
+  SetEcho(echo, &usbRangeOutputTask);
 }
 
 void MATLABecho(BOOL echo)
 {
-  matlabEcho = echo;
-  usbMatlabOutputTask.previous = htim2.Instance->CNT - usbMatlabOutputTask.period;
+  SetEcho(echo, &usbMatlabOutputTask);
 }
 
 /**
@@ -206,12 +214,10 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  memset(&sensor, 0, sizeof(SensorState));
+  memset(&sensor, 0, sizeof(SensorState_t));
   SensorAxes_t ACC_Value; /*!< Acceleration Value */
   SensorAxes_t GYR_Value; /*!< Gyroscope Value */
   SensorAxes_t MAG_Value; /*!< Magnetometer Value */
-  AxesRaw_t EUL_Value; /*!< Euler Angles Value */
-  AxesRaw_t GPS_Value; /*!< GPS Value */
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -263,12 +269,11 @@ int main(void)
   IMUinit();
 
   /* Range */
-//  VL53L0X_Dev_t VL53L0XDev = { .Id = 0, .DevLetter = 'l', .I2cHandle = &hi2c1, .I2cDevAddr = 0x52 };
-//  Range_Sensor_Init(&VL53L0XDev);
-//  RangingConfig_e rangingConfig = LONG_RANGE;
-//  Range_Sensor_Setup_Single_Shot(&VL53L0XDev, rangingConfig);
-//  VL53L0X_RangingMeasurementData_t rangingMeasurementData;
-//  int printRangeSensor = 0;
+  VL53L0X_Dev_t VL53L0XDev = { .Id = 0, .DevLetter = 'l', .I2cHandle = &hi2c1, .I2cDevAddr = 0x52 };
+  Range_Sensor_Init(&VL53L0XDev);
+  RangingConfig_e rangingConfig = LONG_RANGE;
+  Range_Sensor_Setup_Single_Shot(&VL53L0XDev, rangingConfig);
+  VL53L0X_RangingMeasurementData_t rangingMeasurementData;
 
   // Start the timer and calculate update periods
   HAL_TIM_Base_Init(&htim2);
@@ -287,28 +292,6 @@ int main(void)
     HCI_Process();
     User_Process();
 
-//    if (printRangeSensor)
-//    {
-//      /* Call All-In-One blocking API function */
-//      int status = VL53L0X_PerformSingleRangingMeasurement(&VL53L0XDev, &rangingMeasurementData);
-//      if (status == 0)
-//      {
-//        /* Push data logging to UART */
-//        printf("%d,%d,%d,%d\n", VL53L0XDev.Id, rangingMeasurementData.RangeStatus, rangingMeasurementData.RangeMilliMeter,
-//            rangingMeasurementData.SignalRateRtnMegaCps);
-//
-//        Range_Sensor_Set_New_Range(&VL53L0XDev, &rangingMeasurementData);
-//        /* Display distance in cm */
-//        if (rangingMeasurementData.RangeStatus == 0)
-//        {
-//          printf("%3dc\n", (int) VL53L0XDev.LeakyRange / 10);
-//        }
-//        else
-//        {
-//          printf("----\n");
-//        }
-//      }
-//    }
     /*** INPUTS ***/
     if (taskTimeout(&imuSampleTask, &htim2))
     {
@@ -343,36 +326,42 @@ int main(void)
       HAL_ADCEx_InjectedStart_IT(&hadc1);
       adcFinished = 0;
     }
+    if (taskTimeout(&rangeSampleTask, &htim2))
+    {
+      // Update range sensors
+      int status = VL53L0X_PerformSingleRangingMeasurement(&VL53L0XDev, &rangingMeasurementData);
+      if (status == 0)
+      {
+        Range_Sensor_Set_New_Range(&VL53L0XDev, &rangingMeasurementData);
+        // Filtered distance in cm
+        sensor.range.range0 = (rangingMeasurementData.RangeStatus == 0) ? (int) VL53L0XDev.LeakyRange / 10 : 0;
+      }
+    }
+
     /*** OUTPUTS ***/
     if (taskTimeout(&btImuOutputTask, &htim2))
     {
       // Update orientation, GPS and environmental data on Bluetooth GATT server
-      EUL_Value.AXIS_X = *((i32_t*) (&sensor.imu.roll));
-      EUL_Value.AXIS_Y = *((i32_t*) (&sensor.imu.pitch));
-      EUL_Value.AXIS_Z = *((i32_t*) (&sensor.imu.yaw));
-      Orientation_Update(&EUL_Value);
+      Orientation_Update(sensor.imu.roll, sensor.imu.pitch, sensor.imu.yaw);
     }
     if (taskTimeout(&btGpsOutputTask, &htim2))
     {
       // To avoid race conditions, disable GPS update while reading
       HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
-      GPS_Value.AXIS_X = *((i32_t*) (&sensor.gps.pos.longitude));
-      GPS_Value.AXIS_Y = *((i32_t*) (&sensor.gps.pos.latitude));
-      GPS_Value.AXIS_Z = *((i32_t*) (&sensor.gps.pos.elevation));
-      GPS_Update(&GPS_Value);
+      GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation);
       HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
     }
     if (taskTimeout(&btEnvOutputTask, &htim2))
     {
-      Temp_Update(*((i32_t*) (&sensor.env.temperature)));
-      Humidity_Update(*((i32_t*) (&sensor.env.humidity)));
-      Press_Update(*((i32_t*) (&sensor.env.pressure)));
+      Temp_Update(sensor.env.temperature);
+      Humidity_Update(sensor.env.humidity);
+      Press_Update(sensor.env.pressure);
     }
-    if (imuEcho && taskTimeout(&usbImuOutputTask, &htim2))
+    if (usbImuOutputTask.echo && taskTimeout(&usbImuOutputTask, &htim2))
     {
       printf("%3.4f %3.4f %3.4f\r\n", sensor.imu.roll, sensor.imu.pitch, sensor.imu.yaw);
     }
-    if (gpsEcho && taskTimeout(&usbGpsOutputTask, &htim2))
+    if (usbGpsOutputTask.echo && taskTimeout(&usbGpsOutputTask, &htim2))
     {
       // To avoid race conditions, disable GPS update while reading
       HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
@@ -381,11 +370,15 @@ int main(void)
           sensor.gps.pos.speed, sensor.gps.pos.direction, sensor.gps.info.satUse, sensor.gps.info.satView);
       HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
     }
-    if (envEcho && taskTimeout(&usbEnvOutputTask, &htim2))
+    if (usbEnvOutputTask.echo && taskTimeout(&usbEnvOutputTask, &htim2))
     {
       printf("humidity %3.4f, pressure %3.4f, temperature %3.4f\r\n", sensor.env.humidity, sensor.env.pressure, sensor.env.temperature);
     }
-    if (matlabEcho && taskTimeout(&usbMatlabOutputTask, &htim2))
+    if (usbRangeOutputTask.echo && taskTimeout(&usbRangeOutputTask, &htim2))
+    {
+      printf("range %d cm\n", sensor.range.range0);
+    }
+    if (usbMatlabOutputTask.echo && taskTimeout(&usbMatlabOutputTask, &htim2))
     {
       HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
       SerialUsbTransmit((char*) &sensor, sizeof(sensor));
@@ -678,6 +671,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, BNRG_SPI_CS_Pin | LED2_Pin | BNRG_SPI_RESET_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(RANGE_SHDN_GPIO_Port, RANGE_SHDN_Pin, GPIO_PIN_SET);
+
   /*Configure GPIO pin : USER_BUTTON_Pin */
   GPIO_InitStruct.Pin = USER_BUTTON_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
@@ -723,12 +719,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : GPS_ON_OFF_Pin */
-  GPIO_InitStruct.Pin = GPS_ON_OFF_Pin;
+  /*Configure GPIO pins : GPS_ON_OFF_Pin RANGE_SHDN_Pin */
+  GPIO_InitStruct.Pin = GPS_ON_OFF_Pin | RANGE_SHDN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPS_ON_OFF_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);

@@ -40,6 +40,11 @@ void ShellExecute(char* string)
     fail = 0;
     MATLABecho(TRUE);
   }
+  else if (strlen(token) == 5 && strncmp(token, "range", 1) == 0)
+  {
+    fail = 0;
+    RangeEcho(TRUE);
+  }
   if (fail)
   {
     printf("command not found: %s\r\n", string);

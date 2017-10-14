@@ -24,7 +24,7 @@ typedef struct SerialHandle
 static SerialHandle usbHandle;
 static SerialHandle gpsHandle;
 static NmeaInfo gpsInfo;
-extern SensorState sensor;
+extern SensorState_t sensor;
 
 static int QueuePut(SerialHandle *h, uint8_t input)
 {
@@ -164,6 +164,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
     GPSecho(FALSE);
     IMUecho(FALSE);
     ENVecho(FALSE);
+    RangeEcho(FALSE);
     MATLABecho(FALSE);
     h = &usbHandle;
   }

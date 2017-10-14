@@ -56,7 +56,7 @@ volatile int connected = FALSE;
 volatile uint8_t set_connectable = 1;
 volatile uint16_t connection_handle = 0;
 volatile uint8_t notification_enabled = FALSE;
-extern SensorState sensor;
+extern SensorState_t sensor;
 uint16_t orientServHandle, freeFallCharHandle, orientCharHandle;
 uint16_t gpsServHandle, gpsCharHandle;
 uint16_t envSensServHandle, tempCharHandle, pressCharHandle, humidityCharHandle;
@@ -150,14 +150,18 @@ tBleStatus Add_Orientation_Service(void)
  * @param  Structure containing Euler angles in degrees
  * @retval Status
  */
-tBleStatus Orientation_Update(AxesRaw_t *data)
+tBleStatus Orientation_Update(float x, float y, float z)
 {
+  i32_t* xi = (i32_t*) &x;
+  i32_t* yi = (i32_t*) &y;
+  i32_t* zi = (i32_t*) &z;
+
   tBleStatus ret;
   uint8_t buff[12];
 
-  STORE_LE_32(buff, data->AXIS_X);
-  STORE_LE_32(buff + 4, data->AXIS_Y);
-  STORE_LE_32(buff + 8, data->AXIS_Z);
+  STORE_LE_32(buff, *xi);
+  STORE_LE_32(buff + 4, *yi);
+  STORE_LE_32(buff + 8, *zi);
 
   ret = aci_gatt_update_char_value(orientServHandle, orientCharHandle, 0, 12, buff);
 
@@ -196,14 +200,18 @@ tBleStatus Add_GPS_Service(void)
 
 }
 
-tBleStatus GPS_Update(AxesRaw_t *data)
+tBleStatus GPS_Update(float x, float y, float z)
 {
+  i32_t* xi = (i32_t*) &x;
+  i32_t* yi = (i32_t*) &y;
+  i32_t* zi = (i32_t*) &z;
+
   tBleStatus ret;
   uint8_t buff[12];
 
-  STORE_LE_32(buff, data->AXIS_X);
-  STORE_LE_32(buff + 4, data->AXIS_Y);
-  STORE_LE_32(buff + 8, data->AXIS_Z);
+  STORE_LE_32(buff, *xi);
+  STORE_LE_32(buff + 4, *yi);
+  STORE_LE_32(buff + 8, *zi);
 
   ret = aci_gatt_update_char_value(gpsServHandle, gpsCharHandle, 0, 12, buff);
 
@@ -269,11 +277,12 @@ tBleStatus Add_Environmental_Sensor_Service(void)
  * @param  Temperature in tenths of degree 
  * @retval Status
  */
-tBleStatus Temp_Update(int32_t temp)
+tBleStatus Temp_Update(float temp)
 {
+  i32_t* v = (i32_t*) &temp;
   tBleStatus ret;
 
-  ret = aci_gatt_update_char_value(envSensServHandle, tempCharHandle, 0, 4, (uint8_t*) &temp);
+  ret = aci_gatt_update_char_value(envSensServHandle, tempCharHandle, 0, 4, (uint8_t*) v);
 
   if (ret != BLE_STATUS_SUCCESS)
   {
@@ -289,11 +298,12 @@ tBleStatus Temp_Update(int32_t temp)
  * @param  int32_t Pressure in mbar 
  * @retval tBleStatus Status
  */
-tBleStatus Press_Update(int32_t press)
+tBleStatus Press_Update(float press)
 {
+  i32_t* v = (i32_t*) &press;
   tBleStatus ret;
 
-  ret = aci_gatt_update_char_value(envSensServHandle, pressCharHandle, 0, 4, (uint8_t*) &press);
+  ret = aci_gatt_update_char_value(envSensServHandle, pressCharHandle, 0, 4, (uint8_t*) v);
 
   if (ret != BLE_STATUS_SUCCESS)
   {
@@ -306,14 +316,15 @@ tBleStatus Press_Update(int32_t press)
 
 /**
  * @brief  Update humidity characteristic value.
- * @param  uint16_thumidity RH (Relative Humidity) in thenths of %
+ * @param  uint16_thumidity RH (Relative Humidity) in tenths of %
  * @retval tBleStatus      Status
  */
-tBleStatus Humidity_Update(int32_t humidity)
+tBleStatus Humidity_Update(float humidity)
 {
+  i32_t* v = (i32_t*) &humidity;
   tBleStatus ret;
 
-  ret = aci_gatt_update_char_value(envSensServHandle, humidityCharHandle, 0, 4, (uint8_t*) &humidity);
+  ret = aci_gatt_update_char_value(envSensServHandle, humidityCharHandle, 0, 4, (uint8_t*) v);
 
   if (ret != BLE_STATUS_SUCCESS)
   {
@@ -402,43 +413,25 @@ void GAP_DisconnectionComplete_CB(void)
 void Read_Request_CB(uint16_t handle)
 {
 
-  AxesRaw_t EUL_Value; /*!< Euler Angles Value */
-  AxesRaw_t GPS_Value; /*!< GPS Value */
-
   if (handle == orientCharHandle + 1)
   {
-    i32_t* x = (i32_t*) &sensor.imu.roll;
-    i32_t* y = (i32_t*) &sensor.imu.pitch;
-    i32_t* z = (i32_t*) (&sensor.imu.yaw);
-    EUL_Value.AXIS_X = *x;
-    EUL_Value.AXIS_Y = *y;
-    EUL_Value.AXIS_Z = *z;
-    Orientation_Update(&EUL_Value);
+    Orientation_Update(sensor.imu.roll, sensor.imu.pitch, sensor.imu.yaw);
   }
   else if (handle == gpsCharHandle + 1)
   {
-    i32_t* x = (i32_t*) &sensor.gps.pos.longitude;
-    i32_t* y = (i32_t*) &sensor.gps.pos.latitude;
-    i32_t* z = (i32_t*) &sensor.gps.pos.elevation;
-    GPS_Value.AXIS_X = *x;
-    GPS_Value.AXIS_Y = *y;
-    GPS_Value.AXIS_Z = *z;
-    GPS_Update(&GPS_Value);
+    GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation);
   }
   else if (handle == tempCharHandle + 1)
   {
-    i32_t* v = (i32_t*) &sensor.env.temperature;
-    Temp_Update(*v);
+    Temp_Update(sensor.env.temperature);
   }
   else if (handle == pressCharHandle + 1)
   {
-    i32_t* v = (i32_t*) &sensor.env.pressure;
-    Press_Update(*v);
+    Press_Update(sensor.env.pressure);
   }
   else if (handle == humidityCharHandle + 1)
   {
-    i32_t* v = (i32_t*) &sensor.env.humidity;
-    Humidity_Update(*v);
+    Humidity_Update(sensor.env.humidity);
   }
 
   //EXIT:
