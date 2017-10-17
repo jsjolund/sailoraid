@@ -167,7 +167,7 @@ tBleStatus Orientation_Update(float x, float y, float z)
 
   if (ret != BLE_STATUS_SUCCESS)
   {
-    printf("Error while updating ORIENT characteristic.\n");
+    printf("Error 0x%02x while updating ORIENT characteristic.\n", ret);
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
@@ -185,7 +185,7 @@ tBleStatus Add_GPS_Service(void)
     goto fail;
 
   COPY_GPS_UUID(uuid);
-  ret = aci_gatt_add_char(gpsServHandle, UUID_TYPE_128, uuid, 12,
+  ret = aci_gatt_add_char(gpsServHandle, UUID_TYPE_128, uuid, 20,
   CHAR_PROP_NOTIFY | CHAR_PROP_READ,
   ATTR_PERMISSION_NONE,
   GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &gpsCharHandle);
@@ -200,24 +200,28 @@ tBleStatus Add_GPS_Service(void)
 
 }
 
-tBleStatus GPS_Update(float x, float y, float z)
+tBleStatus GPS_Update(float lon, float lat, float elv, float spd, float dir)
 {
-  i32_t* xi = (i32_t*) &x;
-  i32_t* yi = (i32_t*) &y;
-  i32_t* zi = (i32_t*) &z;
+  i32_t* loni = (i32_t*) &lon;
+  i32_t* lati = (i32_t*) &lat;
+  i32_t* elvi = (i32_t*) &elv;
+  i32_t* spdi = (i32_t*) &spd;
+  i32_t* diri = (i32_t*) &dir;
 
   tBleStatus ret;
-  uint8_t buff[12];
+  uint8_t buff[20];
 
-  STORE_LE_32(buff, *xi);
-  STORE_LE_32(buff + 4, *yi);
-  STORE_LE_32(buff + 8, *zi);
+  STORE_LE_32(buff, *loni);
+  STORE_LE_32(buff + 4, *lati);
+  STORE_LE_32(buff + 8, *elvi);
+  STORE_LE_32(buff + 12, *spdi);
+  STORE_LE_32(buff + 16, *diri);
 
-  ret = aci_gatt_update_char_value(gpsServHandle, gpsCharHandle, 0, 12, buff);
+  ret = aci_gatt_update_char_value(gpsServHandle, gpsCharHandle, 0, 20, buff);
 
   if (ret != BLE_STATUS_SUCCESS)
   {
-    printf("Error while updating GPS characteristic.\n");
+    printf("Error 0x%02x while updating GPS characteristic.\n", ret);
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
@@ -286,7 +290,7 @@ tBleStatus Temp_Update(float temp)
 
   if (ret != BLE_STATUS_SUCCESS)
   {
-    printf("Error while updating TEMP characteristic.\n");
+    printf("Error 0x%02x while updating TEMP characteristic.\n", ret);
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
@@ -307,7 +311,7 @@ tBleStatus Press_Update(float press)
 
   if (ret != BLE_STATUS_SUCCESS)
   {
-    printf("Error while updating PRESS characteristic.\n");
+    printf("Error 0x%02x while updating PRESS characteristic.\n", ret);
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
@@ -328,7 +332,7 @@ tBleStatus Humidity_Update(float humidity)
 
   if (ret != BLE_STATUS_SUCCESS)
   {
-    printf("Error while updating HUM characteristic.\n");
+    printf("Error 0x%02x while updating HUM characteristic.\n", ret);
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
@@ -419,7 +423,7 @@ void Read_Request_CB(uint16_t handle)
   }
   else if (handle == gpsCharHandle + 1)
   {
-    GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation);
+    GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation, sensor.gps.pos.speed, sensor.gps.pos.direction);
   }
   else if (handle == tempCharHandle + 1)
   {

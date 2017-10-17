@@ -345,6 +345,8 @@ public class BTLEConnection extends Service {
             float lon = coords[0];
             float lat = coords[1];
             float elev = coords[2];
+            float speed = coords[3];
+            float direction = coords[4];
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_POSITION);
             intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f", lat, lon, elev));
         } else if (UUID_COMPASS_MEASUREMENT.equals(characteristic.getUuid())){

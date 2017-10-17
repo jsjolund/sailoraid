@@ -492,7 +492,9 @@ public class BTLEConnection extends Service {
             float[] coords = bytesToFloats(characteristic.getValue());
             float lon = coords[0];
             float lat = coords[1];
-            float elev = coords[2];
+            float elev = coords[2]; // Elevation above/below mean sea level (geoid), in meters
+            float speed = coords[3]; // Speed over ground in m/s
+            float direction = coords[4]; // Track angle in degrees true north
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_POSITION);
             intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f", lat, lon, elev));
         } else if (UUID_COMPASS_MEASUREMENT.equals(characteristic.getUuid())){

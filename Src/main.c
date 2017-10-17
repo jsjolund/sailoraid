@@ -78,7 +78,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 #define RANGE_SAMPLE_RATE 10.0
 #define USB_ENV_OUTPUT_RATE 0.1
 #define USB_GPS_OUTPUT_RATE 1.0
-#define USB_IMU_OUTPUT_RATE 50.0
+#define USB_IMU_OUTPUT_RATE 10.0
 #define USB_RANGE_OUTPUT_RATE 10.0
 #define USB_MATLAB_OUTPUT_RATE 70.0
 #define BT_ENV_OUTPUT_RATE 1.0
@@ -348,7 +348,7 @@ int main(void)
     {
       // To avoid race conditions, disable GPS update while reading
       HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
-      GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation);
+      GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation, sensor.gps.pos.speed, sensor.gps.pos.direction);
       HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
     }
     if (taskTimeout(&btEnvOutputTask, &htim2))

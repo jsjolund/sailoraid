@@ -118,7 +118,7 @@ typedef struct {
 tBleStatus Add_Orientation_Service(void);
 tBleStatus Orientation_Update(float x, float y, float z);
 tBleStatus Add_GPS_Service(void);
-tBleStatus GPS_Update(float x, float y, float z);
+tBleStatus GPS_Update(float lon, float lat, float elv, float spd, float dir);
 tBleStatus Add_Orientation_Service(void);
 tBleStatus Orient_Update(AxesRaw_t *data);
 tBleStatus Temp_Update(float temp);
