@@ -59,6 +59,7 @@ volatile uint8_t notification_enabled = FALSE;
 extern SensorState_t sensor;
 uint16_t orientServHandle, freeFallCharHandle, orientCharHandle;
 uint16_t gpsServHandle, gpsCharHandle;
+uint16_t rangeServHandle, rangeCharHandle;
 uint16_t envSensServHandle, tempCharHandle, pressCharHandle, humidityCharHandle;
 
 /**
@@ -77,9 +78,9 @@ do {\
                 uuid_struct[12] = uuid_12; uuid_struct[13] = uuid_13; uuid_struct[14] = uuid_14; uuid_struct[15] = uuid_15; \
 }while(0)
 
-#define COPY_ACC_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x02,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_ORIENT_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x02,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_FREE_FALL_UUID(uuid_struct)    COPY_UUID_128(uuid_struct,0xe2,0x3e,0x78,0xa0, 0xcf,0x4a, 0x11,0xe1, 0x8f,0xfc, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_ACC_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x34,0x0a,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_ORIENT_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x34,0x0a,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 
 #define COPY_GPS_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0xab,0xcd,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_GPS_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0xaa,0xbb,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
@@ -89,6 +90,9 @@ do {\
 #define COPY_PRESS_CHAR_UUID(uuid_struct)        COPY_UUID_128(uuid_struct,0xcd,0x20,0xc4,0x80, 0xe4,0x8b, 0x11,0xe2, 0x84,0x0b, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_HUMIDITY_CHAR_UUID(uuid_struct)     COPY_UUID_128(uuid_struct,0x01,0xc5,0x0b,0x60, 0xe4,0x8c, 0x11,0xe2, 0xa0,0x73, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 
+#define COPY_RANGE_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x23,0xcd,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_RANGE_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x23,0xbb,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+
 /* Store Value into a buffer in Little Endian Format */
 #define STORE_LE_16(buf, val)    (((buf)[0] =  (uint8_t) (val)    ) , \
                                    ((buf)[1] =  (uint8_t) (val>>8) ) )
@@ -97,6 +101,9 @@ do {\
                                    ((buf)[1] =  (uint8_t) (val>>8) ) , \
                                    ((buf)[2] =  (uint8_t) (val>>16) ) , \
                                    ((buf)[3] =  (uint8_t) (val>>24) ) )
+#define GPS_SERVICE_DATA_LEN 20
+#define ORIENT_SERVICE_DATA_LEN 12
+
 /**
  * @}
  */
@@ -116,7 +123,7 @@ tBleStatus Add_Orientation_Service(void)
 
   uint8_t uuid[16];
 
-  COPY_ACC_SERVICE_UUID(uuid);
+  COPY_ORIENT_SERVICE_UUID(uuid);
   ret = aci_gatt_add_serv(UUID_TYPE_128, uuid, PRIMARY_SERVICE, 7, &orientServHandle);
   if (ret != BLE_STATUS_SUCCESS)
     goto fail;
@@ -127,8 +134,8 @@ tBleStatus Add_Orientation_Service(void)
   if (ret != BLE_STATUS_SUCCESS)
     goto fail;
 
-  COPY_ACC_UUID(uuid);
-  ret = aci_gatt_add_char(orientServHandle, UUID_TYPE_128, uuid, 12,
+  COPY_ORIENT_UUID(uuid);
+  ret = aci_gatt_add_char(orientServHandle, UUID_TYPE_128, uuid, ORIENT_SERVICE_DATA_LEN,
   CHAR_PROP_NOTIFY | CHAR_PROP_READ,
   ATTR_PERMISSION_NONE,
   GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &orientCharHandle);
@@ -163,7 +170,7 @@ tBleStatus Orientation_Update(float x, float y, float z)
   STORE_LE_32(buff + 4, *yi);
   STORE_LE_32(buff + 8, *zi);
 
-  ret = aci_gatt_update_char_value(orientServHandle, orientCharHandle, 0, 12, buff);
+  ret = aci_gatt_update_char_value(orientServHandle, orientCharHandle, 0, ORIENT_SERVICE_DATA_LEN, buff);
 
   if (ret != BLE_STATUS_SUCCESS)
   {
@@ -185,7 +192,7 @@ tBleStatus Add_GPS_Service(void)
     goto fail;
 
   COPY_GPS_UUID(uuid);
-  ret = aci_gatt_add_char(gpsServHandle, UUID_TYPE_128, uuid, 20,
+  ret = aci_gatt_add_char(gpsServHandle, UUID_TYPE_128, uuid, GPS_SERVICE_DATA_LEN,
   CHAR_PROP_NOTIFY | CHAR_PROP_READ,
   ATTR_PERMISSION_NONE,
   GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &gpsCharHandle);
@@ -217,7 +224,7 @@ tBleStatus GPS_Update(float lon, float lat, float elv, float spd, float dir)
   STORE_LE_32(buff + 12, *spdi);
   STORE_LE_32(buff + 16, *diri);
 
-  ret = aci_gatt_update_char_value(gpsServHandle, gpsCharHandle, 0, 20, buff);
+  ret = aci_gatt_update_char_value(gpsServHandle, gpsCharHandle, 0, GPS_SERVICE_DATA_LEN, buff);
 
   if (ret != BLE_STATUS_SUCCESS)
   {
@@ -225,6 +232,49 @@ tBleStatus GPS_Update(float lon, float lat, float elv, float spd, float dir)
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
+}
+
+tBleStatus Add_Range_Service(void)
+{
+  tBleStatus ret;
+
+  uint8_t uuid[16];
+
+  COPY_RANGE_SERVICE_UUID(uuid);
+  ret = aci_gatt_add_serv(UUID_TYPE_128, uuid, PRIMARY_SERVICE, 7, &rangeServHandle);
+  if (ret != BLE_STATUS_SUCCESS)
+    goto fail;
+
+  COPY_RANGE_UUID(uuid);
+  ret = aci_gatt_add_char(rangeServHandle, UUID_TYPE_128, uuid, 4,
+  CHAR_PROP_NOTIFY | CHAR_PROP_READ,
+  ATTR_PERMISSION_NONE,
+  GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &rangeCharHandle);
+  if (ret != BLE_STATUS_SUCCESS)
+    goto fail;
+
+  printf("Service Range added. Handle 0x%04X, Range Charac handle: 0x%04X\n", rangeServHandle, rangeCharHandle);
+  return BLE_STATUS_SUCCESS;
+
+  fail: printf("Error while adding Range service.\n");
+  return BLE_STATUS_ERROR;
+
+}
+
+tBleStatus Range_Update(float range)
+{
+  i32_t* v = (i32_t*) &range;
+  tBleStatus ret;
+
+  ret = aci_gatt_update_char_value(rangeServHandle, rangeCharHandle, 0, 4, (uint8_t*) v);
+
+  if (ret != BLE_STATUS_SUCCESS)
+  {
+    printf("Error 0x%02x while updating Range characteristic.\n", ret);
+    return BLE_STATUS_ERROR;
+  }
+  return BLE_STATUS_SUCCESS;
+
 }
 
 /**
@@ -363,7 +413,7 @@ void setConnectable(void)
 {
   tBleStatus ret;
 
-  const char local_name[] = { AD_TYPE_COMPLETE_LOCAL_NAME, 'B', 'l', 'u', 'e', 'N', 'R', 'G' };
+  const char local_name[] = { AD_TYPE_COMPLETE_LOCAL_NAME, 'S','a','i','l','o','r','A','i','d' };
 
   /* disable scan response */
   hci_le_set_scan_resp_data(0, NULL);

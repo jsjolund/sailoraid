@@ -39,7 +39,7 @@
 #include "bluenrg_interface.h"
 #define BDADDR_SIZE 6
 uint8_t bnrg_expansion_board = IDB04A1; /* at startup, suppose the X-NUCLEO-IDB04A1 is used */
-void InitBluetoothGattServer(void)
+void BTinit(void)
 {
   const char *name = "BlueNRG";
   uint8_t SERVER_BDADDR[] = { 0x12, 0x34, 0x00, 0xE1, 0x80, 0x03 };
@@ -152,6 +152,12 @@ void InitBluetoothGattServer(void)
   else
     printf("Error while adding Environmental Sensor service.\n");
 
+  ret = Add_Range_Service();
+
+  if (ret == BLE_STATUS_SUCCESS)
+    printf("Range Sensor service added successfully.\n");
+  else
+    printf("Error while adding Range Sensor service.\n");
 #if NEW_SERVICES
   /* Instantiate Timer Service with two characteristics:
    * - seconds characteristic (Readable only)

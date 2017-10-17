@@ -83,7 +83,8 @@ DMA_HandleTypeDef hdma_usart2_tx;
 #define USB_MATLAB_OUTPUT_RATE 70.0
 #define BT_ENV_OUTPUT_RATE 1.0
 #define BT_GPS_OUTPUT_RATE 1.0
-#define BT_IMU_OUTPUT_RATE 30.0
+#define BT_IMU_OUTPUT_RATE 50.0
+#define BT_RANGE_OUTPUT_RATE 10.0
 
 extern volatile uint8_t set_connectable;
 extern volatile int connected;
@@ -109,18 +110,19 @@ BOOL taskTimeout(Task_Data *data, TIM_HandleTypeDef *tim)
   return FALSE;
 }
 
-static Task_Data imuSampleTask = { .period = (uint32_t) 1000000.0 / IMU_SAMPLE_RATE };
-static Task_Data envSampleTask = { .period = (uint32_t) 1000000.0 / ENV_SAMPLE_RATE };
-static Task_Data adcSampleTask = { .period = (uint32_t) 1000000.0 / ADC_SAMPLE_RATE };
-static Task_Data rangeSampleTask = { .period = (uint32_t) 1000000.0 / RANGE_SAMPLE_RATE };
-static Task_Data usbEnvOutputTask = { .period = (uint32_t) 1000000.0 / USB_ENV_OUTPUT_RATE };
-static Task_Data usbGpsOutputTask = { .period = (uint32_t) 1000000.0 / USB_GPS_OUTPUT_RATE };
-static Task_Data usbImuOutputTask = { .period = (uint32_t) 1000000.0 / USB_IMU_OUTPUT_RATE };
-static Task_Data usbRangeOutputTask = { .period = (uint32_t) 1000000.0 / USB_RANGE_OUTPUT_RATE };
-static Task_Data usbMatlabOutputTask = { .period = (uint32_t) 1000000.0 / USB_MATLAB_OUTPUT_RATE };
-static Task_Data btEnvOutputTask = { .period = (uint32_t) 1000000.0 / BT_ENV_OUTPUT_RATE };
-static Task_Data btGpsOutputTask = { .period = (uint32_t) 1000000.0 / BT_GPS_OUTPUT_RATE };
-static Task_Data btImuOutputTask = { .period = (uint32_t) 1000000.0 / BT_IMU_OUTPUT_RATE };
+static Task_Data imuSampleTask = { .period = (uint32_t) (1000000.0 / IMU_SAMPLE_RATE) };
+static Task_Data envSampleTask = { .period = (uint32_t) (1000000.0 / ENV_SAMPLE_RATE) };
+static Task_Data adcSampleTask = { .period = (uint32_t) (1000000.0 / ADC_SAMPLE_RATE) };
+static Task_Data rangeSampleTask = { .period = (uint32_t) (1000000.0 / RANGE_SAMPLE_RATE) };
+static Task_Data usbEnvOutputTask = { .period = (uint32_t) (1000000.0 / USB_ENV_OUTPUT_RATE) };
+static Task_Data usbGpsOutputTask = { .period = (uint32_t) (1000000.0 / USB_GPS_OUTPUT_RATE) };
+static Task_Data usbImuOutputTask = { .period = (uint32_t) (1000000.0 / USB_IMU_OUTPUT_RATE) };
+static Task_Data usbRangeOutputTask = { .period = (uint32_t) (1000000.0 / USB_RANGE_OUTPUT_RATE) };
+static Task_Data usbMatlabOutputTask = { .period = (uint32_t) (1000000.0 / USB_MATLAB_OUTPUT_RATE) };
+static Task_Data btEnvOutputTask = { .period = (uint32_t) (1000000.0 / BT_ENV_OUTPUT_RATE) };
+static Task_Data btGpsOutputTask = { .period = (uint32_t) (1000000.0 / BT_GPS_OUTPUT_RATE) };
+static Task_Data btImuOutputTask = { .period = (uint32_t) (1000000.0 / BT_IMU_OUTPUT_RATE) };
+static Task_Data btRangeOutputTask = { .period = (uint32_t) (1000000.0 / BT_RANGE_OUTPUT_RATE) };
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -248,7 +250,7 @@ int main(void)
   SerialInit(&huart2, &huart1);
 
   /* Configure Bluetooth GATT server */
-  InitBluetoothGattServer();
+  BTinit();
 
   /* ADC (not currently used) */
   HAL_ADC_Start(&hadc1);
@@ -267,6 +269,7 @@ int main(void)
 
   /* IMU */
   IMUinit();
+  MadgwickInit(IMU_SAMPLE_RATE);
 
   /* Range */
   VL53L0X_Dev_t VL53L0XDev = { .Id = 0, .DevLetter = 'l', .I2cHandle = &hi2c1, .I2cDevAddr = 0x52 };
@@ -275,10 +278,9 @@ int main(void)
   Range_Sensor_Setup_Single_Shot(&VL53L0XDev, rangingConfig);
   VL53L0X_RangingMeasurementData_t rangingMeasurementData;
 
-  // Start the timer and calculate update periods
+  // Start the task timer
   HAL_TIM_Base_Init(&htim2);
   HAL_TIM_Base_Start(&htim2);
-  MadgwickInit(IMU_SAMPLE_RATE);
 
   /* USER CODE END 2 */
 
@@ -356,6 +358,10 @@ int main(void)
       Temp_Update(sensor.env.temperature);
       Humidity_Update(sensor.env.humidity);
       Press_Update(sensor.env.pressure);
+    }
+    if (taskTimeout(&btRangeOutputTask, &htim2))
+    {
+      Range_Update(sensor.range.range0);
     }
     if (usbImuOutputTask.echo && taskTimeout(&usbImuOutputTask, &htim2))
     {

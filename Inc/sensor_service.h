@@ -125,6 +125,8 @@ tBleStatus Temp_Update(float temp);
 tBleStatus Press_Update(float press);
 tBleStatus Humidity_Update(float humidity);
 tBleStatus Add_Environmental_Sensor_Service(void);
+tBleStatus Add_Range_Service(void);
+tBleStatus Range_Update(float range);
 void       setConnectable(void);
 void       enableNotification(void);
 void       GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle);
