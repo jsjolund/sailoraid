@@ -1,13 +1,17 @@
 package ltuproject.sailoraid;
 
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -37,6 +42,7 @@ import ltuproject.sailoraid.datalog.SailLog;
 
 public class HistoryActivity extends AppCompatActivity {
 
+    private final static String TAG = HistoryActivity.class.getSimpleName();
     ArrayAdapter<String> adapter;
     private AlertDialog.Builder popDialog;
     private String fileName;
@@ -44,7 +50,8 @@ public class HistoryActivity extends AppCompatActivity {
     private Toolbar myToolbar;
     private Button readLogBtn, mapLogBtn, graphLogBtn;
     private TextView maxIncHolder, avgIncHolder, maxDriftHolder, totalDriftHolder, avgSOGHolder, topSOGHolder, maxPressureHolder, avgPressureHolder;
-    private SailLog sailLog;
+    private SailLog mLogService;
+    private View lastSelView;
 
     private ArrayList<String[]> posDataList;
     private ArrayList<String[]> imuDataList;
@@ -53,6 +60,7 @@ public class HistoryActivity extends AppCompatActivity {
     private ArrayList<String[]> sogDataList;
     private ArrayList<String[]> tempDataList;
     private ArrayList<String[]> humDataList;
+    private ArrayList<String[]> driftDataList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,8 +86,6 @@ public class HistoryActivity extends AppCompatActivity {
         topSOGHolder = (TextView) findViewById(R.id.topSOGHolder);
         avgPressureHolder = (TextView) findViewById(R.id.avgPressureHolder);
         maxPressureHolder = (TextView) findViewById(R.id.maxPressureHolder);
-
-
 
         assert readLogBtn != null;
         readLogBtn.setOnClickListener(new View.OnClickListener(){
@@ -111,29 +117,89 @@ public class HistoryActivity extends AppCompatActivity {
         });
     }
 
-    private void showLogsPopup(){
+    // Code to manage Service lifecycle.
+    private final ServiceConnection mLogServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder service) {
+            mLogService = ((SailLog.LocalBinder) service).getService();
+            if (mLogService.isLogging()){
+                mLogService.stopLogData();
+                mLogService.finalizeLog();
+            }
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mLogService = null;
+        }
+    };
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        if (mLogService == null){
+            Intent logServiceIntent = new Intent(getApplicationContext(), SailLog.class);
+            bindService(logServiceIntent, mLogServiceConnection, BIND_AUTO_CREATE);
+        }
+
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        if (mLogServiceConnection != null){
+            unbindService(mLogServiceConnection);
+        }
+    }
+    private void showLogsPopup() {
         ArrayList<String> files = getAllLogs(getExternalFilesDir(
-                Environment.DIRECTORY_DOCUMENTS) +"/SailorAid/Logs");
+                Environment.DIRECTORY_DOCUMENTS) + "/SailorAid/Logs");
         adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, files);
         LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
         View Viewlayout = inflater.inflate(R.layout.log_list, (ViewGroup) findViewById(R.id.logListLayout));
         ListView list = (ListView) Viewlayout.findViewById(R.id.logList);
         list.setAdapter(adapter);
-
-
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
-            public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
+        list.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
+        list.setSelector(android.R.color.holo_blue_light);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //Highlight chosen item on the popup list
-                view.setBackgroundColor(Color.LTGRAY);
+
                 fileName = parent.getAdapter().getItem(position).toString();
 
             }
+
         });
         popDialog = new AlertDialog.Builder(this);
         popDialog.setView(Viewlayout);
         popDialog.setTitle("Logs");
 
+        popDialog.setNegativeButton("Delete",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        if (fileName != null){
+                            String toast;
+                            if ( mLogService.deleteLog(fileName)){
+                                toast = "Deleted log nr: " +fileName;
+                                fileName = null;
+                            } else {
+                                toast = "Failed to delete: " +fileName;
+                            }
+                            Toast.makeText(getApplicationContext(), toast, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+        popDialog.setNeutralButton("Cancel",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        fileName = null;
+                    }
+                });
         popDialog.setPositiveButton("Read",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -148,6 +214,8 @@ public class HistoryActivity extends AppCompatActivity {
                             myToolbar.setVisibility(View.VISIBLE);
                             mapLogBtn.setVisibility(View.VISIBLE);
                             showTextViews();
+                            mLogService.initReadData(fileName);
+                            mLogService.initLogData();
                             getLogDataToArray();
                             ImageView iv = (ImageView) findViewById(R.id.sailorView);
                             iv.setImageDrawable(getDrawable(R.drawable.sailor_sad));
@@ -188,7 +256,7 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void setInclineData(){
         ArrayList<String[]> inclineList = new ArrayList<String[]>();
-        inclineList = sailLog.getImuDataList();
+        inclineList = mLogService.getImuDataList();
         logInclineData.clear();
         for (String[] loc : inclineList){{
             logInclineData.add(loc);
@@ -196,7 +264,7 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void setPressureData(){
-        ArrayList<String[]> inclineList = sailLog.getPressureDataList();
+        ArrayList<String[]> inclineList = mLogService.getPressureDataList();
         logPressureData.clear();
         for (String[] loc : inclineList){{
             logPressureData.add(loc);
@@ -204,7 +272,7 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void setSOGData(){
-        ArrayList<String[]> inclineList = sailLog.getSogDataList();
+        ArrayList<String[]> inclineList = mLogService.getSogDataList();
         logSOGData.clear();
         if (inclineList.size() > 0){
             for (String[] loc : inclineList){{
@@ -213,7 +281,7 @@ public class HistoryActivity extends AppCompatActivity {
         }
     }
     private void setCompassData(){
-        ArrayList<String[]> inclineList = sailLog.getCompassDataList();
+        ArrayList<String[]> inclineList = mLogService.getCompassDataList();
         logCompassData.clear();
         if (inclineList.size() > 0){
             for (String[] loc : inclineList){{
@@ -245,6 +313,10 @@ public class HistoryActivity extends AppCompatActivity {
     public static void getTempData(List<String[]> output) {
         output.addAll(logTempData);
     }
+    static private List<String[]> logDriftData = new ArrayList<String[]>();
+    public static void getDriftData(List<String[]> output) {
+        output.addAll(logDriftData);
+    }
 
     private void showTextViews(){
         TextView maxIncText = (TextView) findViewById(R.id.maxIncText);
@@ -274,17 +346,17 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void getLogDataToArray(){
-        sailLog = new SailLog(getApplicationContext(), fileName);
-        sailLog.initLogData();
-        sailLog.readLog();
-        posDataList = sailLog.getPosDataList();
+        mLogService.readLog();
+        posDataList = mLogService.getPosDataList();
         setTravelRoute(posDataList);
-        maxIncHolder.setText(String.valueOf(sailLog.getMaxIncline()));
-        avgIncHolder.setText(String.valueOf(sailLog.getAvgIncline()));
-        avgSOGHolder.setText(String.valueOf(sailLog.getAvgSOG()));
-        topSOGHolder.setText(String.valueOf(sailLog.getTopSOG()));
-        avgPressureHolder.setText(String.valueOf(sailLog.getAvgPressure()));
-        maxPressureHolder.setText(String.valueOf(sailLog.getMaxPressure()));
+        maxIncHolder.setText(String.valueOf(mLogService.getMaxIncline()));
+        avgIncHolder.setText(String.valueOf(mLogService.getAvgIncline()));
+        avgSOGHolder.setText(String.valueOf(mLogService.getAvgSOG()));
+        topSOGHolder.setText(String.valueOf(mLogService.getTopSOG()));
+        maxDriftHolder.setText(String.valueOf(mLogService.getAvgDrift()));
+        totalDriftHolder.setText(String.valueOf(mLogService.getTotalDrift()));
+        avgPressureHolder.setText(String.valueOf(mLogService.getAvgPressure()));
+        maxPressureHolder.setText(String.valueOf(mLogService.getMaxPressure()));
         setInclineData();
         setSOGData();
         setPressureData();

@@ -60,6 +60,8 @@ public class BTLEConnection extends Service {
     public static final String DATA_TYPE_COMPASS = "Compass";
     public static final String DATA_TYPE_FREE_FALL = "Free fall";
     public static final String DATA_TYPE_SOG = "Speed";
+    public static final String DATA_TYPE_DRIFT = "Drift";
+    public static final String DATA_TYPE_RANGE = "Range";
 
     private int mConnectionState = STATE_DISCONNECTED;
 
@@ -90,6 +92,8 @@ public class BTLEConnection extends Service {
             UUID.fromString(SampleGattAttributes.FREE_FALL_MEASUREMENT);
     public final static UUID UUID_GPS_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.NUCLEO_GPS_MEASUREMENT);
+    public final static UUID UUID_RANGE_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.NUCLEO_RANGE_MEASUREMENT);
     public final static UUID UUID_IMU_ACCEL_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.IMU_ACCEL_MEASUREMENT);
     public final static UUID UUID_IMU_GYRO_MEASUREMENT =
@@ -102,6 +106,7 @@ public class BTLEConnection extends Service {
             UUID.fromString(SampleGattAttributes.HUMIDITY_MEASUREMENT);
     public final static UUID UUID_COMPASS_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.COMPASS_MEASUREMENT);
+
 
     private int listIterator = 0;
     private int serviceIterator = 0;
@@ -256,69 +261,69 @@ public class BTLEConnection extends Service {
 
     // Various callback methods defined by the BLE API.
     public final BluetoothGattCallback mGattCallback =
-            new BluetoothGattCallback() {
-                @Override
-                public void onConnectionStateChange(BluetoothGatt gatt, int status,
-                                                    int newState) {
-                    String intentAction;
-                    if (newState == BluetoothProfile.STATE_CONNECTED) {
-                        intentAction = ACTION_GATT_CONNECTED;
-                        mConnectionState = STATE_CONNECTED;
-                        mBluetoothGatt = gatt;
-                        broadcastUpdate(intentAction);
+        new BluetoothGattCallback() {
+            @Override
+            public void onConnectionStateChange(BluetoothGatt gatt, int status,
+                                                int newState) {
+                String intentAction;
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    intentAction = ACTION_GATT_CONNECTED;
+                    mConnectionState = STATE_CONNECTED;
+                    mBluetoothGatt = gatt;
+                    broadcastUpdate(intentAction);
 
-                        Log.i(TAG, "Connected to GATT server.");
-                        Log.i(TAG, "Attempting to start service discovery:" +
-                                mBluetoothGatt.discoverServices());
+                    Log.i(TAG, "Connected to GATT server.");
+                    Log.i(TAG, "Attempting to start service discovery:" +
+                            mBluetoothGatt.discoverServices());
 
-                    } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                        intentAction = ACTION_GATT_DISCONNECTED;
-                        mConnectionState = STATE_DISCONNECTED;
-                        Log.i(TAG, "Disconnected from GATT server.");
-                        broadcastUpdate(intentAction);
-                    }
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    intentAction = ACTION_GATT_DISCONNECTED;
+                    mConnectionState = STATE_DISCONNECTED;
+                    Log.i(TAG, "Disconnected from GATT server.");
+                    broadcastUpdate(intentAction);
                 }
+            }
 
-                @Override
-                // New services discovered
-                public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                    if (status == GATT_SUCCESS) {
-                        broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
-                    } else {
-                        Log.w(TAG, "onServicesDiscovered received: " + status);
-                    }
+            @Override
+            // New services discovered
+            public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+                if (status == GATT_SUCCESS) {
+                    broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
+                } else {
+                    Log.w(TAG, "onServicesDiscovered received: " + status);
                 }
+            }
 
-                @Override
-                // Result of a characteristic read operation
-                public void onCharacteristicRead(BluetoothGatt gatt,
-                                                 BluetoothGattCharacteristic characteristic,
-                                                 int status) {
-                    if (status == GATT_SUCCESS) {
-                        broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-                        final int charaProp = characteristic.getProperties();
-                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-                            mNotifyCharacteristic = characteristic;
-                            setCharacteristicNotification(characteristic, true);
-                        }
-                    }
-                }
-
-                @Override
-                public void onCharacteristicChanged(BluetoothGatt gatt,
-                                                    BluetoothGattCharacteristic characteristic) {
+            @Override
+            // Result of a characteristic read operation
+            public void onCharacteristicRead(BluetoothGatt gatt,
+                                             BluetoothGattCharacteristic characteristic,
+                                             int status) {
+                if (status == GATT_SUCCESS) {
                     broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-                }
-
-                @Override
-                public void onDescriptorWrite(BluetoothGatt gatt,
-                                              BluetoothGattDescriptor descriptor,
-                                              int status) {
-                    if (status == GATT_SUCCESS) {
-                        broadcastUpdate(ACTION_GATT_SERVICE_NOTIFIED);
+                    final int charaProp = characteristic.getProperties();
+                    if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+                        mNotifyCharacteristic = characteristic;
+                        setCharacteristicNotification(characteristic, true);
                     }
                 }
-            };
+            }
+
+            @Override
+            public void onCharacteristicChanged(BluetoothGatt gatt,
+                                                BluetoothGattCharacteristic characteristic) {
+                broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+            }
+
+            @Override
+            public void onDescriptorWrite(BluetoothGatt gatt,
+                                          BluetoothGattDescriptor descriptor,
+                                          int status) {
+                if (status == GATT_SUCCESS) {
+                    broadcastUpdate(ACTION_GATT_SERVICE_NOTIFIED);
+                }
+            }
+        };
 
     public void setmGattService(BluetoothGattService service) {
         mGattService = service;
@@ -418,7 +423,8 @@ public class BTLEConnection extends Service {
                 || UUID_TEMP_MEASUREMENT.equals(characteristic.getUuid())
                 //|| UUID_FREE_FALL_MEASUREMENT.equals(characteristic.getUuid())
                 || UUID_GPS_MEASUREMENT.equals(characteristic.getUuid())
-                || UUID_COMPASS_MEASUREMENT.equals(characteristic.getUuid())) {
+                || UUID_COMPASS_MEASUREMENT.equals(characteristic.getUuid())
+                || UUID_RANGE_MEASUREMENT.equals(characteristic.getUuid())) {
             mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
                     UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
@@ -492,11 +498,11 @@ public class BTLEConnection extends Service {
             float[] coords = bytesToFloats(characteristic.getValue());
             float lon = coords[0];
             float lat = coords[1];
-            float elev = coords[2]; // Elevation above/below mean sea level (geoid), in meters
-            float speed = coords[3]; // Speed over ground in m/s
-            float direction = coords[4]; // Track angle in degrees true north
+            float elev = coords[2];
+            float speed = coords[3];
+            float direction = coords[4];
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_POSITION);
-            intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f", lat, lon, elev));
+            intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f:%f:%f", lat, lon, elev, speed, direction));
         } else if (UUID_COMPASS_MEASUREMENT.equals(characteristic.getUuid())){
             // Yaw might still be used as it is but should be added compass values to this
             float[] euler = bytesToFloats(characteristic.getValue());
@@ -505,6 +511,10 @@ public class BTLEConnection extends Service {
             float yaw = euler[2];
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_COMPASS);
             intent.putExtra(EXTRA_DATA, String.valueOf(yaw));
+        } else if (UUID_RANGE_MEASUREMENT.equals(characteristic.getUuid())){
+            float[] range = bytesToFloats(characteristic.getValue());
+            intent.putExtra(EXTRA_TYPE, DATA_TYPE_RANGE);
+            intent.putExtra(EXTRA_DATA, String.valueOf(range[0]));
         }
         sendBroadcast(intent);
     }

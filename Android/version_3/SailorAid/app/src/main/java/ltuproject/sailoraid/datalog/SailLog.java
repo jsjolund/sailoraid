@@ -1,7 +1,14 @@
 package ltuproject.sailoraid.datalog;
 
+import android.app.Service;
+import android.bluetooth.BluetoothGattService;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Binder;
 import android.os.Environment;
+import android.os.IBinder;
+import android.os.PowerManager;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -20,9 +27,12 @@ import java.util.Date;
 import java.util.EmptyStackException;
 import java.util.zip.Inflater;
 
+import ltuproject.sailoraid.bluetooth.BTLEConnection;
+
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_COMPASS;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_DRIFT;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_FREE_FALL;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_HUMIDITY;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_INCLINE;
@@ -34,14 +44,13 @@ import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_TEMPERATUR
  * Created by Henrik on 2017-10-03.
  */
 
-public class SailLog {
+public class SailLog extends Service {
     private String fileName;
     private File outFile;
     private FileOutputStream fos;
     private OutputStreamWriter  out;
     private BufferedWriter bwriter;
     private String outPut = "";
-    private Context context;
     private BufferedReader br;
     private FileInputStream fis;
     private InputStreamReader isr;
@@ -52,19 +61,32 @@ public class SailLog {
     private ArrayList<String[]> sogDataList;
     private ArrayList<String[]> tempDataList;
     private ArrayList<String[]> humDataList;
+    private ArrayList<String[]> driftDataList;
     private float avgIncline, maxIncline;
-    private int avgDrift, totalDrift;
+    private float avgDrift, totalDrift;
     private float avgSOG, topSOG, avgPressure, maxPressure;
     private boolean isLoggin;
+    private boolean isInit = false;
+    PowerManager.WakeLock wl;
 
-    public SailLog(Context context){
-        fileName = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date()) +".txt";
-        this.context = context;
-        isLoggin = true;
+    public SailLog(){
+
     }
-    public SailLog(Context context, String fileName){
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d("PrinterService", "Onstart Command");
+        fileName = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date()) +".txt";
+        isLoggin = true;
+        initLogData();
+        PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
+        wl.acquire();
+        return START_STICKY;
+    }
+
+    public void initReadData(String fileName){
         this.fileName = fileName;
-        this.context = context;
         posDataList = new ArrayList<String[]>();
         imuDataList = new ArrayList<String[]>();
         compassDataList = new ArrayList<String[]>();
@@ -72,13 +94,13 @@ public class SailLog {
         sogDataList = new ArrayList<String[]>();
         tempDataList = new ArrayList<String[]>();
         humDataList = new ArrayList<String[]>();
-        isLoggin = false;
+        driftDataList = new ArrayList<String[]>();
     }
 
     public void initLogData(){
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
 
-            outFile = new File(context.getExternalFilesDir(
+            outFile = new File(getApplication().getExternalFilesDir(
                     Environment.DIRECTORY_DOCUMENTS) +"/SailorAid/Logs", fileName);
 
             if (!outFile.exists()) {
@@ -91,6 +113,7 @@ public class SailLog {
                 }
             }
         }
+        isInit = true;
     }
 
     public void writeToLog(String data){
@@ -125,12 +148,13 @@ public class SailLog {
     }
 
     public void finalizeLog(){
+        wl.release();
         isLoggin = false;
     }
+
     public void readLog(){
         String data;
             /* Reads from the text file */
-
         try{
             fis = new FileInputStream(outFile);
             isr = new InputStreamReader(fis);
@@ -152,6 +176,8 @@ public class SailLog {
                     tempDataList.add(splitLines);
                 } else if (type.equals(DATA_TYPE_HUMIDITY)){
                     humDataList.add(splitLines);
+                } else if (type.equals(DATA_TYPE_DRIFT)){
+                    driftDataList.add(splitLines);
                 }
             }
             br.close();
@@ -163,6 +189,12 @@ public class SailLog {
         calcIMUData();
         calcPressureData();
         calcSOGData();
+    }
+
+    public boolean deleteLog(String fileName){
+        outFile = new File(getApplication().getExternalFilesDir(
+                Environment.DIRECTORY_DOCUMENTS) +"/SailorAid/Logs", fileName);
+        return outFile.delete();
     }
 
     public ArrayList<String[]> getPosDataList(){
@@ -195,10 +227,25 @@ public class SailLog {
     public float getTopSOG(){
         return topSOG;
     }
-    public int getAvgDrift(){
+    public float getAvgDrift(){
+        float total = 0;
+        float max = 0;
+        for (String[] data : driftDataList){
+            float x = Float.parseFloat(data[2]);
+            total += x;
+            if (abs(x) > abs(max)){
+                max = x;
+            }
+        }
+        if (driftDataList.isEmpty()){
+            this.avgDrift = 0;
+        } else{
+            this.avgDrift = total/driftDataList.size();
+        }
+        this.totalDrift = total;
         return avgDrift;
     }
-    public int getTotalDrift(){
+    public float getTotalDrift(){
         return totalDrift;
     }
     public float getMaxIncline(){
@@ -266,7 +313,25 @@ public class SailLog {
         return humDataList;
     }
 
-    public Boolean isLogging(){
+    public boolean isLogging(){
         return isLoggin;
     }
+
+    public boolean isInit(){
+        return isInit;
+    }
+
+    public class LocalBinder extends Binder {
+        public SailLog getService() {
+            return SailLog.this;
+        }
+    }
+
+    private final IBinder mBinder = new SailLog.LocalBinder();
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+
 }

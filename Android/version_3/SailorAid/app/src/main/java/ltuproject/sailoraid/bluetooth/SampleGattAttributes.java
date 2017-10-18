@@ -15,12 +15,7 @@ package ltuproject.sailoraid.bluetooth;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattService;
-
 import java.util.HashMap;
-
-import java.util.UUID;
 
 /**
  * This class includes a small subset of standard GATT attributes for demonstration purposes.
@@ -50,6 +45,8 @@ public class SampleGattAttributes {
     public static String NUCLEO_GPS_SERVICE = "abcd6e80-cf3a-11e1-9ab4-0002a5d5c51b";
     public static String NUCLEO_GPS_MEASUREMENT = "aabb1b80-cf4b-11e1-ac36-0002a5d5c51b";
 
+    public static String NUCLEO_RANGE_SERVICE = "23cd6e80-cf3a-11e1-9ab4-0002a5d5c51b";
+    public static String NUCLEO_RANGE_MEASUREMENT = "23bb1b80-cf4b-11e1-ac36-0002a5d5c51b";
     public static String GPS_MEASUREMENT =          "00002902-0000-1000-8000-00805f9b34fb";
 
     static {
@@ -70,6 +67,7 @@ public class SampleGattAttributes {
         attributes.put(HUMIDITY_MEASUREMENT, "Humidity Measurement");
         attributes.put(FREE_FALL_MEASUREMENT, "Free Fall Measurement");
         attributes.put(NUCLEO_GPS_MEASUREMENT, "Nucleo gps Measurement");
+        attributes.put(NUCLEO_RANGE_MEASUREMENT, "Nucleo gps Measurement");
         attributes.put(COMPASS_MEASUREMENT, "Compass Measurement");
         attributes.put("00002a29-0000-1000-8000-00805f9b34fb", "Manufacturer Name String");
     }

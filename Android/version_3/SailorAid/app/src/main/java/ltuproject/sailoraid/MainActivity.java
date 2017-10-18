@@ -29,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -37,13 +38,25 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import org.w3c.dom.Text;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import ltuproject.sailoraid.bluetooth.BTHandler;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
+import ltuproject.sailoraid.datalog.SailLog;
 
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_COMPASS;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_FREE_FALL;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_HUMIDITY;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_INCLINE;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_POSITION;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_PRESSURE;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_TEMPERATURE;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.STATE_CONNECTED;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.STATE_DISCONNECTED;
 
@@ -62,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothGatt mBluetoothGatt;
     private BTLEConnection mBluetoothLeService;
     private IntentFilter filter;
+    private SailLog mLogService;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
         }
         checkLocationPermission();
         if(hasPermission){
-            //cleanPop();
             setPopDialog();
             BTArrayAdapter.clear();
             alertpop = popDialog.show();
@@ -158,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy(){
         super.onDestroy();
         Intent gattServiceIntent = new Intent(getApplicationContext(), BTLEConnection.class);
-        this.unregisterReceiver(mGattUpdateReceiver);
         stopService(gattServiceIntent);
     }
 
@@ -167,16 +179,25 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         filter = new IntentFilter(BTLEConnection.ACTION_GATT_CONNECTED);
         filter.addAction(BTLEConnection.ACTION_GATT_DISCONNECTED);
+        filter.addAction(BTLEConnection.ACTION_DATA_AVAILABLE);
         this.registerReceiver(mGattUpdateReceiver, filter);
         if (mBluetoothLeService != null){
             setConnectionButtons(mBluetoothLeService.getConnectionStatus());
+        }
+        if (mLogService == null){
+            Intent logServiceIntent = new Intent(getApplicationContext(), SailLog.class);
+            bindService(logServiceIntent, mLogServiceConnection, BIND_AUTO_CREATE);
         }
     }
 
     @Override
     public void onPause(){
         super.onPause();
-        this.unregisterReceiver(mGattUpdateReceiver);
+        cleanPop();
+        if (mGattUpdateReceiver != null){
+            this.unregisterReceiver(mGattUpdateReceiver);
+        }
+
     }
     /*
     Popup when searching for bluetooth devices
@@ -188,11 +209,12 @@ public class MainActivity extends AppCompatActivity {
         View Viewlayout = inflater.inflate(R.layout.bt_list, (ViewGroup) findViewById(R.id.bt_list));
         ListView myListView = (ListView) Viewlayout.findViewById(R.id.BTList);
         myListView.setAdapter(BTArrayAdapter);
+        myListView.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
+        myListView.setSelector(android.R.color.holo_blue_light);
         myListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 //Highlight chosen item on the popup list
-                view.setBackgroundColor(Color.LTGRAY);
                 String device = parent.getAdapter().getItem(position).toString();
                 String lines[] = device.split("[\\r\\n]+");
                 String deviceName = lines[0];
@@ -260,29 +282,31 @@ public class MainActivity extends AppCompatActivity {
             final String action = intent.getAction();
             if (mBluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
                 setConnectionButtons(mBluetoothLeService.getConnectionStatus());
-            }else if (mBluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+            } else if (mBluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 setConnectionButtons(mBluetoothLeService.getConnectionStatus());
                 Intent gattServiceIntent = new Intent(getApplicationContext(), BTLEConnection.class);
                 stopService(gattServiceIntent);
                 unbindService(mServiceConnection);
                 //MenuItem item = (MenuItem) findViewById(R.id.boat_connection);
                 //item.setIcon(getDrawable(R.drawable.pico_disconnected));
+            } else if (mBluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
+                displayData(intent.getStringExtra(mBluetoothLeService.EXTRA_DATA), intent.getStringExtra(mBluetoothLeService.EXTRA_TYPE));
             }
         }
     };
 
-    private void setConnectionButtons(int connected){
+    private void setConnectionButtons(int connected) {
         TextView tv = (TextView) findViewById(R.id.mainConText);
         Button btnCon = (Button) findViewById(R.id.btconbtn);
         Button btnDis = (Button) findViewById(R.id.btdisconbtn);
         //LinearLayout ivCon = (LinearLayout) findViewById(R.id.main_connection_holder);
-        if (connected == STATE_CONNECTED){
+        if (connected == STATE_CONNECTED) {
             btnCon.setVisibility(View.GONE);
             btnDis.setVisibility(View.VISIBLE);
             tv.setText(R.string.connected);
             //ivCon.setBackground(getDrawable(R.drawable.main_pico_connected));
 
-        } else{
+        } else {
             btnCon.setVisibility(View.VISIBLE);
             btnDis.setVisibility(View.GONE);
             tv.setText(R.string.disconnected);
@@ -290,6 +314,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
     /*
     Check permissions during runtime for bluetooth discovery
      */
@@ -300,8 +325,7 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                     REQUEST_COARSE_LOCATION);
-        }
-        else{
+        } else {
             hasPermission = true;
         }
     }
@@ -330,12 +354,11 @@ public class MainActivity extends AppCompatActivity {
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
             BluetoothDevice bd = result.getDevice();
-            if(!myBTHandler.deviceExists(myBTHandler.getLeDeviceList(), bd)){
+            if (!myBTHandler.deviceExists(myBTHandler.getLeDeviceList(), bd)) {
                 myBTHandler.addLeDeviceList(bd);
-                BTArrayAdapter.add(bd.getName()+ "\n" + bd.getAddress());
+                BTArrayAdapter.add(bd.getName() + "\n" + bd.getAddress());
                 BTArrayAdapter.notifyDataSetChanged();
-            }
-            else{
+            } else {
                 BTArrayAdapter.notifyDataSetChanged();
             }
         }
@@ -350,4 +373,91 @@ public class MainActivity extends AppCompatActivity {
             super.onScanFailed(errorCode);
         }
     };
+
+
+    // Code to manage Service lifecycle.
+    private final ServiceConnection mLogServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder service) {
+            mLogService = ((SailLog.LocalBinder) service).getService();
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mLogService = null;
+        }
+    };
+
+
+    private void displayData(String data, String dataType) {
+        if (data != null) {
+            String time = new SimpleDateFormat("HHmmssSSS").format(new Date());
+            if(dataType.equals(DATA_TYPE_INCLINE)){
+                String[] accelerometer = data.split(":");
+                float x = Float.parseFloat(accelerometer[0]);
+                float y = Float.parseFloat(accelerometer[1]);
+                float z = Float.parseFloat(accelerometer[2]);
+                if(mLogService != null){
+                    if (mLogService.isLogging()){
+                        mLogService.writeToLog(DATA_TYPE_INCLINE +":" +time  +":" +x);
+                        mLogService.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +z);
+                    }
+                }
+            }
+            else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
+                data = data.replace(',', '.');
+                if (mLogService != null){
+                    if (mLogService.isLogging()){
+                        mLogService.writeToLog(DATA_TYPE_TEMPERATURE +":" +time +":" +data);
+                    }
+                }
+            }
+            else if(dataType.equals(DATA_TYPE_PRESSURE)){
+                data = data.replace(',', '.');
+                float pressure = Float.parseFloat(data);
+                if (mLogService != null){
+                    if (mLogService.isLogging()){
+                        mLogService.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" + pressure);
+                    }
+                }
+            }
+            else if(dataType.equals(DATA_TYPE_FREE_FALL)){
+
+            }
+            else if(dataType.equals(DATA_TYPE_HUMIDITY)){
+                data = data.replace(',', '.');
+                if(mLogService != null) {
+                    if (mLogService.isLogging()){
+                        mLogService.writeToLog(DATA_TYPE_HUMIDITY + ":" + time + ":" + data);
+                    }
+                }
+            }
+            else if(dataType.equals("Heart")){
+
+            }
+            else if (dataType.equals(DATA_TYPE_POSITION)) {
+                data = data.replace(',', '.');
+                String[] pos = data.split(":");
+                float latitude = Float.parseFloat(pos[0]);
+                float longitude = Float.parseFloat(pos[1]);
+                float elevation = Float.parseFloat(pos[2]);
+                if (latitude != 0f && longitude != 0f) {
+                    if(mLogService != null) {
+                        if (mLogService.isLogging()){
+                            mLogService.writeToLog(DATA_TYPE_POSITION + ":" + time + ":" + longitude + ":" + latitude);
+                        }
+                    }
+                }
+            }
+            else if (dataType.equals(DATA_TYPE_COMPASS)){
+                data = data.replace(',', '.');
+                float z = Float.parseFloat(data);
+                if(mLogService != null) {
+                    if (mLogService.isLogging()){
+                        mLogService.writeToLog(DATA_TYPE_COMPASS + ":" + time + ":" + z);
+                    }
+                }
+            }
+        }
+    }
 }
