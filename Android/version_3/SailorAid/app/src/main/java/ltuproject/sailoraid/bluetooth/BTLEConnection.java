@@ -122,7 +122,7 @@ public class BTLEConnection extends Service {
     }
 
     private final IBinder mBinder = new LocalBinder();
-
+j
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;

@@ -51,7 +51,7 @@ typedef struct GPSstate
 
 typedef struct RangeState_t
 {
-  int range0; // Range in cm
+  float range0; // Range in cm
 } RangeState_t;
 
 typedef struct SensorState
