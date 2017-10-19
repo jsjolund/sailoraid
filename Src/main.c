@@ -40,6 +40,7 @@
 #include "stm32f4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
+#include <limits.h>
 #include "bluenrg_interface.h"
 #include "stm32f4xx_nucleo.h"
 #include "imu.h"
@@ -336,7 +337,7 @@ int main(void)
       {
         Range_Sensor_Set_New_Range(&VL53L0XDev, &rangingMeasurementData);
         // Filtered distance in cm
-        sensor.range.range0 = (rangingMeasurementData.RangeStatus == 0) ? (int) VL53L0XDev.LeakyRange / 10 : 0;
+        sensor.range.range0 = (rangingMeasurementData.RangeStatus == 0) ? (int) VL53L0XDev.LeakyRange / 10 : INT_MAX;
       }
     }
 
@@ -382,7 +383,10 @@ int main(void)
     }
     if (usbRangeOutputTask.echo && taskTimeout(&usbRangeOutputTask, &htim2))
     {
-      printf("range %d cm\n", sensor.range.range0);
+      if (sensor.range.range0 < INT_MAX)
+        printf("range %d cm\n", sensor.range.range0);
+      else
+        printf("range ∞\n");
     }
     if (usbMatlabOutputTask.echo && taskTimeout(&usbMatlabOutputTask, &htim2))
     {
