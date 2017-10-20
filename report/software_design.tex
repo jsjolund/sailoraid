@@ -73,10 +73,19 @@ In order to measure the various time dependent spatial features such as orientat
 
 To interface the firmware with the board, the X-CUBE-MEMS1 \cite{x-cube-mems1} library developed by ST was used. This library implemented the I$^2$C communication protocol used by the previously mentioned IMU devices in the form of simple function calls, which saved a lot of development time. It was quite simple to integrate with the code generation from STM32CubeMX, only a few source definitions had to be modified. Like with the Bluetooth library (section \ref{bluetooth}) blocking communication was chosen to simplify the code, even though the MCU supported interrupt based DMA transfers. The I$^2$C operated in fast mode at 400 kHz which was thought to cause minimal interference with the rest of the system in blocking transfer mode.
 
-An important use case for the IMU was to determine the current orientation of the dinghy. To accomplish this, a type of sensor fusion algorithm called Madgwick AHRS \cite{madgwick} was used.
+An important use case for the IMU was to determine the current orientation of the dinghy. To accomplish this, a type of sensor fusion algorithm called Madgwick AHRS (section \ref{madgwick}) was used.
+
+\subsubsection{Madgwick AHRS}
+\label{madgwick}
+Madgwick AHRS \cite{madgwick} is a type of sensor fusion algorithm which calculates the current orientation in space from three dimensional vectors of acceleration, angular velocity and magnetic field strength. It was developed in 2010 by Sebastian O.H. Madgwick as a more performant alternative to the Kalman filter approach. It basically integrates the angular velocity from the gyroscope, while using the accelerometer and magnetometer to create a reference to the horizontal plane. Earth’s magnetic poles provides a horizontal vector which lies on the plane, while the gravitational acceleration is the plane’s normal vector. This then used by the algorithm to compensate for drift in gyro integration. The algorithm stores orientation in quaternions (rotation vectors with four elements), but can convert it to Euler angles, which can be more easily used.
+
+The mathematical background of this algorithm is quite complicated and outside the scope of this report, see the official report \cite{madgwick-report} for more details.
+
+\subsubsection{USB UART}
+Since this project involved analyzing sensor data for developing sensor fusion algorithms, for example combining GPS and accelerometer for accurate positioning (section \ref{ekf}) and measuring water wave properties, it was important to be able to log data at a reasonably high frequency. To this end, a hardware UART-over-USB chip was used, the ST-LINK/V2-1 on the Nucleo board, and FTDI FT232R on the custom project board.
+
+\todo{MATLAB serial read}
 
 \subsubsection{GPS}
 
 \subsubsection{Range sensor}
-
-\subsubsection{USB UART}
