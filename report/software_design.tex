@@ -77,15 +77,33 @@ An important use case for the IMU was to determine the current orientation of th
 
 \subsubsection{Madgwick AHRS}
 \label{madgwick}
-Madgwick AHRS \cite{madgwick} is a type of sensor fusion algorithm which calculates the current orientation in space from three dimensional vectors of acceleration, angular velocity and magnetic field strength. It was developed in 2010 by Sebastian O.H. Madgwick as a more performant alternative to the Kalman filter approach. It basically integrates the angular velocity from the gyroscope, while using the accelerometer and magnetometer to create a reference to the horizontal plane. Earth’s magnetic poles provides a horizontal vector which lies on the plane, while the gravitational acceleration is the plane’s normal vector. This then used by the algorithm to compensate for drift in gyro integration. The algorithm stores orientation in quaternions (rotation vectors with four elements), but can convert it to Euler angles, which can be more easily used.
+Madgwick AHRS \cite{madgwick} is a type of sensor fusion algorithm which calculates the current orientation in space from three dimensional vectors of acceleration, angular velocity and magnetic field strength. It was developed in 2010 by Sebastian O.H. Madgwick as a more performant alternative to the Kalman filter approach. It basically integrates the angular velocity from the gyroscope, while using the accelerometer and magnetometer to create a reference to the horizontal plane. Earth’s magnetic poles provides a horizontal vector which lies on the plane, while the gravitational acceleration is the plane’s normal vector. This is then used by the algorithm to compensate for drift in gyro integration. The algorithm stores orientation in quaternions (rotation vectors with four elements), but can convert it to Euler angles, which can be more easily used.
 
 The mathematical background of this algorithm is quite complicated and outside the scope of this report, see the official report \cite{madgwick-report} for more details.
 
-\subsubsection{USB UART}
-Since this project involved analyzing sensor data for developing sensor fusion algorithms, for example combining GPS and accelerometer for accurate positioning (section \ref{ekf}) and measuring water wave properties, it was important to be able to log data at a reasonably high frequency. To this end, a hardware UART-over-USB chip was used, the ST-LINK/V2-1 on the Nucleo board, and FTDI FT232R on the custom project board.
 
-\todo{MATLAB serial read}
+\subsubsection{USB UART}
+\label{usb-uart}
+Since this project involved analyzing sensor data for developing sensor fusion algorithms, for example combining GPS and accelerometer for accurate positioning (section \ref{ekf}) and measuring water wave properties, it was important to be able to log data at a reasonably high frequency. Transferring serial commands between a computer and the MCU also helped in debugging the code. To this end, a hardware UART-over-USB chip was used, the ST-LINK/V2-1 on the Nucleo board, and FTDI FT232R on the custom project board.
+
+At a relatively low baud rate of 115200 bps, it was determined that send and receive should both be interrupt based using DMA transfers to minimize the impact on system resources. Reception of data like key presses from a computer was handled one character at a time. The characters were appended as a string until the enter key was detected. At this point the string was matched against a list of valid commands, and the appropriate task performed -- such as sending current sensor values. Sending was implemented as a simple circular buffer which could be transferred to the UART peripheral registers using DMA.
+
+In order to log sensor values for later analysis a simple MATLAB script was developed for listening to sensor data over the UART serial port. By inputting a serial command, the embedded system starts sending live sensor data at at constant rate. The script listens to this and logs it to a table.
+
 
 \subsubsection{GPS}
+The GPS module used in this project, EVA2235-H by Maestro \cite{gps} could communicate with the MCU through either I$^2$C or UART. Both protocols require only two pins to operate, but UART communication was determined to be easier to implement in code. The UART baud rate of the GPS module was set to 4800 Hz by default. While this could be changed by software there was no reason to do so. The low baud rate did however mean that blocking transmissions might cause problematic interruptions in the firmware code. To prevent this, interrupt based communication through DMA was implemented, using the same type of queuing system as the USB UART (section \ref{usb-uart}).
+
+Data from the GPS was formatted according to the NMEA message standard. It is used by nearly all GPS devices internally, but is quite hard for a human to read. For example,
+\begin{lstlisting}
+GPGSA,A,3,03,22,31,23,01,06,09,11,,,,,1.9,1.2,1.5*33
+GPRMC,152053.000,A,6537.0389,N,02208.0160,E,0.17,264.54,240917,,,A*6A
+GPGGA,152054.000,6537.0389,N,02208.0160,E,1,08,1.2,14.0,M,25.0,M,,0000*68
+\end{lstlisting}
+contains three so called sentences. GPGSA contains data about the number of active satellites and positional accuracy. GPRMC and GPGGA both encode longitude, latitude, current time and date, as well as other data.
+
+Several NMEA parsing libraries are freely available on the web. The one chosen for this project was called Libnmea \cite{libnmea} and allowed the sentences to be automatically recognized, parsed and stored into easy to use C structures.
+
 
 \subsubsection{Range sensor}
+\todo{todo}
