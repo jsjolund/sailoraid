@@ -36,6 +36,8 @@
  *
  * */
 static int LeakyFactorFix8 = (int) (0.6 * 256);
+static VL53L0X_Error Status = VL53L0X_ERROR_RANGE_ERROR;
+static VL53L0X_DeviceModes DeviceMode = 0;
 
 /**
  * Reset all sensor then do presence detection
@@ -243,23 +245,63 @@ void Range_Sensor_Setup_Single_Shot(VL53L0X_Dev_t *VL53L0XDev, RangingConfig_e r
 }
 
 /* Store new ranging data into the device structure, apply leaky integrator if needed */
-void Range_Sensor_Set_New_Range(VL53L0X_Dev_t *pDev, VL53L0X_RangingMeasurementData_t *pRange)
+void Range_Sensor_Set_New_Range(VL53L0X_Dev_t *VL53L0XDev, VL53L0X_RangingMeasurementData_t *rangeData)
 {
-  if (pRange->RangeStatus == 0)
+  if (rangeData->RangeStatus == 0)
   {
-    if (pDev->LeakyFirst)
+    if (VL53L0XDev->LeakyFirst)
     {
-      pDev->LeakyFirst = 0;
-      pDev->LeakyRange = pRange->RangeMilliMeter;
+      VL53L0XDev->LeakyFirst = 0;
+      VL53L0XDev->LeakyRange = rangeData->RangeMilliMeter;
     }
     else
     {
-      pDev->LeakyRange = (pDev->LeakyRange * LeakyFactorFix8 + (256 - LeakyFactorFix8) * pRange->RangeMilliMeter) >> 8;
+      VL53L0XDev->LeakyRange = (VL53L0XDev->LeakyRange * LeakyFactorFix8 + (256 - LeakyFactorFix8) * rangeData->RangeMilliMeter) >> 8;
     }
   }
   else
   {
-    pDev->LeakyFirst = 1;
+    VL53L0XDev->LeakyFirst = 1;
   }
+}
+
+VL53L0X_Error Range_Sensor_Start_New_Measurement(VL53L0X_Dev_t *VL53L0XDev, VL53L0X_RangingMeasurementData_t *rangeData)
+{
+  Status = VL53L0X_ERROR_NONE;
+  /* This function will do a complete single ranging
+   * Here we fix the mode! */
+  Status = VL53L0X_SetDeviceMode(VL53L0XDev, VL53L0X_DEVICEMODE_SINGLE_RANGING);
+
+  /* Get Current DeviceMode */
+  if (Status == VL53L0X_ERROR_NONE)
+    Status = VL53L0X_GetDeviceMode(VL53L0XDev, &DeviceMode);
+
+  /* Start immediately to run a single ranging measurement in case of
+   * single ranging or single histogram */
+  if (Status == VL53L0X_ERROR_NONE && DeviceMode == VL53L0X_DEVICEMODE_SINGLE_RANGING)
+    Status = VL53L0X_StartMeasurement(VL53L0XDev);
+
+  return Status;
+}
+
+VL53L0X_Error Range_Sensor_Get_Measurement(VL53L0X_Dev_t *VL53L0XDev, VL53L0X_RangingMeasurementData_t *rangeData)
+{
+  if (Status == VL53L0X_ERROR_NONE)
+    Status = VL53L0X_measurement_poll_for_completion(VL53L0XDev);
+
+  /* Change PAL State in case of single ranging or single histogram */
+  if (Status == VL53L0X_ERROR_NONE && DeviceMode == VL53L0X_DEVICEMODE_SINGLE_RANGING)
+    PALDevDataSet(VL53L0XDev, PalState, VL53L0X_STATE_IDLE);
+
+  if (Status == VL53L0X_ERROR_NONE)
+    Status = VL53L0X_GetRangingMeasurementData(VL53L0XDev, rangeData);
+
+  if (Status == VL53L0X_ERROR_NONE)
+    Status = VL53L0X_ClearInterruptMask(VL53L0XDev, 0);
+
+  if (Status == VL53L0X_ERROR_NONE)
+    Range_Sensor_Set_New_Range(VL53L0XDev, rangeData);
+
+  return Status;
 }
 
