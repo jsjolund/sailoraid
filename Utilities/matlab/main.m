@@ -2,8 +2,9 @@
 % Press Ctrl+C in the Command Window to stop reading and recording.
 clear -global;
 clear;
+
 %serialPort = 'COM1'; % Windows
-serialPort = '/dev/ttyACM3'; % Linux
+serialPort = '/dev/ttyACM0'; % Linux
 
 % Can be removed for faster logging
 % realTimePlot();
@@ -49,11 +50,14 @@ end
 
 % Update the plot by circle shifting the values as needed
 function realTimePlotUpdate(sensor)
+
+plotVar = sensor.range.range0;
+
 global hp step
 xVals = get(hp,'XData');
 yVals = get(hp,'YData');
 yVals = circshift(yVals,-1);
-yVals(end) = sensor.range.range0; % Plot variable
+yVals(end) = plotVar;
 xVals = circshift(xVals,-1);
 xVals(end) = xVals(end-1) + step;
 set(hp, 'XData', xVals, 'YData', yVals);

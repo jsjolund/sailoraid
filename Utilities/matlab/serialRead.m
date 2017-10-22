@@ -8,9 +8,11 @@ if exist('s', 'var')
     delete(s);
     clear s;
 end
+% Supported baud rates 110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200,
+% 38400, 57600, 115200, 230400, 460800, 921600
 s = serial(serialPort);
 if (s.Status == 'closed')
-    s.BaudRate = 115200;
+    s.BaudRate = 230400;
     s.ReadAsyncMode = 'continuous';
     s.InputBufferSize = 1024;
     s.ByteOrder = 'littleEndian';
@@ -26,7 +28,7 @@ if (s.Status == 'closed')
     fprintf(s,sprintf('\r\n\r\n\r\nmatlab\r\n'));
     tic();
     set(s,'BytesAvailableFcn',{@serialReceive,callback});
-    % Read 
+    % Read
     pause(1);
     % Close the serial connection
     fprintf('Closing connection...\n')
@@ -89,7 +91,7 @@ sensor.gps.pos.speed        = data(26);
 sensor.gps.pos.direction    = data(27);
 sensor.gps.info.satUse      = ftoi(data(28));
 sensor.gps.info.satView     = ftoi(data(29));
-sensor.range.range0         = ftoi(data(30));
+sensor.range.range0         = data(30);
 
 % Add a timestamp
 sensor.sys.dateTime = now;

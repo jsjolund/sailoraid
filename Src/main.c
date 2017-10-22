@@ -80,7 +80,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 #define USB_GPS_OUTPUT_RATE 1.0
 #define USB_IMU_OUTPUT_RATE 10.0
 #define USB_RANGE_OUTPUT_RATE 10.0
-#define USB_MATLAB_OUTPUT_RATE 70.0
+#define USB_MATLAB_OUTPUT_RATE 100.0
 #define BT_ENV_OUTPUT_RATE 1.0
 #define BT_GPS_OUTPUT_RATE 1.0
 #define BT_IMU_OUTPUT_RATE 50.0
@@ -99,15 +99,22 @@ typedef struct Task_Data
   BOOL echo;
 } Task_Data;
 
-BOOL taskTimeout(Task_Data *data, TIM_HandleTypeDef *tim)
+/**
+ * Check if it is time to run a task
+ */
+static uint32_t taskTimeout(Task_Data *data, TIM_HandleTypeDef *tim)
 {
-  uint32_t cnt = tim->Instance->CNT;
-  if (cnt - data->previous >= data->period)
+  uint32_t deltaTime = tim->Instance->CNT - data->previous;
+  if (deltaTime >= data->period)
   {
-    data->previous += data->period;
-    return TRUE;
+    // If deadline has passed more than once add the period multiple times
+    // to avoid running the task many times. We don't want to add deltaTime,
+    // since this would result in drift
+    int k = deltaTime / data->period;
+    data->previous += k * data->period;
+    return deltaTime;
   }
-  return FALSE;
+  return 0;
 }
 
 static Task_Data imuSampleTask = { .period = (uint32_t) (1000000.0 / IMU_SAMPLE_RATE) };
@@ -272,11 +279,11 @@ int main(void)
   MadgwickInit(IMU_SAMPLE_RATE);
 
   /* Range */
-  VL53L0X_Dev_t VL53L0XDev = { .Id = 0, .DevLetter = 'l', .I2cHandle = &hi2c1, .I2cDevAddr = 0x52 };
-  Range_Sensor_Init(&VL53L0XDev);
+  VL53L0X_Dev_t rangeDev = { .Id = 0, .I2cHandle = &hi2c1, .I2cDevAddr = 0x52 };
+  Range_Sensor_Init(&rangeDev);
   RangingConfig_e rangingConfig = LONG_RANGE;
-  Range_Sensor_Setup_Single_Shot(&VL53L0XDev, rangingConfig);
-  VL53L0X_RangingMeasurementData_t rangingMeasurementData;
+  Range_Sensor_Setup_Single_Shot(&rangeDev, rangingConfig);
+  VL53L0X_RangingMeasurementData_t rangeData;
 
   // Start the task timer
   HAL_TIM_Base_Init(&htim2);
@@ -330,14 +337,14 @@ int main(void)
     }
     if (taskTimeout(&rangeSampleTask, &htim2))
     {
-      // Update range sensors
-      int status = VL53L0X_PerformSingleRangingMeasurement(&VL53L0XDev, &rangingMeasurementData);
-      if (status == 0)
+      // Get previous range measurement
+      if (Range_Sensor_Get_Measurement(&rangeDev, &rangeData) == VL53L0X_ERROR_NONE)
       {
-        Range_Sensor_Set_New_Range(&VL53L0XDev, &rangingMeasurementData);
         // Filtered distance in cm
-        sensor.range.range0 = (rangingMeasurementData.RangeStatus == 0) ? (int) VL53L0XDev.LeakyRange / 10 : INFINITY;
+        sensor.range.range0 = (rangeData.RangeStatus == 0) ? (int) rangeDev.LeakyRange / 10 : INFINITY;
       }
+      // Start new range measurement
+      Range_Sensor_Start_New_Measurement(&rangeDev, &rangeData);
     }
 
     /*** OUTPUTS ***/
@@ -514,7 +521,7 @@ static void MX_I2C1_Init(void)
 {
 
   hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.ClockSpeed = 400000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -608,7 +615,7 @@ static void MX_USART2_UART_Init(void)
 {
 
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 230400;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;

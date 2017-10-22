@@ -13,6 +13,7 @@
 #include "vl53l0x_def.h"
 #include "vl53l0x_api.h"
 #include "vl53l0x_platform.h"
+#include "vl53l0x_api_core.h"
 
 typedef enum
 {
@@ -29,7 +30,8 @@ typedef enum
 
 void Range_Sensor_Init(VL53L0X_Dev_t *VL53L0XDev);
 void Range_Sensor_Setup_Single_Shot(VL53L0X_Dev_t *VL53L0XDev, RangingConfig_e rangingConfig);
-void Range_Sensor_Set_New_Range(VL53L0X_Dev_t *pDev, VL53L0X_RangingMeasurementData_t *pRange);
-
+void Range_Sensor_Set_New_Range(VL53L0X_Dev_t *VL53L0XDev, VL53L0X_RangingMeasurementData_t *rangeData);
+VL53L0X_Error Range_Sensor_Start_New_Measurement(VL53L0X_Dev_t *VL53L0XDev, VL53L0X_RangingMeasurementData_t *rangeData);
+VL53L0X_Error Range_Sensor_Get_Measurement(VL53L0X_Dev_t *VL53L0XDev, VL53L0X_RangingMeasurementData_t *rangeData);
 
 #endif /* RANGE_H_ */
