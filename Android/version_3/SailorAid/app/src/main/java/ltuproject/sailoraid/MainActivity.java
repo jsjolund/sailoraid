@@ -50,12 +50,16 @@ import ltuproject.sailoraid.bluetooth.BTHandler;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
 import ltuproject.sailoraid.datalog.SailLog;
 
+import static java.lang.Math.abs;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_COMPASS;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_DRIFT;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_FREE_FALL;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_HUMIDITY;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_INCLINE;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_POSITION;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_PRESSURE;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_RANGE;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_SOG;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_TEMPERATURE;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.STATE_CONNECTED;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.STATE_DISCONNECTED;
@@ -65,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_COARSE_LOCATION = 999;
+    private static final int UNINITIALIZED = 9999;
 
     private AlertDialog.Builder popDialog;
     private AlertDialog alertpop;
@@ -76,6 +81,10 @@ public class MainActivity extends AppCompatActivity {
     private BTLEConnection mBluetoothLeService;
     private IntentFilter filter;
     private SailLog mLogService;
+    private float inclineX, inclineY, bearingZ, speed, direction, range;
+    private double drift;
+    private LatLng nextEstimate;
+    private LatLng gpsPos = new LatLng(0,0);
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 if (mBluetoothLeService != null){
                     mBluetoothLeService.disconnect();
                 }
+                setConnectionButtons(STATE_DISCONNECTED);
             }
         });
 
@@ -244,17 +254,6 @@ public class MainActivity extends AppCompatActivity {
         popDialog.create();
     }
 
-    /*
-   Updates the adapter that is on the Listview displayed in the popup window with lists of found devices
-    */
-    public void updateDevicesShown() {
-        BTArrayAdapter.clear();
-        for (BluetoothDevice device : myBTHandler.getLeDeviceList()){
-            BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
-        }
-
-    }
-
     public void cleanPop(){
         if (popDialog != null){
             popDialog = null;
@@ -281,16 +280,14 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (mBluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
-                setConnectionButtons(mBluetoothLeService.getConnectionStatus());
+                setConnectionButtons(STATE_CONNECTED);
             } else if (mBluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                setConnectionButtons(mBluetoothLeService.getConnectionStatus());
                 Intent gattServiceIntent = new Intent(getApplicationContext(), BTLEConnection.class);
                 stopService(gattServiceIntent);
                 unbindService(mServiceConnection);
-                //MenuItem item = (MenuItem) findViewById(R.id.boat_connection);
-                //item.setIcon(getDrawable(R.drawable.pico_disconnected));
+                setConnectionButtons(STATE_DISCONNECTED);
             } else if (mBluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                displayData(intent.getStringExtra(mBluetoothLeService.EXTRA_DATA), intent.getStringExtra(mBluetoothLeService.EXTRA_TYPE));
+                logData(intent.getStringExtra(mBluetoothLeService.EXTRA_DATA), intent.getStringExtra(mBluetoothLeService.EXTRA_TYPE));
             }
         }
     };
@@ -299,18 +296,18 @@ public class MainActivity extends AppCompatActivity {
         TextView tv = (TextView) findViewById(R.id.mainConText);
         Button btnCon = (Button) findViewById(R.id.btconbtn);
         Button btnDis = (Button) findViewById(R.id.btdisconbtn);
-        //LinearLayout ivCon = (LinearLayout) findViewById(R.id.main_connection_holder);
+        LinearLayout ivCon = (LinearLayout) findViewById(R.id.main_connection_holder);
         if (connected == STATE_CONNECTED) {
             btnCon.setVisibility(View.GONE);
             btnDis.setVisibility(View.VISIBLE);
             tv.setText(R.string.connected);
-            //ivCon.setBackground(getDrawable(R.drawable.main_pico_connected));
+            ivCon.setBackground(getDrawable(R.drawable.main_pico_connected));
 
         } else {
             btnCon.setVisibility(View.VISIBLE);
             btnDis.setVisibility(View.GONE);
             tv.setText(R.string.disconnected);
-            //ivCon.setBackground(getDrawable(R.drawable.main_pico_disconnected));
+            ivCon.setBackground(getDrawable(R.drawable.main_pico_disconnected));
         }
 
     }
@@ -374,8 +371,9 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
-    // Code to manage Service lifecycle.
+    /*
+        Gets local binder from log service when the service is connected to this activity
+     */
     private final ServiceConnection mLogServiceConnection = new ServiceConnection() {
 
         @Override
@@ -388,21 +386,28 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
-    private void displayData(String data, String dataType) {
+    /*
+        Log data when connected to the boat and logging is started from the feedback activity
+     */
+    private void logData(String data, String dataType) {
         if (data != null) {
             String time = new SimpleDateFormat("HHmmssSSS").format(new Date());
             if(dataType.equals(DATA_TYPE_INCLINE)){
+                // Get Roll, pitch and yaw
                 String[] accelerometer = data.split(":");
-                float x = Float.parseFloat(accelerometer[0]);
-                float y = Float.parseFloat(accelerometer[1]);
-                float z = Float.parseFloat(accelerometer[2]);
+
+                this.inclineX = Float.parseFloat(accelerometer[0]);
+                this.inclineY = Float.parseFloat(accelerometer[1]);
+                this.bearingZ = Float.parseFloat(accelerometer[2]);
+
                 if(mLogService != null){
                     if (mLogService.isLogging()){
-                        mLogService.writeToLog(DATA_TYPE_INCLINE +":" +time  +":" +x);
-                        mLogService.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +z);
+                        mLogService.writeToLog(DATA_TYPE_INCLINE +":" +time  +":" +this.inclineX);
+                        mLogService.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +this.bearingZ);
                     }
                 }
+                TextView tv = (TextView) findViewById(R.id.zText);
+                tv.setText(String.valueOf(this.bearingZ));
             }
             else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
                 data = data.replace(',', '.');
@@ -414,10 +419,9 @@ public class MainActivity extends AppCompatActivity {
             }
             else if(dataType.equals(DATA_TYPE_PRESSURE)){
                 data = data.replace(',', '.');
-                float pressure = Float.parseFloat(data);
                 if (mLogService != null){
                     if (mLogService.isLogging()){
-                        mLogService.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" + pressure);
+                        mLogService.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" + data);
                     }
                 }
             }
@@ -432,32 +436,64 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-            else if(dataType.equals("Heart")){
-
-            }
             else if (dataType.equals(DATA_TYPE_POSITION)) {
                 data = data.replace(',', '.');
                 String[] pos = data.split(":");
+                String newTime = new SimpleDateFormat("ssSSS").format(new Date());
                 float latitude = Float.parseFloat(pos[0]);
                 float longitude = Float.parseFloat(pos[1]);
                 float elevation = Float.parseFloat(pos[2]);
+                this.speed = Float.parseFloat(pos[3]);
+                this.direction = Float.parseFloat(pos[4]);
                 if (latitude != 0f && longitude != 0f) {
+                    //double speed_mps = 0;
+                    if (this.gpsPos.latitude != 0 && this.gpsPos.longitude!= 0){
+                        //Calculate distance and speed from last point, possibly could filter moving avg
+                        double dist = FeedbackActivity.distance_on_geoid(latitude, longitude, this.gpsPos.latitude, this.gpsPos.longitude);
+
+                        //double time_s = (Double.valueOf(prevTime) - Double.valueOf(newTime)) / 1000.0;
+                        //speed_mps = dist/time_s;
+                        // Estimates next position using brearing, now just z axis from IMU
+                        // TODO this.z should be compass bearing, gps direction bearing atm
+
+                        // Calculate perpendicular drift from the ship navigational bearing will update from previously calculated value to compare with the new values.
+                        if (this.nextEstimate.latitude != 0 && this.nextEstimate.longitude != 0){
+                            //this.drift = (this.nextEstimate.longitude-longitude) * Math.cos((latitude+this.nextEstimate.latitude)/2);
+                            this.drift = FeedbackActivity.distance_on_geoid(this.nextEstimate.latitude, this.nextEstimate.longitude, latitude, longitude);
+                        } else{
+                            this.drift = UNINITIALIZED;
+                        }
+                        this.nextEstimate = FeedbackActivity.calcNextEstimatePos(new LatLng(latitude,longitude), dist, abs(this.bearingZ));
+                    }
+                    this.gpsPos = new LatLng(latitude, longitude);
                     if(mLogService != null) {
                         if (mLogService.isLogging()){
-                            mLogService.writeToLog(DATA_TYPE_POSITION + ":" + time + ":" + longitude + ":" + latitude);
+                            mLogService.writeToLog(DATA_TYPE_POSITION + ":" + time + ":" + latitude + ":" + longitude + ":" +direction);
+                            mLogService.writeToLog(DATA_TYPE_SOG + ":" +time +":" +this.speed);
+                            mLogService.writeToLog(DATA_TYPE_DRIFT + ":" +time +":" +this.drift);
                         }
                     }
                 }
             }
             else if (dataType.equals(DATA_TYPE_COMPASS)){
                 data = data.replace(',', '.');
-                float z = Float.parseFloat(data);
+                this.bearingZ = Float.parseFloat(data);
                 if(mLogService != null) {
                     if (mLogService.isLogging()){
-                        mLogService.writeToLog(DATA_TYPE_COMPASS + ":" + time + ":" + z);
+                        mLogService.writeToLog(DATA_TYPE_COMPASS + ":" + time + ":" + data);
+                    }
+                }
+            } else if (dataType.equals(DATA_TYPE_RANGE)){
+                data = data.replace(',', '.');
+                this.range = Float.parseFloat(data);
+
+                if(mLogService != null) {
+                    if (mLogService.isLogging()){
+                        mLogService.writeToLog(DATA_TYPE_RANGE + ":" + time + ":" + data);
                     }
                 }
             }
+
         }
     }
 }

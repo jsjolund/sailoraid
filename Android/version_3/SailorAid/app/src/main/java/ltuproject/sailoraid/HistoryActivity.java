@@ -219,9 +219,6 @@ public class HistoryActivity extends AppCompatActivity {
                             getLogDataToArray();
                             ImageView iv = (ImageView) findViewById(R.id.sailorView);
                             iv.setImageDrawable(getDrawable(R.drawable.sailor_sad));
-                            TextView sScore = (TextView) findViewById(R.id.sailorScoreText);
-                            sScore.setVisibility(View.VISIBLE);
-                            sScore.setText("Your Sailor Score was: 14! \n Not so happy then.");
                         } else {
                             Toast.makeText(getApplicationContext(), "Your need to choose a file!", Toast.LENGTH_SHORT).show();
                         }
@@ -264,30 +261,33 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void setPressureData(){
-        ArrayList<String[]> inclineList = mLogService.getPressureDataList();
+        ArrayList<String[]> pressureList = mLogService.getPressureDataList();
         logPressureData.clear();
-        for (String[] loc : inclineList){{
+        for (String[] loc : pressureList){{
             logPressureData.add(loc);
         }}
     }
 
     private void setSOGData(){
-        ArrayList<String[]> inclineList = mLogService.getSogDataList();
+        ArrayList<String[]> sogList = mLogService.getSogDataList();
         logSOGData.clear();
-        if (inclineList.size() > 0){
-            for (String[] loc : inclineList){{
-                logSOGData.add(loc);
-            }}
-        }
+        for (String[] loc : sogList){{
+            logSOGData.add(loc);
+        }}
     }
     private void setCompassData(){
-        ArrayList<String[]> inclineList = mLogService.getCompassDataList();
+        ArrayList<String[]> compassList = mLogService.getCompassDataList();
         logCompassData.clear();
-        if (inclineList.size() > 0){
-            for (String[] loc : inclineList){{
-                logCompassData.add(loc);
+        for (String[] loc : compassList){{
+            logCompassData.add(loc);
+        }}
+    }
+    private void setDriftData(){
+        ArrayList<String[]> driftList = mLogService.getDriftDataList();
+        logDriftData.clear();
+            for (String[] loc : driftList){{
+                logDriftData.add(loc);
             }}
-        }
     }
     static private List<String[]> logInclineData = new ArrayList<String[]>();
     public static void getInclineData(List<String[]> output) {
@@ -361,9 +361,16 @@ public class HistoryActivity extends AppCompatActivity {
         setSOGData();
         setPressureData();
         setCompassData();
+        setDriftData();
+        calcSailorScore();
     }
 
-
+    private void calcSailorScore(){
+        float score = (mLogService.getTopSOG()*4+mLogService.getAvgSOG()*2)/2 + (10/ (mLogService.getAvgIncline()+mLogService.getMaxIncline()/4) ) + (10/ (mLogService.getAvgDrift() + mLogService.getTotalDrift()/100) );
+        TextView sScore = (TextView) findViewById(R.id.sailorScoreText);
+        sScore.setVisibility(View.VISIBLE);
+        sScore.setText("Your Sailor Score was: " +score +"! \n Not so happy then.");
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
+    app:layout_constraintBottom_toBottomOf="parent"
     android:id="@+id/mapFocusView">
 
     <com.google.android.gms.maps.MapView
@@ -13,7 +14,15 @@
         android:layout_height="275dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="20dp"
+        android:layout_height="wrap_content"
+        android:background="@color/laserblue"
+        app:layout_constraintLeft_toRightOf="@id/mapFragment"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/mapFragment" />
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="wrap_content"
@@ -39,10 +48,16 @@
             app:layout_constraintLeft_toRightOf="@id/inclineMapFocusViewHolder"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:background="@drawable/compass"
             android:id="@+id/compassMapFocusViewHolder" />
 
     </android.support.constraint.ConstraintLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/compassInclineHolder"
+        android:id="@+id/feedbackMapView"
+        android:gravity="center_horizontal"
+        />
     <android.support.constraint.ConstraintLayout
         android:layout_width="wrap_content"
         android:layout_height="50dp"

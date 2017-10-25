@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="ltuproject.sailoraid.MapsActivity">
+
+    <item
+        android:id="@+id/dist_left"
+        android:title="Total Distance"
+        app:showAsAction="always|withText" />
+
+    <item
+        android:id="@+id/dist_to_waypoint"
+        android:title="Distance"
+        app:showAsAction="always|withText" />
+
+    <item
+        android:id="@+id/create_route"
+        android:icon="@drawable/waypoints"
+        android:title="Waypoints"
+        android:visible="true"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/finnish_route"
+        android:icon="@drawable/waypoints"
+        android:title="Waypoints"
+        android:visible="false"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/remove_waypoint"
+        android:title="Remove Waypoints"
+        android:visible="true"
+        app:showAsAction="never"/>
+
+</menu>

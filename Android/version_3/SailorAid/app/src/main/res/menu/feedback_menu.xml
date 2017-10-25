@@ -9,6 +9,7 @@
         android:id="@+id/start_log"
         android:icon="@drawable/log"
         android:title="Log"
+        android:visible="false"
         app:showAsAction="ifRoom"/>
 
     <!-- Settings, should always be in the overflow -->

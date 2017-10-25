@@ -51,7 +51,7 @@ public class RotatableGLView extends GLSurfaceView {
 
         glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         glView.setRenderer(renderer);
-        glView.setRenderMode(RENDERMODE_CONTINUOUSLY);
+        glView.setRenderMode(RENDERMODE_WHEN_DIRTY);
         glView.getHolder().setFormat(PixelFormat.RGBA_8888);
         glView.setZOrderOnTop(true);
         // Create a new plane.
@@ -74,7 +74,7 @@ public class RotatableGLView extends GLSurfaceView {
 
         glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         glView.setRenderer(renderer);
-        glView.setRenderMode(RENDERMODE_CONTINUOUSLY);
+        glView.setRenderMode(RENDERMODE_WHEN_DIRTY);
         glView.getHolder().setFormat(PixelFormat.RGBA_8888);
         glView.setZOrderOnTop(true);
         // Create a new plane.

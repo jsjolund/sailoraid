@@ -31,10 +31,11 @@
         android:layout_height="50dp"
         android:baselineAligned="false">
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:id="@+id/feedbackText"
             android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="parent"
             android:text="Yo"
             android:textSize="10pt" />
 
@@ -109,18 +110,22 @@
                     android:textSize="10pt"
                     />
             </TableRow>
+
             <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_margin="1dp"
                 android:background="@color/background">>
+
                 <TextView
                     android:text="Range: "
-                    android:textSize="8pt"
-                    />
+                    android:textSize="8pt" />
+
                 <TextView
                     android:id="@+id/rangeText"
-                    android:textSize="10pt"
-                    />
+                    android:textSize="10pt" />
             </TableRow>
+
             <TableRow
                 android:layout_margin="1dp"
                 android:background="@color/background">>
@@ -130,6 +135,18 @@
                     />
                 <TextView
                     android:id="@+id/driftText"
+                    android:textSize="10pt"
+                    />
+            </TableRow>
+            <TableRow
+                android:layout_margin="1dp"
+                android:background="@color/background">>
+                <TextView
+                    android:text="Z: "
+                    android:textSize="8pt"
+                    />
+                <TextView
+                    android:id="@+id/zText"
                     android:textSize="10pt"
                     />
             </TableRow>

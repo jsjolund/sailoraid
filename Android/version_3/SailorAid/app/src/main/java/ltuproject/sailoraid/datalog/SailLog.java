@@ -203,6 +203,9 @@ public class SailLog extends Service {
     public ArrayList<String[]> getImuDataList(){
         return imuDataList;
     }
+    public ArrayList<String[]> getDriftDataList(){
+        return driftDataList;
+    }
     private void calcIMUData(){
         float total = 0;
         float max = 0;

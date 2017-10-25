@@ -110,7 +110,7 @@ public class BTLEConnection extends Service {
 
     private int listIterator = 0;
     private int serviceIterator = 0;
-
+    private boolean isDiscovered = false;
     public BTLEConnection(){
         mServiceList = new ArrayList<BluetoothGattService>();
     }
@@ -232,6 +232,7 @@ public class BTLEConnection extends Service {
             return;
         }
         mBluetoothGatt.disconnect();
+        mConnectionState = STATE_DISCONNECTED;
     }
 
     public void connectToLEDevice(final BluetoothDevice device) {
@@ -272,15 +273,15 @@ public class BTLEConnection extends Service {
                     mBluetoothGatt = gatt;
                     broadcastUpdate(intentAction);
 
-                    Log.i(TAG, "Connected to GATT server.");
+                    /*Log.i(TAG, "Connected to GATT server.");
                     Log.i(TAG, "Attempting to start service discovery:" +
-                            mBluetoothGatt.discoverServices());
-
+                            mBluetoothGatt.discoverServices());*/
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     intentAction = ACTION_GATT_DISCONNECTED;
                     mConnectionState = STATE_DISCONNECTED;
                     Log.i(TAG, "Disconnected from GATT server.");
                     broadcastUpdate(intentAction);
+                    isDiscovered = false;
                 }
             }
 
@@ -289,6 +290,7 @@ public class BTLEConnection extends Service {
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                 if (status == GATT_SUCCESS) {
                     broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
+                    isDiscovered = true;
                 } else {
                     Log.w(TAG, "onServicesDiscovered received: " + status);
                 }
@@ -300,12 +302,13 @@ public class BTLEConnection extends Service {
                                              BluetoothGattCharacteristic characteristic,
                                              int status) {
                 if (status == GATT_SUCCESS) {
-                    broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+
                     final int charaProp = characteristic.getProperties();
                     if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
                         mNotifyCharacteristic = characteristic;
                         setCharacteristicNotification(characteristic, true);
                     }
+                    broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
                 }
             }
 
@@ -362,13 +365,12 @@ public class BTLEConnection extends Service {
                         characteristic = mCharacteristicList.get(listIterator);
                     }
                     final int charaProp = characteristic.getProperties();
-                    if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+                    if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0  && mNotifyCharacteristic != null) {
                         // If there is an active notification on a characteristic, clear
                         // it first so it doesn't update the data field on the user interface.
-                        if (mNotifyCharacteristic != null) {
                             //setCharacteristicNotification(mNotifyCharacteristic, false);
-                            mNotifyCharacteristic = null;
-                        }
+                        mNotifyCharacteristic = null;
+
                         readCharacteristic(characteristic);
                     } else if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
                         setCharacteristicNotification(characteristic, true);
@@ -413,7 +415,7 @@ public class BTLEConnection extends Service {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
-        // mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
+        mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
         // This is specific to Heart Rate Measurement.
         if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())
@@ -430,7 +432,6 @@ public class BTLEConnection extends Service {
                     UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
             if (descriptor != null) {
                 characteristic.addDescriptor(descriptor);
-                descriptor.setValue(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE);
                 descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                 mBluetoothGatt.writeDescriptor(descriptor);
             }
@@ -517,5 +518,9 @@ public class BTLEConnection extends Service {
             intent.putExtra(EXTRA_DATA, String.valueOf(range[0]));
         }
         sendBroadcast(intent);
+    }
+
+    public boolean isDiscovered(){
+        return this.isDiscovered;
     }
 }
