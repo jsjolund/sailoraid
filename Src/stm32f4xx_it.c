@@ -1,35 +1,35 @@
 /**
-  ******************************************************************************
-  * @file    stm32f4xx_it.c
-  * @brief   Interrupt Service Routines.
-  ******************************************************************************
-  *
-  * COPYRIGHT(c) 2017 STMicroelectronics
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    stm32f4xx_it.c
+ * @brief   Interrupt Service Routines.
+ ******************************************************************************
+ *
+ * COPYRIGHT(c) 2017 STMicroelectronics
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *   1. Redistributions of source code must retain the above copyright notice,
+ *      this list of conditions and the following disclaimer.
+ *   2. Redistributions in binary form must reproduce the above copyright notice,
+ *      this list of conditions and the following disclaimer in the documentation
+ *      and/or other materials provided with the distribution.
+ *   3. Neither the name of STMicroelectronics nor the names of its contributors
+ *      may be used to endorse or promote products derived from this software
+ *      without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************
+ */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx.h"
@@ -39,8 +39,99 @@
 #include "stm32_bluenrg_ble.h"
 #include "sensor_service.h"
 
-volatile uint32_t ms_counter = 0;
-volatile int button_event = 0;
+typedef struct I2C_Module
+{
+  I2C_HandleTypeDef *instance;
+  uint16_t sdaPin;
+  GPIO_TypeDef* sdaPort;
+  uint16_t sclPin;
+  GPIO_TypeDef* sclPort;
+} I2C_Module;
+
+// https://community.st.com/thread/35884-cant-reset-i2c-in-stm32f407-to-release-i2c-lines
+void I2C_ClearBusyFlagErratum(I2C_Module* i2c)
+{
+  GPIO_InitTypeDef GPIO_InitStruct;
+
+  // 1. Clear PE bit.
+  i2c->instance->Instance->CR1 &= ~(0x0001);
+
+  //  2. Configure the SCL and SDA I/Os as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+
+  GPIO_InitStruct.Pin = i2c->sclPin;
+  HAL_GPIO_Init(i2c->sclPort, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(i2c->sclPort, i2c->sclPin, GPIO_PIN_SET);
+
+  GPIO_InitStruct.Pin = i2c->sdaPin;
+  HAL_GPIO_Init(i2c->sdaPort, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(i2c->sdaPort, i2c->sdaPin, GPIO_PIN_SET);
+
+  // 3. Check SCL and SDA High level in GPIOx_IDR.
+  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sclPort, i2c->sclPin))
+    asm("nop");
+
+  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sdaPort, i2c->sdaPin))
+    asm("nop");
+
+  // 4. Configure the SDA I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
+  HAL_GPIO_WritePin(i2c->sdaPort, i2c->sdaPin, GPIO_PIN_RESET);
+
+  //  5. Check SDA Low level in GPIOx_IDR.
+  while (GPIO_PIN_RESET != HAL_GPIO_ReadPin(i2c->sdaPort, i2c->sdaPin))
+    asm("nop");
+
+  // 6. Configure the SCL I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
+  HAL_GPIO_WritePin(i2c->sclPort, i2c->sclPin, GPIO_PIN_RESET);
+
+  //  7. Check SCL Low level in GPIOx_IDR.
+  while (GPIO_PIN_RESET != HAL_GPIO_ReadPin(i2c->sclPort, i2c->sclPin))
+    asm("nop");
+
+  // 8. Configure the SCL I/O as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
+  HAL_GPIO_WritePin(i2c->sclPort, i2c->sclPin, GPIO_PIN_SET);
+
+  // 9. Check SCL High level in GPIOx_IDR.
+  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sclPort, i2c->sclPin))
+    asm("nop");
+
+  // 10. Configure the SDA I/O as General Purpose Output Open-Drain , High level (Write 1 to GPIOx_ODR).
+  HAL_GPIO_WritePin(i2c->sdaPort, i2c->sdaPin, GPIO_PIN_SET);
+
+  // 11. Check SDA High level in GPIOx_IDR.
+  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sdaPort, i2c->sdaPin))
+    asm("nop");
+
+  // 12. Configure the SCL and SDA I/Os as Alternate function Open-Drain.
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+  GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+
+  GPIO_InitStruct.Pin = i2c->sclPin;
+  HAL_GPIO_Init(i2c->sclPort, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = i2c->sdaPin;
+  HAL_GPIO_Init(i2c->sdaPort, &GPIO_InitStruct);
+
+  // 13. Set SWRST bit in I2Cx_CR1 register.
+  i2c->instance->Instance->CR1 |= 0x8000;
+
+  asm("nop");
+
+  // 14. Clear SWRST bit in I2Cx_CR1 register.
+  i2c->instance->Instance->CR1 &= ~0x8000;
+
+  asm("nop");
+
+  // 15. Enable the I2C peripheral by setting the PE bit in I2Cx_CR1 register
+  i2c->instance->Instance->CR1 |= 0x0001;
+
+  // Call initialization function.
+  HAL_I2C_Init(i2c->instance);
+}
+
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -57,12 +148,12 @@ extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 
 /******************************************************************************/
-/*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
+/*            Cortex-M4 Processor Interruption and Exception Handlers         */
 /******************************************************************************/
 
 /**
-* @brief This function handles System service call via SWI instruction.
-*/
+ * @brief This function handles System service call via SWI instruction.
+ */
 void SVC_Handler(void)
 {
   /* USER CODE BEGIN SVCall_IRQn 0 */
@@ -74,8 +165,8 @@ void SVC_Handler(void)
 }
 
 /**
-* @brief This function handles Pendable request for system service.
-*/
+ * @brief This function handles Pendable request for system service.
+ */
 void PendSV_Handler(void)
 {
   /* USER CODE BEGIN PendSV_IRQn 0 */
@@ -87,8 +178,8 @@ void PendSV_Handler(void)
 }
 
 /**
-* @brief This function handles System tick timer.
-*/
+ * @brief This function handles System tick timer.
+ */
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
@@ -97,7 +188,7 @@ void SysTick_Handler(void)
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-  ms_counter++;
+
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -109,8 +200,8 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-* @brief This function handles PVD interrupt through EXTI line 16.
-*/
+ * @brief This function handles PVD interrupt through EXTI line 16.
+ */
 void PVD_IRQHandler(void)
 {
   /* USER CODE BEGIN PVD_IRQn 0 */
@@ -123,8 +214,8 @@ void PVD_IRQHandler(void)
 }
 
 /**
-* @brief This function handles RCC global interrupt.
-*/
+ * @brief This function handles RCC global interrupt.
+ */
 void RCC_IRQHandler(void)
 {
   /* USER CODE BEGIN RCC_IRQn 0 */
@@ -136,8 +227,8 @@ void RCC_IRQHandler(void)
 }
 
 /**
-* @brief This function handles EXTI line0 interrupt.
-*/
+ * @brief This function handles EXTI line0 interrupt.
+ */
 void EXTI0_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI0_IRQn 0 */
@@ -150,8 +241,8 @@ void EXTI0_IRQHandler(void)
 }
 
 /**
-* @brief This function handles EXTI line1 interrupt.
-*/
+ * @brief This function handles EXTI line1 interrupt.
+ */
 void EXTI1_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI1_IRQn 0 */
@@ -164,8 +255,8 @@ void EXTI1_IRQHandler(void)
 }
 
 /**
-* @brief This function handles EXTI line4 interrupt.
-*/
+ * @brief This function handles EXTI line4 interrupt.
+ */
 void EXTI4_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI4_IRQn 0 */
@@ -178,8 +269,8 @@ void EXTI4_IRQHandler(void)
 }
 
 /**
-* @brief This function handles DMA1 stream5 global interrupt.
-*/
+ * @brief This function handles DMA1 stream5 global interrupt.
+ */
 void DMA1_Stream5_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream5_IRQn 0 */
@@ -192,8 +283,8 @@ void DMA1_Stream5_IRQHandler(void)
 }
 
 /**
-* @brief This function handles DMA1 stream6 global interrupt.
-*/
+ * @brief This function handles DMA1 stream6 global interrupt.
+ */
 void DMA1_Stream6_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream6_IRQn 0 */
@@ -206,8 +297,8 @@ void DMA1_Stream6_IRQHandler(void)
 }
 
 /**
-* @brief This function handles ADC1 global interrupt.
-*/
+ * @brief This function handles ADC1 global interrupt.
+ */
 void ADC_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC_IRQn 0 */
@@ -220,8 +311,8 @@ void ADC_IRQHandler(void)
 }
 
 /**
-* @brief This function handles EXTI line[9:5] interrupts.
-*/
+ * @brief This function handles EXTI line[9:5] interrupts.
+ */
 void EXTI9_5_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI9_5_IRQn 0 */
@@ -234,8 +325,8 @@ void EXTI9_5_IRQHandler(void)
 }
 
 /**
-* @brief This function handles TIM2 global interrupt.
-*/
+ * @brief This function handles TIM2 global interrupt.
+ */
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
@@ -248,8 +339,8 @@ void TIM2_IRQHandler(void)
 }
 
 /**
-* @brief This function handles I2C1 event interrupt.
-*/
+ * @brief This function handles I2C1 event interrupt.
+ */
 void I2C1_EV_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C1_EV_IRQn 0 */
@@ -262,8 +353,8 @@ void I2C1_EV_IRQHandler(void)
 }
 
 /**
-* @brief This function handles I2C1 error interrupt.
-*/
+ * @brief This function handles I2C1 error interrupt.
+ */
 void I2C1_ER_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C1_ER_IRQn 0 */
@@ -271,13 +362,22 @@ void I2C1_ER_IRQHandler(void)
   /* USER CODE END I2C1_ER_IRQn 0 */
   HAL_I2C_ER_IRQHandler(&hi2c1);
   /* USER CODE BEGIN I2C1_ER_IRQn 1 */
+  printf("ERROR CODE %d I2C1\n", (int) hi2c1.ErrorCode);
+
+  I2C_Module i2c;
+  i2c.instance = &hi2c1;
+  i2c.sclPin = I2C_SCL_Pin;
+  i2c.sclPort = I2C_SCL_GPIO_Port;
+  i2c.sdaPin = I2C_SDA_Pin;
+  i2c.sdaPort = I2C_SDA_GPIO_Port;
+  I2C_ClearBusyFlagErratum(&i2c);
 
   /* USER CODE END I2C1_ER_IRQn 1 */
 }
 
 /**
-* @brief This function handles SPI1 global interrupt.
-*/
+ * @brief This function handles SPI1 global interrupt.
+ */
 void SPI1_IRQHandler(void)
 {
   /* USER CODE BEGIN SPI1_IRQn 0 */
@@ -290,8 +390,8 @@ void SPI1_IRQHandler(void)
 }
 
 /**
-* @brief This function handles USART1 global interrupt.
-*/
+ * @brief This function handles USART1 global interrupt.
+ */
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
@@ -304,8 +404,8 @@ void USART1_IRQHandler(void)
 }
 
 /**
-* @brief This function handles USART2 global interrupt.
-*/
+ * @brief This function handles USART2 global interrupt.
+ */
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
@@ -318,8 +418,8 @@ void USART2_IRQHandler(void)
 }
 
 /**
-* @brief This function handles EXTI line[15:10] interrupts.
-*/
+ * @brief This function handles EXTI line[15:10] interrupts.
+ */
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
@@ -328,14 +428,13 @@ void EXTI15_10_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
-  button_event = 1;
 
   /* USER CODE END EXTI15_10_IRQn 1 */
 }
 
 /**
-* @brief This function handles DMA2 stream0 global interrupt.
-*/
+ * @brief This function handles DMA2 stream0 global interrupt.
+ */
 void DMA2_Stream0_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
@@ -348,8 +447,8 @@ void DMA2_Stream0_IRQHandler(void)
 }
 
 /**
-* @brief This function handles DMA2 stream2 global interrupt.
-*/
+ * @brief This function handles DMA2 stream2 global interrupt.
+ */
 void DMA2_Stream2_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
@@ -362,8 +461,8 @@ void DMA2_Stream2_IRQHandler(void)
 }
 
 /**
-* @brief This function handles DMA2 stream7 global interrupt.
-*/
+ * @brief This function handles DMA2 stream7 global interrupt.
+ */
 void DMA2_Stream7_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA2_Stream7_IRQn 0 */

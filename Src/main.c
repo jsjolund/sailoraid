@@ -78,7 +78,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 #define RANGE_SAMPLE_RATE 10.0
 #define USB_ENV_OUTPUT_RATE 0.1
 #define USB_GPS_OUTPUT_RATE 1.0
-#define USB_IMU_OUTPUT_RATE 10.0
+#define USB_IMU_OUTPUT_RATE 60.0
 #define USB_RANGE_OUTPUT_RATE 10.0
 #define USB_MATLAB_OUTPUT_RATE 100.0
 #define BT_ENV_OUTPUT_RATE 1.0
@@ -504,7 +504,8 @@ static void MX_ADC1_Init(void)
   sConfigInjected.InjectedRank = 1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_112CYCLES;
-  sConfigInjected.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONVEDGE_NONE;
+  sConfigInjected.ExternalTrigInjecConvEdge =
+  ADC_EXTERNALTRIGINJECCONVEDGE_NONE;
   sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
   sConfigInjected.AutoInjectedConv = DISABLE;
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
@@ -540,6 +541,7 @@ static void MX_I2C1_Init(void)
 static void MX_SPI1_Init(void)
 {
 
+  /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
