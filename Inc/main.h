@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * File Name          : main.h
+  * File Name          : main.hpp
   * Description        : This file contains the common defines of the application
   ******************************************************************************
   ** This notice applies to any and all portions of this file
@@ -40,6 +40,7 @@
 #define __MAIN_H
   /* Includes ------------------------------------------------------------------*/
 
+/* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stm32f411xe.h"
 #include "stm32f4xx_hal.h"
@@ -110,6 +111,13 @@
 #define I2C_SDA_Pin GPIO_PIN_9
 #define I2C_SDA_GPIO_Port GPIOB
 
+/* ########################## Assert Selection ############################## */
+/**
+  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
+  *        HAL drivers code
+  */
+/* #define USE_FULL_ASSERT    1U */
+
 /* USER CODE BEGIN Private defines */
 #define GPS_USART_IRQn USART1_IRQn
 
@@ -169,9 +177,15 @@ void RangeEcho(BOOL echo);
 
 /* USER CODE END Private defines */
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
 void _Error_Handler(char *, int);
 
 #define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+#ifdef __cplusplus
+}
+#endif
 
 /**
   * @}
