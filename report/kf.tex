@@ -21,7 +21,7 @@ The Navigation frame denoted $n$-frame for future notation is a local frame and 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.3\textwidth]{WGS-coordinates.png}
+\includegraphics[width=0.3\textwidth]{Figures/WGS-coordinates.png}
 \caption{Earth and navigation frame.}
 \label{WGS}
 \end{figure}
@@ -426,7 +426,7 @@ where $\sigma_{r}^2$ and $\sigma_{v}^2$ is the variance of the position and velo
 The Kalman Filter is invoked every time the GPS is updated, i.e. $1Hz$, but since the IMU and the GPS updates at different frequencies a problem arises. The problem is such that at $t_{GPS}(k)$ there won't be a value to read from the IMU, since discrete time domain. To solve this problem a linear interpolation is done between $t_{imu}(k)$ and $t_{imu}(k+1)$, where $t_{imu}(k)$ $\leq$ $t_{GPS}(k)$ $\geq$  $t_{imu}(k+1)$. See Fig. \ref{Fig.different_update}.
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.4\textwidth]{linear.JPG}
+\includegraphics[width=0.4\textwidth]{Figures/linear.JPG}
 \caption{Different update sequences IMU and GPS}
 \label{Fig.different_update}
 \end{figure}
@@ -448,7 +448,6 @@ v_n(t_k(GPS) = v_n(t_{imu}(k)) + \frac{v_n(t_{imu}(k+1))-v_n(t_{imu}(k))}{t_{imu
 
 
 
-\newpage
 
 
 
@@ -465,214 +464,4 @@ v_n(t_k(GPS) = v_n(t_{imu}(k)) + \frac{v_n(t_{imu}(k+1))-v_n(t_{imu}(k))}{t_{imu
 
 
 
-
-
-
-\begin{align}
-&\textrm{State equation} \qquad x_k=F_{k-1}x_{k-1}+v_{k-1}\\
-& \textrm{Observation equation} \qquad z_k=H(x_k)+w_k
-\end{align}
-where $v_k$ and $w_k$ is the process noise and measurement noise, respectively both assumed to be zero mean Gaussian noise with covariance matrices $Q_k$ and $R_k$, i.e. $v_k\in\mathcal{N}(0, Q_{k-1})$ and $w_k\in\mathcal{N}(0, R_k)$.
-
-\begin{align}
-&\textrm{Predict state estimate:} \qquad \hat{x}_{k|k-1}=F_k\hat{x}_{k|k-1}+Gv_{k-1}\\
-&\textrm{Predict covariance matrix:}\qquad P_{k|k-1}=F_{k}P_{k-1|k-1}F^T_{k}+Q_{k}\\
-\label{eq.measurement}
-&\textrm{measurement residual}\qquad \tilde{y}_k=z_k-H_k\hat{x}_{k|k-1}\\
-&\textrm{Innovation covariance}\qquad S_k=H_kP_{k|k-1}H_k^T+R_k \\
-&\textrm{Optimal Kalman gain}\qquad K_k=P_{k|k-1}H_k^TS_k^{-1}\\
-\label{eq.Update}
-&\textrm{Update state estimate}\qquad \hat{x}_{k|k}=\hat{x}_{k|k-1}+K_k\tilde{y}_k\\
-&\textrm{Update covariance estimate}\qquad P_{k|k}=(I-K_kH_k)P_{k|k-1}\\
-&\textrm{Measurement post-fit residual} \qquad \tilde{y}_{k|k}=z_k-H_k\hat{x}_{k|k}
-\end{align}
-If Eq.\eqref{eq.measurement} and Eq.\eqref{eq.Update} is analyzed we see that depending on how much we believe in the observations that are observed will affect the gain matrix. Consider Fig. \ref{kalman_algo} as a map of how the algorithm works and Fig. \ref{kalman_system} as a description on how the system works.
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.8\textwidth]{kalman_algo}
-\caption{Kalman Filter prediction algorithm}
-\label{kalman_algo}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.8\textwidth]{Bild1.JPG}
-\caption{System diagram of Kalman prediction}
-\label{kalman_system}
-\end{figure}
-
-\subsection*{Integration GPS/INS}
-It exist different types of integration levels most common are loosely, tightly and ultra-tightly coupled. The two last types are used when the output from the GPS receiver is its pseudo-range and carrier-range. Since the GPS receiver that is used in this project uses NMEA standard, the output from the GPS will be the calculated position, velocity and heading. Then using a loosely coupled integration is preferred, profits using loose coupled are that its easiest way of fusion sensors together. Consider Fig. as how the system works between the different sensors.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.8\textwidth]{loose_coup.JPG}
-\caption{GPS/INS with loose integration}
-\label{kalman_system}
-\end{figure}
-
-\subsection*{Kalman Filter Model}
-The states that we want to observe are.
-\begin{align}
-\bar{x}=&
-\begin{bmatrix}
-x^{pos}\quad[m]\\
-y^{pos}\quad[m]\\
-v^{x}\quad[m/s]\\
-v^{y}\quad[m/s]\\
-\end{bmatrix}
-\end{align}
-$x_{pos}$ and $y_{pos}$ is the position in x and y direction, respectively, velocity, $v$, acceleration, $a$. The coordinate system that is used for calculations are the \emph{WGS-84}.
-
-The Kalman filter calculates estimates of the true values of states recursively over time using incoming measurements and a mathematical process model, i.e. it uses $x_{k-1}$ to calculate $x_k$. Hence a mathematical model has to be derived describing the process, the GPS will provide heading position and velocity, the IMU will provide acceleration in $xy$-direction.\\
-The model will not make an assumption that the acceleration is constant under the sampling times, this since the sampling period is $1Hz$. The process model is derived using kinematics using only $xy$-directions.
-	
-\begin{align}
-x^{pos}_{k}&=x^{pos}_{k-1}+\Delta tv^{x}_{k-1}+\frac{1}{2}\Delta t^2a^x_{k-1}\\
-y^{pos}_{k}&=y^{pos}_{k-1}+\Delta tv^{y}_{k-1}+\frac{1}{2}\Delta t^2a^y_{k-1}\\
-v^{x}_{k}&=v^{x}_{k-1}+\Delta ta^x_{k-1}\\
-v^{y}_{k}&=v^{y}_{k-1}+\Delta ta^y_{k-1}
-\end{align}
-
-Using the above equation the state matrix is expressed as.
-
-\begin{align}
-F=
-\begin{bmatrix}
-1 & 0 & \Delta t & 0 & \frac{1}{2}\Delta t^2 & 0 \\ 
-0 & 1 & 0 &\Delta t & 0 & \frac{1}{2}\Delta t^2 \\ 
-0 & 0 & 1 & 0 & \Delta t & 0 \\ 
-0 & 0 & 0 & 1 & 0 & \Delta t \\ 
-\end{bmatrix}
-\qquad G=
-\begin{bmatrix}
-\Delta t^2 & 0\\
-0 & \Delta t^2\\
-\Delta t & 0\\
-0 & \Delta t\\
-1 & 0\\
-0 & 1
-\end{bmatrix}
-\label{eq.F,G}
-\end{align}
-In The constant acceleration model the acceleration increments are assumed to have zero-mean, thus the covariance matrix is.
-\begin{align}
-v_k=
-\begin{bmatrix}
-\sigma^2_{{}IMU^x} & 0\\
-0 & \sigma^2_{{IMU}^y}
-\end{bmatrix}
-\end{align}
-Where $\sigma^2_{{IMU}^x}$ and $\sigma^2_{{IMU}^y}$ is the standard deviation squared in x and y direction respectively.
-Then the covariance matrix, (the measurement noise) is derived $Q=GwG^T$.
-\begin{align}
-Q=
-\begin{bmatrix}
-\sigma^2_{a^x}\Delta t^4/4 & 0 & \sigma^2_{a^x}\Delta t^3/2 & 0 & \sigma^2_{a^x}\Delta t^2/2 & 0\\
-0 & \sigma^2_{a^y}\Delta t^4/4 & 0 & \sigma^2_{a^y}\Delta t^3/2 & 0 & \sigma^2_{a^y}\Delta t^2/2\\
-\sigma^2_{a^x}\Delta t^3/2 & 0 & \sigma^2_{a^x}\Delta t^2 & 0 & \sigma^2_{a^x}\Delta t & 0\\
-0 & \sigma^2_{a^y}\Delta t^3/2 & 0 & \sigma^2_{a^y}\Delta t^2 & 0 & \sigma^2_{a^y}\Delta t\\
-\sigma^2_{a^x}\Delta t^2/2 & 0 & \sigma^2_{a^x}\Delta t & 0 & \sigma^2_{a^x} & 0\\
-0 & \sigma^2_{a^y}\Delta t^2 & 0 & \sigma^2_{a^y}\Delta t & 0 & \sigma^2_{a^y}
-\end{bmatrix}
-\label{eq.Q}
-\end{align}
-
-Consider \eqref{eq.F,G} and \eqref{eq.Q} we can see that the matrices are linear, this implies that a linear model approach is sufficient to use, hence a linear Kalman Filter is used. The measurement variance is user determined, more specific, it depends on the hardware and given by.
-
-\begin{align}
-R&=
-\begin{bmatrix}
-\sigma^2_{GPS^{x}} & 0 & 0 & 0 & 0 & 0\\
-0 & \sigma^2_{GPS^{y}} & 0 & 0 & 0 & 0\\
-0 & 0 & \sigma^2_{GPS^{vx}} & 0 & 0 & 0\\
-0 & 0 & 0 & \sigma^2_{GPS^{vy}} & 0 & 0\\
-0 & 0 & 0 & 0 & \sigma^2_{{IMU}^{x}} & 0\\
-0 & 0 & 0 & 0 & 0 & \sigma^2_{IMU^{y}}
-\end{bmatrix}
-\end{align}
-
-
-
-
-\begin{thebibliography}{9}
-\bibitem{animal} 
-D.L. Hall and J. Llinas. An introduction to multisensor data fusion. 
-\textit{Proceedings of
-the}. IEEE, 85(1):6 –23, jan 1997
-
- 
-\bibitem{boken} 
-BOKEN
-\textit{BOKEN}. 
-
- 
-\bibitem{nonlinear} 
-Dr. Oliver Nelles
-\\\texttt{nonlinear system identification.}
-
-\bibitem{kf eff}
-Duygun, M., Kutlu, L. \& Sickles, R.C. J Prod Anal (2016) 46: 155. \url{https://doi.org/10.1007/s11123-016-0477-z}
-
-\bibitem{non-linear}
-Noureldin ., Karamat T.B., Georgy J. (2013)\texttt{ Basic Navigational Mathematics, Reference Frames and the Earth’s Geometry. In: Fundamentals of Inertial Navigation, Satellite-based Positioning and their Integration.} Springer, Berlin, Heidelberg
-
-\bibitem{signal_process}
-Probability and Random Processes with Applications to Signal Processing, 4/E (2012). 
-Henry Stark, John W Woods. Pearson Higher Education. 
-
-\bibitem{Discrete_kalman}
-Estimation, Control, and the Discrete Kalman Filter, 1989. Donald E. Catlin
-
-\end{thebibliography}
-
-
-
-%	COVER FIGURE
-%---------------------------------------------------------------------------------------https://github.com/jalishah/airborne/blob/c374b775c608de9bf8f7152aa2c79bc9e1ecec6e/ARCADE/airborne/components/core/src/model/model.c
-
-
-%	ABSTRACT
-%----------------------------------------------------------------------------------------
-
-
-
-%	TABLE OF CONTENTS PAGE
-%----------------------------------------------------------------------------------------
-%\newpage
-
-%\setcounter{secnumdepth}{2} % organisational level that receives a numbers
-%\setcounter{tocdepth}{3}    % print table of contents for level 3
-%\tableofcontents            % print the table of contents
-%% levels are: 0 - chapter, 1 - section, 2 - subsection, 3 - subsubsection
-%\thispagestyle{empty}
-\pagebreak
-%\setcounter{page}{1}
-
-\begin{align}
-\begin{bmatrix}
-\dot{\varphi}\\
-\dot{\lambda}\\
-\dot{h}
-\end{bmatrix}
-=
-\begin{bmatrix}
-\frac{1}{(R_0+h)} & 0 & 0 \\
-0 & \frac{1}{(R_0+h)cos(\varphi)} & 0\\
-0 & 0 & -1
-\end{bmatrix}
-\begin{bmatrix}
-v_N \\
-v_E \\
-v_D
-\end{bmatrix}
-\label{Eq.v_n}
-\end{align}
-
-
-
-
-
-%	SECTIONS
-\end{document}
 
