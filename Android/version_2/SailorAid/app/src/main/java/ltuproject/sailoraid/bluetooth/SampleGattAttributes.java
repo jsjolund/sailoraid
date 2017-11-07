@@ -42,6 +42,7 @@ public class SampleGattAttributes {
 
 
     public static String ACCELEROMETER_MEASUREMENT ="340a1b80-cf4b-11e1-ac36-0002a5d5c51b";
+    public static String COMPASS_MEASUREMENT =      "340a1b81-cf4b-11e1-ac36-0002a5d5c51b";
     public static String IMU_ACCEL_MEASUREMENT =    "917649a1-d98e-11e5-9eec-0002a5d5c51b";
     public static String IMU_GYRO_MEASUREMENT =     "917649a2-d98e-11e5-9eec-0002a5d5c51b";
     public static String FREE_FALL_MEASUREMENT =    "e23e78a0-cf4a-11e1-8ffc-0002a5d5c51b";
@@ -69,6 +70,7 @@ public class SampleGattAttributes {
         attributes.put(HUMIDITY_MEASUREMENT, "Humidity Measurement");
         attributes.put(FREE_FALL_MEASUREMENT, "Free Fall Measurement");
         attributes.put(NUCLEO_GPS_MEASUREMENT, "Nucleo gps Measurement");
+        attributes.put(COMPASS_MEASUREMENT, "Compass Measurement");
         attributes.put("00002a29-0000-1000-8000-00805f9b34fb", "Manufacturer Name String");
     }
 

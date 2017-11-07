@@ -1,401 +1,232 @@
 /*
+ * This file is part of nmealib.
  *
- * NMEA library
- * URL: http://nmea.sourceforge.net
- * Author: Tim (xtimor@gmail.com)
- * Licence: http://www.gnu.org/licenses/lgpl.html
- * $Id: parser.c 17 2008-03-11 11:56:11Z xtimor $
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * \file parser.h
- */
+#include <nmealib/parser.h>
 
-#include "nmea/tok.h"
-#include "nmea/parse.h"
-#include "nmea/parser.h"
-#include "nmea/context.h"
-
+#include <nmealib/sentence.h>
+#include <nmealib/validate.h>
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 
-typedef struct _nmeaParserNODE
-{
-    int packType;
-    void *pack;
-    struct _nmeaParserNODE *next_node;
+#define NMEALIB_PARSER_EOL_CHAR_1 ('\r')
+#define NMEALIB_PARSER_EOL_CHAR_2 ('\n')
 
-} nmeaParserNODE;
+void nmeaParserReset(NmeaParser *parser, NmeaParserSentenceState new_state);
+bool nmeaParserIsHexCharacter(char c);
+bool nmeaParserProcessCharacter(NmeaParser *parser, const char *c);
 
-/*
- * high level
- */
+bool nmeaParserIsHexCharacter(char c) {
+  switch (tolower(c)) {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case 'a':
+    case 'b':
+    case 'c':
+    case 'd':
+    case 'e':
+    case 'f':
+      return true;
 
-/**
- * \brief Initialization of parser object
- * @return true (1) - success or false (0) - fail
- */
-int nmea_parser_init(nmeaPARSER *parser)
-{
-    int resv = 0;
-    int buff_size = nmea_property()->parse_buff_size;
-
-    NMEA_ASSERT(parser);
-
-    if(buff_size < NMEA_MIN_PARSEBUFF)
-        buff_size = NMEA_MIN_PARSEBUFF;
-
-    memset(parser, 0, sizeof(nmeaPARSER));
-
-    if(0 == (parser->buffer = malloc(buff_size)))
-        nmea_error("Insufficient memory!");
-    else
-    {
-        parser->buff_size = buff_size;
-        resv = 1;
-    }    
-
-    return resv;
+    default:
+      return false;
+  }
 }
 
-/**
- * \brief Destroy parser object
- */
-void nmea_parser_destroy(nmeaPARSER *parser)
-{
-    NMEA_ASSERT(parser && parser->buffer);
-    free(parser->buffer);
-    nmea_parser_queue_clear(parser);
-    memset(parser, 0, sizeof(nmeaPARSER));
+void nmeaParserReset(NmeaParser *parser, NmeaParserSentenceState new_state) {
+  if (!parser) {
+    return;
+  }
+
+  memset(&parser->sentence, 0, sizeof(parser->sentence));
+  parser->sentence.state = new_state;
+
+  if (parser->buffer) {
+    parser->buffer[0] = '\0';
+    parser->buffer[parser->bufferSize - 1] = '\0';
+  }
+  parser->bufferLength = 0;
 }
 
-/**
- * \brief Analysis of buffer and put results to information structure
- * @return Number of packets wos parsed
- */
-int nmea_parse(    
-    nmeaPARSER *parser,
-    const char *buff, int buff_sz,
-    nmeaINFO *info
-    )
-{
-    int ptype, nread = 0;
-    void *pack = 0;
+bool nmeaParserInit(NmeaParser *parser, size_t sz) {
+  if (!parser) {
+    return false;
+  }
 
-    NMEA_ASSERT(parser && parser->buffer);
+  parser->bufferSize = !sz ? NMEALIB_PARSER_SENTENCE_SIZE : sz;
+  parser->buffer = malloc(parser->bufferSize);
+  if (!parser->buffer) {
+    /* can't be covered in a test */
+    return false;
+  }
 
-    nmea_parser_push(parser, buff, buff_sz);
+  nmeaParserReset(parser, NMEALIB_SENTENCE_STATE_SKIP_UNTIL_START);
+  return true;
+}
 
-    while(GPNON != (ptype = nmea_parser_pop(parser, &pack)))
-    {
-        nread++;
+bool nmeaParserDestroy(NmeaParser *parser) {
+  if (!parser) {
+    return false;
+  }
 
-        switch(ptype)
-        {
-        case GPGGA:
-            nmea_GPGGA2info((nmeaGPGGA *)pack, info);
-            break;
-        case GPGSA:
-            nmea_GPGSA2info((nmeaGPGSA *)pack, info);
-            break;
-        case GPGSV:
-            nmea_GPGSV2info((nmeaGPGSV *)pack, info);
-            break;
-        case GPRMC:
-            nmea_GPRMC2info((nmeaGPRMC *)pack, info);
-            break;
-        case GPVTG:
-            nmea_GPVTG2info((nmeaGPVTG *)pack, info);
-            break;
-        };
+  nmeaParserReset(parser, NMEALIB_SENTENCE_STATE_SKIP_UNTIL_START);
 
-        free(pack);
+  free(parser->buffer);
+  parser->buffer = NULL;
+  parser->bufferSize = 0;
+
+  return true;
+}
+
+bool nmeaParserProcessCharacter(NmeaParser *parser, const char *c) {
+  if (!parser //
+      || !c //
+      || !parser->buffer) {
+    return false;
+  }
+
+  /* always reset when we encounter a start-of-sentence character */
+  if (*c == '$') {
+    nmeaParserReset(parser, NMEALIB_SENTENCE_STATE_READ_SENTENCE);
+    parser->buffer[parser->bufferLength++] = *c;
+    return false;
+  }
+
+  /* just return when we haven't encountered a start-of-sentence character yet */
+  if (parser->sentence.state == NMEALIB_SENTENCE_STATE_SKIP_UNTIL_START) {
+    return false;
+  }
+
+  /* this character belongs to the sentence */
+
+  /* check whether the sentence still fits in the buffer */
+  if (parser->bufferLength >= (parser->bufferSize - 1)) {
+    nmeaParserReset(parser, NMEALIB_SENTENCE_STATE_SKIP_UNTIL_START);
+    return false;
+  }
+
+  parser->buffer[parser->bufferLength++] = *c;
+
+  switch (parser->sentence.state) {
+    case NMEALIB_SENTENCE_STATE_SKIP_UNTIL_START: /* can't occur but keep compiler happy */
+    default: /* can't occur but keep compiler happy */
+    case NMEALIB_SENTENCE_STATE_READ_SENTENCE:
+      if (*c == '*') {
+        parser->sentence.state = NMEALIB_SENTENCE_STATE_READ_CHECKSUM;
+        parser->sentence.checksumCharactersCount = 0;
+      } else if (*c == NMEALIB_PARSER_EOL_CHAR_1) {
+        parser->sentence.state = NMEALIB_SENTENCE_STATE_READ_EOL;
+        parser->sentence.eolCharactersCount = 1;
+      } else if (nmeaValidateIsInvalidCharacter(*c)) {
+        nmeaParserReset(parser, NMEALIB_SENTENCE_STATE_SKIP_UNTIL_START);
+        return false;
+      } else {
+        parser->sentence.checksumCalculated ^= (int) *c;
+      }
+
+      break;
+
+    case NMEALIB_SENTENCE_STATE_READ_CHECKSUM:
+      if (!nmeaParserIsHexCharacter(*c)) {
+        nmeaParserReset(parser, NMEALIB_SENTENCE_STATE_SKIP_UNTIL_START);
+        return false;
+      }
+
+      switch (parser->sentence.checksumCharactersCount) {
+        case 0:
+          parser->sentence.checksumCharacters[0] = *c;
+          parser->sentence.checksumCharacters[1] = 0;
+          parser->sentence.checksumCharactersCount = 1;
+          break;
+
+        case 1:
+        default: /* can't occur but keep compiler happy */
+          parser->sentence.checksumCharacters[1] = *c;
+          parser->sentence.checksumCharactersCount = 2;
+          parser->sentence.checksumRead = nmeaStringToInteger(parser->sentence.checksumCharacters, 2, 16);
+          parser->sentence.checksumPresent = true;
+          parser->sentence.state = NMEALIB_SENTENCE_STATE_READ_EOL;
+          break;
+      }
+      break;
+
+    case NMEALIB_SENTENCE_STATE_READ_EOL:
+      switch (parser->sentence.eolCharactersCount) {
+        case 0:
+          if (*c != NMEALIB_PARSER_EOL_CHAR_1) {
+            nmeaParserReset(parser, NMEALIB_SENTENCE_STATE_SKIP_UNTIL_START);
+            return false;
+          }
+
+          parser->sentence.eolCharactersCount = 1;
+          break;
+
+        case 1:
+        default: /* can't occur but keep compiler happy */
+          if (*c != NMEALIB_PARSER_EOL_CHAR_2) {
+            nmeaParserReset(parser, NMEALIB_SENTENCE_STATE_SKIP_UNTIL_START);
+            return false;
+          }
+
+          parser->sentence.eolCharactersCount = 2;
+
+          /* strip off the end-of-line characters */
+          parser->bufferLength -= parser->sentence.eolCharactersCount;
+          parser->buffer[parser->bufferLength] = '\0';
+
+          parser->sentence.state = NMEALIB_SENTENCE_STATE_SKIP_UNTIL_START;
+          return (!parser->sentence.checksumCharactersCount
+                  || (parser->sentence.checksumCharactersCount
+                      && (parser->sentence.checksumRead == parser->sentence.checksumCalculated)));
+      }
+      break;
+  }
+
+  return false;
+}
+
+size_t nmeaParserParse(NmeaParser *parser, const char *s, size_t sz, NmeaInfo *info) {
+  size_t sentences_count = 0;
+  size_t charIndex = 0;
+
+  if (!parser //
+      || !s //
+      || !sz //
+      || !info //
+      || !parser->buffer) {
+    return 0;
+  }
+
+  for (charIndex = 0; charIndex < sz; charIndex++) {
+    bool sentence_read_successfully = nmeaParserProcessCharacter(parser, &s[charIndex]);
+    if (sentence_read_successfully) {
+      if (nmeaSentenceToInfo(parser->buffer, parser->bufferLength, info)) {
+        sentences_count++;
+      }
     }
+  }
 
-    return nread;
-}
-
-/*
- * low level
- */
-
-int nmea_parser_real_push(nmeaPARSER *parser, const char *buff, int buff_sz)
-{
-    int nparsed = 0, crc, sen_sz, ptype;
-    nmeaParserNODE *node = 0;
-
-    NMEA_ASSERT(parser && parser->buffer);
-
-    /* clear unuse buffer (for debug) */
-    /*
-    memset(
-        parser->buffer + parser->buff_use, 0,
-        parser->buff_size - parser->buff_use
-        );
-        */
-
-    /* add */
-    if(parser->buff_use + buff_sz >= parser->buff_size)
-        nmea_parser_buff_clear(parser);
-
-    memcpy(parser->buffer + parser->buff_use, buff, buff_sz);
-    parser->buff_use += buff_sz;
-
-    /* parse */
-    for(;;node = 0)
-    {
-        sen_sz = nmea_find_tail(
-            (const char *)parser->buffer + nparsed,
-            (int)parser->buff_use - nparsed, &crc);
-
-        if(!sen_sz)
-        {
-            if(nparsed)
-                memcpy(
-                parser->buffer,
-                parser->buffer + nparsed,
-                parser->buff_use -= nparsed);
-            break;
-        }
-        else if(crc >= 0)
-        {
-            ptype = nmea_pack_type(
-                (const char *)parser->buffer + nparsed + 1,
-                parser->buff_use - nparsed - 1);
-
-            if(0 == (node = malloc(sizeof(nmeaParserNODE))))
-                goto mem_fail;
-
-            node->pack = 0;
-
-            switch(ptype)
-            {
-            case GPGGA:
-                if(0 == (node->pack = malloc(sizeof(nmeaGPGGA))))
-                    goto mem_fail;
-                node->packType = GPGGA;
-                if(!nmea_parse_GPGGA(
-                    (const char *)parser->buffer + nparsed,
-                    sen_sz, (nmeaGPGGA *)node->pack))
-                {
-                    free(node);
-                    node = 0;
-                }
-                break;
-            case GPGSA:
-                if(0 == (node->pack = malloc(sizeof(nmeaGPGSA))))
-                    goto mem_fail;
-                node->packType = GPGSA;
-                if(!nmea_parse_GPGSA(
-                    (const char *)parser->buffer + nparsed,
-                    sen_sz, (nmeaGPGSA *)node->pack))
-                {
-                    free(node);
-                    node = 0;
-                }
-                break;
-            case GPGSV:
-                if(0 == (node->pack = malloc(sizeof(nmeaGPGSV))))
-                    goto mem_fail;
-                node->packType = GPGSV;
-                if(!nmea_parse_GPGSV(
-                    (const char *)parser->buffer + nparsed,
-                    sen_sz, (nmeaGPGSV *)node->pack))
-                {
-                    free(node);
-                    node = 0;
-                }
-                break;
-            case GPRMC:
-                if(0 == (node->pack = malloc(sizeof(nmeaGPRMC))))
-                    goto mem_fail;
-                node->packType = GPRMC;
-                if(!nmea_parse_GPRMC(
-                    (const char *)parser->buffer + nparsed,
-                    sen_sz, (nmeaGPRMC *)node->pack))
-                {
-                    free(node);
-                    node = 0;
-                }
-                break;
-            case GPVTG:
-                if(0 == (node->pack = malloc(sizeof(nmeaGPVTG))))
-                    goto mem_fail;
-                node->packType = GPVTG;
-                if(!nmea_parse_GPVTG(
-                    (const char *)parser->buffer + nparsed,
-                    sen_sz, (nmeaGPVTG *)node->pack))
-                {
-                    free(node);
-                    node = 0;
-                }
-                break;
-            default:
-                free(node);
-                node = 0;
-                break;
-            };
-
-            if(node)
-            {
-                if(parser->end_node)
-                    ((nmeaParserNODE *)parser->end_node)->next_node = node;
-                parser->end_node = node;
-                if(!parser->top_node)
-                    parser->top_node = node;
-                node->next_node = 0;
-            }
-        }
-
-        nparsed += sen_sz;
-    }
-
-    return nparsed;
-
-mem_fail:
-    if(node)
-        free(node);
-
-    nmea_error("Insufficient memory!");
-
-    return -1;
-}
-
-/**
- * \brief Analysis of buffer and keep results into parser
- * @return Number of bytes wos parsed from buffer
- */
-int nmea_parser_push(nmeaPARSER *parser, const char *buff, int buff_sz)
-{
-    int nparse, nparsed = 0;
-
-    do
-    {
-        if(buff_sz > parser->buff_size)
-            nparse = parser->buff_size;
-        else
-            nparse = buff_sz;
-
-        nparsed += nmea_parser_real_push(
-            parser, buff, nparse);
-
-        buff_sz -= nparse;
-
-    } while(buff_sz);
-
-    return nparsed;
-}
-
-/**
- * \brief Get type of top packet keeped into parser
- * @return Type of packet
- * @see nmeaPACKTYPE
- */
-int nmea_parser_top(nmeaPARSER *parser)
-{
-    int retval = GPNON;
-    nmeaParserNODE *node = (nmeaParserNODE *)parser->top_node;
-
-    NMEA_ASSERT(parser && parser->buffer);
-
-    if(node)
-        retval = node->packType;
-
-    return retval;
-}
-
-/**
- * \brief Withdraw top packet from parser
- * @return Received packet type
- * @see nmeaPACKTYPE
- */
-int nmea_parser_pop(nmeaPARSER *parser, void **pack_ptr)
-{
-    int retval = GPNON;
-    nmeaParserNODE *node = (nmeaParserNODE *)parser->top_node;
-
-    NMEA_ASSERT(parser && parser->buffer);
-
-    if(node)
-    {
-        *pack_ptr = node->pack;
-        retval = node->packType;
-        parser->top_node = node->next_node;
-        if(!parser->top_node)
-            parser->end_node = 0;
-        free(node);
-    }
-
-    return retval;
-}
-
-/**
- * \brief Get top packet from parser without withdraw
- * @return Received packet type
- * @see nmeaPACKTYPE
- */
-int nmea_parser_peek(nmeaPARSER *parser, void **pack_ptr)
-{
-    int retval = GPNON;
-    nmeaParserNODE *node = (nmeaParserNODE *)parser->top_node;
-
-    NMEA_ASSERT(parser && parser->buffer);
-
-    if(node)
-    {
-        *pack_ptr = node->pack;
-        retval = node->packType;
-    }
-
-    return retval;
-}
-
-/**
- * \brief Delete top packet from parser
- * @return Deleted packet type
- * @see nmeaPACKTYPE
- */
-int nmea_parser_drop(nmeaPARSER *parser)
-{
-    int retval = GPNON;
-    nmeaParserNODE *node = (nmeaParserNODE *)parser->top_node;
-
-    NMEA_ASSERT(parser && parser->buffer);
-
-    if(node)
-    {
-        if(node->pack)
-            free(node->pack);
-        retval = node->packType;
-        parser->top_node = node->next_node;
-        if(!parser->top_node)
-            parser->end_node = 0;
-        free(node);
-    }
-
-    return retval;
-}
-
-/**
- * \brief Clear cache of parser
- * @return true (1) - success
- */
-int nmea_parser_buff_clear(nmeaPARSER *parser)
-{
-    NMEA_ASSERT(parser && parser->buffer);
-    parser->buff_use = 0;
-    return 1;
-}
-
-/**
- * \brief Clear packets queue into parser
- * @return true (1) - success
- */
-int nmea_parser_queue_clear(nmeaPARSER *parser)
-{
-    NMEA_ASSERT(parser);
-    while(parser->top_node)
-        nmea_parser_drop(parser);
-    return 1;
+  return sentences_count;
 }

@@ -1,2 +1,71 @@
 \subsection{Android application}
-The main reason for this project is to give a sailor qualitative feedback and help in clearing the mind of the techniques required to achieve a smooth sailing experience so that the sailor can focus on the joy of sailing. It is therefore crucial that the data is displayed in a manner that is easy to interpret and provide the help that is called for. To increase the flexibility of the design it was decided to implement several different user interfaces that the user could switch between while running the application. This was determined to be a good way of increasing the chances that the user would find a interface to it's liking. 
+\chapterauthor{Theolin, Henrik (no one)}
+The main reason for this project is to give a sailor qualitative feedback and help in clearing the mind of the techniques required to achieve a smooth sailing experience so that the sailor can focus on the joy of sailing. It is therefore crucial that the data is displayed in a manner that is easy to interpret and provide the help that is called for. To increase the flexibility of the design it was decided to implement several different user interfaces that the user could switch between while running the application. This was determined to be a good way of increasing the chances that the user would find a interface to it's liking. It was also determined that not only visual representaion would be the best way to go since the sailor needs to be in constant motion to counteract the forces applied on the ship by the wind and current. This would make watching a screen to retreive information somewhat difficult. Other ways of representing data was implemented using text-to-speech where the sailor would get important information by sound aswell as text. Vibration was also used with different vibration sequences depending on diffenrent sates of the ship.
+
+\subsubsection{Visual Feedback}
+It was determined that the visual feedback given to the sailor was to include very little text information and would consist mainly of images that changes position based on sensor data to give a good representation of what was going on with the ship. But because of different personal preferences the ability to switch between different layouts based on what the sailor felt was most important at any given time was implemented. To switch between different layouts a simple swipe on the screen toggled the view to the next layout. All layouts consisted of a subset of views from the complete set including
+\begin{labeling}{alligator}
+\item [\ref{feedback-incline} Incline]  displayed a ships relative incline against and artificial horizont
+\item [\ref{feedback-pressure} Pressure] moved a pin along a colored bar to represent high of low pressure applied on the centerboard
+\item [\ref{feedback-compass} Bearing] rotated a compass to show the ship relative bearing against true north
+\item [\ref{feedback-map} Map] displayed current locaion of the ship
+\item [\ref{feedback-drift} Drift] was represented with a colored bar with two arrows that moved to the relative drift direction to show the sailor if the ship was holding it's set navigaitional reference.
+\item [Feedback] a text that changed values based on the current state of the boat
+\end{labeling}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{Figures/incline.png}
+\caption{Incline feedback view}
+\label{feedback-incline}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.3\textwidth]{Figures/pressure.png}
+\caption{Pressure feedback view}
+\label{feedback-pressure}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{Figures/compass.png}
+\caption{Bearing feedback view}
+\label{feedback-compass}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4\textwidth]{Figures/map.png}
+\caption{Map feedback view}
+\label{feedback-map}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{Figures/drift.png}
+\caption{Drift feedback view}
+\label{feedback-drift}
+\end{figure}
+
+\subsubsection{Audio feedback}
+Based on values from the sensors different states were implemented and for each state a text was read out to the sailor. A priority for each state to prevent less important events from interrupting the more important ones. The feedback was implemented such that the audio feedback would continue even if the device was put in sleep mode.
+
+\subsubsection{Haptic feedback}
+Based on the same states as the audio feedback vibration was also implemented. The frequency and length of the vibrations were implemented in such a way the each state had a unique signature that could be recognised by the sailor after some practise with the system.
+
+\subsubsection{Log}
+The ability to analyse the sailtrip a log was implemented and stored on the device internal storage. These files could then be read or deleted at a later date. Storing a log was implemented such that the sailor would need to start a logging session after bluetooth connection had been established to the ship. After the log was started it would create a file on the device internal storage and write sensor data to the file at the same frequency as the data was transmitted by the mainboard. While logging was active the device would stay active even if the screen was put in sleep mode so that the sailor could choose to only log data and not view the information displayed on the screen. After the sailtrip was finished the sailor could read the saved log file and receive a summary of the trip \ref{log-summary}. More information from the log could be analysed by reading graphs \ref{log-graph} where the sensor data gathered was shown over time.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4\textwidth]{Figures/log_data.png}
+\caption{Log data summary}
+\label{log-summary}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{Figures/log_graph.png}
+\caption{Log graphs}
+\label{log-graph}
+\end{figure}
+
+\subsubsection{Map}
+For the sailor to get more information about location a map was implemented. The sailor then had the ability to see a path over the trip and the total distance traveled. Waypoint could be placed if the sailor wanted to decide in advance a certain trip. The distance of all the waypoints was displayed and the distance currently traveled to give the sailor information on how long the trip was and how much of the trip was left to be sailed. A path to the nearest waypoint was showed to the sailor to help navigating, when the sailor way close to the waypoint the path to the next waypoint was shown.

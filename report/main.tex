@@ -7,6 +7,9 @@
 \usepackage{amssymb,amsmath}
 \usepackage{listings}
 \usepackage{amsfonts}
+\usepackage{todonotes}
+\usepackage{listings}
+\usepackage{scrextend}
 %graphics
 \usepackage{graphicx, xcolor}
 \usepackage{rotating}
@@ -48,8 +51,6 @@
 
 
 
-\usepackage{lipsum}
-
 %header style
 \pagestyle{fancy}
 \lhead{Project SailorAid}
@@ -85,19 +86,17 @@
 
 \setcounter{page}{2}
 \section{Introduction}
-\chapterauthor{Sjölund, Johannes (Theolin, Henrik)}
+\chapterauthor{who??? (no one)}
 \input{introduction.tex}
 
 \section{The Physics of Sailing}
 \label{sec:physics}
 \input{physics.tex}
 
-\clearpage
 \section{Product Application}
 \label{sec:application}
 \input{application.tex}
 
-\clearpage
 \section{Hardware Design}
 
 \clearpage
@@ -113,8 +112,9 @@
 
 \clearpage
 \section{Kalman filter}
+\label{kf}
 \chapterauthor{Axelsson, Oskar (no one)}
-\input{ekf.tex}
+\input{kf.tex}
 
 
 \clearpage

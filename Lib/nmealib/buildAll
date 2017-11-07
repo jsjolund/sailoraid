@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e
+set -u
+
+declare -i VERBOSE=0
+
+for m in M64 M32; do
+  for i in 1 0; do
+    echo "=== CLEAN: git clean -fdx;git reset --hard"
+    git clean -fdx   &> /dev/null
+    git reset --hard &> /dev/null
+    echo "=== MAKE : make ${m}=1 DEBUG=${i} VERBOSE=${VERBOSE} full check"
+    make ${m}=1 DEBUG=${i} VERBOSE=${VERBOSE} full check
+  done
+done
+
+echo "=== DOC  : make doc VERBOSE=${VERBOSE}"
+make doc VERBOSE=${VERBOSE}
+
+echo "=== CLEAN: git clean -fdx;git reset --hard"
+git clean -fdx   &> /dev/null
+git reset --hard &> /dev/null
+
+echo "=== DONE"

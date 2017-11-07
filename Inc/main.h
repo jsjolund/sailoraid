@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * File Name          : main.h
+  * File Name          : main.hpp
   * Description        : This file contains the common defines of the application
   ******************************************************************************
   ** This notice applies to any and all portions of this file
@@ -40,6 +40,7 @@
 #define __MAIN_H
   /* Includes ------------------------------------------------------------------*/
 
+/* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stm32f411xe.h"
 #include "stm32f4xx_hal.h"
@@ -76,13 +77,17 @@
 #define BNRG_SPI_MISO_GPIO_Port GPIOA
 #define BNRG_SPI_MOSI_Pin GPIO_PIN_7
 #define BNRG_SPI_MOSI_GPIO_Port GPIOA
-#define LOAD_CELL_ADC_Pin GPIO_PIN_4
-#define LOAD_CELL_ADC_GPIO_Port GPIOC
+#define LOAD_CELL_0_ADC_Pin GPIO_PIN_4
+#define LOAD_CELL_0_ADC_GPIO_Port GPIOC
+#define LOAD_CELL_1_ADC_Pin GPIO_PIN_5
+#define LOAD_CELL_1_ADC_GPIO_Port GPIOC
 #define LPS22H_INT1_O_Pin GPIO_PIN_10
 #define LPS22H_INT1_O_GPIO_Port GPIOB
 #define LPS22H_INT1_O_EXTI_IRQn EXTI15_10_IRQn
 #define GPS_ON_OFF_Pin GPIO_PIN_7
 #define GPS_ON_OFF_GPIO_Port GPIOC
+#define RANGE_SHDN_Pin GPIO_PIN_9
+#define RANGE_SHDN_GPIO_Port GPIOC
 #define BNRG_SPI_RESET_Pin GPIO_PIN_8
 #define BNRG_SPI_RESET_GPIO_Port GPIOA
 #define GPS_USART_TX_Pin GPIO_PIN_9
@@ -101,10 +106,17 @@
 #define LSM6DSL_INT1_O_Pin GPIO_PIN_5
 #define LSM6DSL_INT1_O_GPIO_Port GPIOB
 #define LSM6DSL_INT1_O_EXTI_IRQn EXTI9_5_IRQn
-#define IMU_I2C_SCL_Pin GPIO_PIN_8
-#define IMU_I2C_SCL_GPIO_Port GPIOB
-#define IMU_I2C_SDA_Pin GPIO_PIN_9
-#define IMU_I2C_SDA_GPIO_Port GPIOB
+#define I2C_SCL_Pin GPIO_PIN_8
+#define I2C_SCL_GPIO_Port GPIOB
+#define I2C_SDA_Pin GPIO_PIN_9
+#define I2C_SDA_GPIO_Port GPIOB
+
+/* ########################## Assert Selection ############################## */
+/**
+  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
+  *        HAL drivers code
+  */
+/* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
 #define GPS_USART_IRQn USART1_IRQn
@@ -161,12 +173,19 @@ void IMUecho(BOOL echo);
 void GPSecho(BOOL echo);
 void ENVecho(BOOL echo);
 void MATLABecho(BOOL echo);
+void RangeEcho(BOOL echo);
 
 /* USER CODE END Private defines */
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
 void _Error_Handler(char *, int);
 
 #define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+#ifdef __cplusplus
+}
+#endif
 
 /**
   * @}

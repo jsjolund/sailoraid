@@ -48,7 +48,7 @@
 #include "bluenrg_utils.h"
 #include "bluenrg_interface.h"
 
-void InitBluetoothGattServer(void);
+void BTinit(void);
 
 #endif //__BLUENRG_INTERFACE_H_
 

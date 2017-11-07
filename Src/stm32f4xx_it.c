@@ -38,9 +38,8 @@
 /* USER CODE BEGIN 0 */
 #include "stm32_bluenrg_ble.h"
 #include "sensor_service.h"
+#include "i2c.h"
 
-volatile uint32_t ms_counter = 0;
-volatile int button_event = 0;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -97,7 +96,7 @@ void SysTick_Handler(void)
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-  ms_counter++;
+
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -272,6 +271,15 @@ void I2C1_ER_IRQHandler(void)
   HAL_I2C_ER_IRQHandler(&hi2c1);
   /* USER CODE BEGIN I2C1_ER_IRQn 1 */
 
+  printf("ERROR CODE %d I2C1 (it)\n", (int) hi2c1.ErrorCode);
+  I2C_Module i2c;
+  i2c.instance = &hi2c1;
+  i2c.sclPin = I2C_SCL_Pin;
+  i2c.sclPort = I2C_SCL_GPIO_Port;
+  i2c.sdaPin = I2C_SDA_Pin;
+  i2c.sdaPort = I2C_SDA_GPIO_Port;
+  I2C_ClearBusyFlagErratum(&i2c);
+
   /* USER CODE END I2C1_ER_IRQn 1 */
 }
 
@@ -328,7 +336,6 @@ void EXTI15_10_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
-  button_event = 1;
 
   /* USER CODE END EXTI15_10_IRQn 1 */
 }

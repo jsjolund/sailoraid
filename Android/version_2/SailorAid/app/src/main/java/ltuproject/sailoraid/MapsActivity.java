@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -36,13 +38,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Polyline travelRoutePolyline;
     private Marker hereMarker;
-
+    private String receivedIntent;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.map_activity);
-
-        Intent i = getIntent();
+        Bundle extras = getIntent().getExtras();
+        if(extras == null) {
+            receivedIntent= null;
+        } else {
+            receivedIntent= extras.getString("log");
+        }
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -84,7 +93,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             try {
                 // Update travel route on timer update
                 List<LatLng> newPoints = new ArrayList<LatLng>();
-                FeedbackActivity.getRoute(newPoints);
+                if (receivedIntent.equals("log")){
+                    HistoryActivity.getRoute(newPoints);
+                } else {
+                    FeedbackActivity.getRoute(newPoints);
+                }
                 PolylineOptions newTravelRoute = new PolylineOptions();
                 newTravelRoute.addAll(newPoints);
                 if (travelRoutePolyline != null)
@@ -107,7 +120,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             } finally {
                 // 100% guarantee that this always happens, even if
                 // your update method throws an exception
-                mHandler.postDelayed(mStatusChecker, mInterval);
+                if (!receivedIntent.equals("log")){
+                    mHandler.postDelayed(mStatusChecker, mInterval);
+                }
             }
         }
     };

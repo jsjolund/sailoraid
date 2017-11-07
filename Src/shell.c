@@ -14,33 +14,27 @@ void ShellExecute(char* string)
   sprintf(buffer, string);
   char *token = strtok(buffer, " \t");
 
-  uint8_t fail = 1;
-
-  if (strlen(token) == 0)
+  if (strlen(token) == 3 && strncmp(token, "imu", 1) == 0)
   {
-    fail = 0;
-  }
-  else if (strlen(token) == 3 && strncmp(token, "imu", 1) == 0)
-  {
-    fail = 0;
     IMUecho(TRUE);
   }
   else if (strlen(token) == 3 && strncmp(token, "gps", 1) == 0)
   {
-    fail = 0;
     GPSecho(TRUE);
   }
   else if (strlen(token) == 3 && strncmp(token, "env", 1) == 0)
   {
-    fail = 0;
     ENVecho(TRUE);
   }
   else if (strlen(token) == 6 && strncmp(token, "matlab", 1) == 0)
   {
-    fail = 0;
     MATLABecho(TRUE);
   }
-  if (fail)
+  else if (strlen(token) == 5 && strncmp(token, "range", 1) == 0)
+  {
+    RangeEcho(TRUE);
+  }
+  else if (strlen(token) > 0)
   {
     printf("command not found: %s\r\n", string);
   }

@@ -1,0 +1,75 @@
+
+#n/** Configure pins as #n #t#t #t* Analog #n #t#t #t* Input #n #t#t #t* Output#n #t#t #t* EVENT_OUT#n #t#t #t* EXTI
+*/
+static void MX_GPIO_Init(void)
+{
+#n
+#tGPIO_InitTypeDef GPIO_InitStruct;
+#n#t/* GPIO Ports Clock Enable */
+#t__HAL_RCC_GPIOC_CLK_ENABLE();
+#t__HAL_RCC_GPIOH_CLK_ENABLE();
+#t__HAL_RCC_GPIOA_CLK_ENABLE();
+#t__HAL_RCC_GPIOB_CLK_ENABLE();
+#n#t/*Configure GPIO pin Output Level */
+#tHAL_GPIO_WritePin(GPIOC, GPS_NRST_Pin|GPS_ON_OFF_Pin, GPIO_PIN_RESET);
+#n#t/*Configure GPIO pin Output Level */
+#tHAL_GPIO_WritePin(GPIOA, BNRG_SPI_CS_Pin|LED2_Pin|BNRG_SPI_RESET_Pin, GPIO_PIN_RESET);
+#n#t/*Configure GPIO pin Output Level */
+#tHAL_GPIO_WritePin(RANGE_SHDN_GPIO_Port, RANGE_SHDN_Pin, GPIO_PIN_SET);
+#n#t/*Configure GPIO pin : USER_BUTTON_Pin */
+#tGPIO_InitStruct.Pin = USER_BUTTON_Pin;
+#tGPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+#tGPIO_InitStruct.Pull = GPIO_NOPULL;
+#tHAL_GPIO_Init(USER_BUTTON_GPIO_Port, &GPIO_InitStruct);
+#n#t/*Configure GPIO pin : GPS_NRST_Pin */
+#tGPIO_InitStruct.Pin = GPS_NRST_Pin;
+#tGPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+#tGPIO_InitStruct.Pull = GPIO_NOPULL;
+#tGPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+#tHAL_GPIO_Init(GPS_NRST_GPIO_Port, &GPIO_InitStruct);
+#n#t/*Configure GPIO pin : M_INT2_O_Pin */
+#tGPIO_InitStruct.Pin = M_INT2_O_Pin;
+#tGPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+#tGPIO_InitStruct.Pull = GPIO_NOPULL;
+#tHAL_GPIO_Init(M_INT2_O_GPIO_Port, &GPIO_InitStruct);
+#n#t/*Configure GPIO pin : BNRG_SPI_IRQ_Pin */
+#tGPIO_InitStruct.Pin = BNRG_SPI_IRQ_Pin;
+#tGPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+#tGPIO_InitStruct.Pull = GPIO_NOPULL;
+#tHAL_GPIO_Init(BNRG_SPI_IRQ_GPIO_Port, &GPIO_InitStruct);
+#n#t/*Configure GPIO pin : BNRG_SPI_CS_Pin */
+#tGPIO_InitStruct.Pin = BNRG_SPI_CS_Pin;
+#tGPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+#tGPIO_InitStruct.Pull = GPIO_NOPULL;
+#tGPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+#tHAL_GPIO_Init(BNRG_SPI_CS_GPIO_Port, &GPIO_InitStruct);
+#n#t/*Configure GPIO pins : LED2_Pin BNRG_SPI_RESET_Pin */
+#tGPIO_InitStruct.Pin = LED2_Pin|BNRG_SPI_RESET_Pin;
+#tGPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+#tGPIO_InitStruct.Pull = GPIO_NOPULL;
+#tGPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+#tHAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+#n#t/*Configure GPIO pins : LPS22H_INT1_O_Pin LSM6DSL_INT2_O_Pin LSM6DSL_INT1_O_Pin */
+#tGPIO_InitStruct.Pin = LPS22H_INT1_O_Pin|LSM6DSL_INT2_O_Pin|LSM6DSL_INT1_O_Pin;
+#tGPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+#tGPIO_InitStruct.Pull = GPIO_NOPULL;
+#tHAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+#n#t/*Configure GPIO pins : GPS_ON_OFF_Pin RANGE_SHDN_Pin */
+#tGPIO_InitStruct.Pin = GPS_ON_OFF_Pin|RANGE_SHDN_Pin;
+#tGPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+#tGPIO_InitStruct.Pull = GPIO_NOPULL;
+#tGPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+#tHAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+#n#t/* EXTI interrupt init*/
+#tHAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+#tHAL_NVIC_EnableIRQ(EXTI0_IRQn);#n
+#tHAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+#tHAL_NVIC_EnableIRQ(EXTI1_IRQn);#n
+#tHAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+#tHAL_NVIC_EnableIRQ(EXTI4_IRQn);#n
+#tHAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+#tHAL_NVIC_EnableIRQ(EXTI9_5_IRQn);#n
+#tHAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+#tHAL_NVIC_EnableIRQ(EXTI15_10_IRQn);#n#n
+}
+#n

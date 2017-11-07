@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/constraintFeedbackView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="ltuproject.sailoraid.GraphActivity"
+    android:background="@color/background">
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <com.jjoe64.graphview.GraphView
+                android:layout_width="match_parent"
+                android:layout_height="200dip"
+                app:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/graph_incline" />
+            <com.jjoe64.graphview.GraphView
+                android:layout_width="match_parent"
+                android:layout_height="200dip"
+                app:layout_constraintTop_toBottomOf="@id/graph_incline"
+                android:id="@+id/graph_pressure" />
+            <com.jjoe64.graphview.GraphView
+                android:layout_width="match_parent"
+                android:layout_height="200dip"
+                app:layout_constraintTop_toBottomOf="@id/graph_pressure"
+                android:id="@+id/graph_sog" />
+            <com.jjoe64.graphview.GraphView
+                android:layout_width="match_parent"
+                android:layout_height="200dip"
+                app:layout_constraintTop_toBottomOf="@id/graph_sog"
+                android:id="@+id/graph_temp" />
+            <com.jjoe64.graphview.GraphView
+                android:layout_width="match_parent"
+                android:layout_height="200dip"
+                app:layout_constraintTop_toBottomOf="@id/graph_sog"
+                android:id="@+id/graph_hum" />
+            <com.jjoe64.graphview.GraphView
+                android:layout_width="match_parent"
+                android:layout_height="200dip"
+                app:layout_constraintTop_toBottomOf="@id/graph_sog"
+                android:id="@+id/graph_compass" />
+            <com.jjoe64.graphview.GraphView
+                android:layout_width="match_parent"
+                android:layout_height="200dip"
+                app:layout_constraintTop_toBottomOf="@id/graph_compass"
+                android:id="@+id/graph_drift" />
+        </LinearLayout>
+
+    </android.support.v4.widget.NestedScrollView>
+
+
+</android.support.constraint.ConstraintLayout>

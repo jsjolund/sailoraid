@@ -7,15 +7,8 @@
 
 #include "gps.h"
 
-static nmeaINFO info;
-static nmeaPARSER parser;
-
 void GPSinit(void)
 {
-  nmea_zero_INFO(&info);
-  nmea_parser_init(&parser);
-//  nmea_parser_destroy(&parser);
-
   HAL_Delay(1000);
   HAL_GPIO_WritePin(GPS_NRST_GPIO_Port, GPS_NRST_Pin, GPIO_PIN_SET); // low
   HAL_Delay(50);
@@ -26,17 +19,31 @@ void GPSinit(void)
   HAL_GPIO_WritePin(GPS_ON_OFF_GPIO_Port, GPS_ON_OFF_Pin, GPIO_PIN_RESET);
 }
 
-nmeaINFO GPSparse(char *str, int len)
+void GPSparse(char *str, int len, NmeaInfo *info, GPSstate_t *gps)
 {
-  nmea_parse(&parser, str, len, &info);
-  return info;
+  NmeaParser parser;
+  NmeaPosition dpos;
+
+  nmeaParserInit(&parser, 0);
+
+  nmeaParserParse(&parser, str, len, info);
+  nmeaMathInfoToPosition(info, &dpos);
+
+  nmeaParserDestroy(&parser);
+
+  gps->time.year = info->utc.year;
+  gps->time.month = info->utc.mon;
+  gps->time.day = info->utc.day;
+  gps->time.hour = info->utc.hour;
+  gps->time.min = info->utc.min;
+  gps->time.sec = info->utc.sec;
+  gps->time.hsec = info->utc.hsec;
+  gps->pos.elevation = info->elevation;
+  gps->pos.latitude = nmeaMathRadianToDegree(dpos.lat);
+  gps->pos.longitude = nmeaMathRadianToDegree(dpos.lon);
+  gps->info.satUse = info->satellites.inUseCount;
+  gps->info.satView = info->satellites.inViewCount;
+  gps->pos.speed = info->speed;
+  gps->pos.direction = info->track;
 }
 
-float NMEAtoGPS(float in_coords)
-{
-  float f = in_coords;
-  int firsttwodigits = ((int) f) / 100; //This assumes that f < 10000.
-  float nexttwodigits = f - (float) (firsttwodigits * 100);
-  float theFinalAnswer = (float) (firsttwodigits + nexttwodigits / 60.0);
-  return theFinalAnswer;
-}

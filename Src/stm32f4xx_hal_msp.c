@@ -108,12 +108,13 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     __HAL_RCC_ADC1_CLK_ENABLE();
   
     /**ADC1 GPIO Configuration    
-    PC4     ------> ADC1_IN14 
+    PC4     ------> ADC1_IN14
+    PC5     ------> ADC1_IN15 
     */
-    GPIO_InitStruct.Pin = LOAD_CELL_ADC_Pin;
+    GPIO_InitStruct.Pin = LOAD_CELL_0_ADC_Pin|LOAD_CELL_1_ADC_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(LOAD_CELL_ADC_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
     /* ADC1 DMA Init */
     /* ADC1 Init */
@@ -156,9 +157,10 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     __HAL_RCC_ADC1_CLK_DISABLE();
   
     /**ADC1 GPIO Configuration    
-    PC4     ------> ADC1_IN14 
+    PC4     ------> ADC1_IN14
+    PC5     ------> ADC1_IN15 
     */
-    HAL_GPIO_DeInit(LOAD_CELL_ADC_GPIO_Port, LOAD_CELL_ADC_Pin);
+    HAL_GPIO_DeInit(GPIOC, LOAD_CELL_0_ADC_Pin|LOAD_CELL_1_ADC_Pin);
 
     /* ADC1 DMA DeInit */
     HAL_DMA_DeInit(hadc->DMA_Handle);
@@ -186,7 +188,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
     PB8     ------> I2C1_SCL
     PB9     ------> I2C1_SDA 
     */
-    GPIO_InitStruct.Pin = IMU_I2C_SCL_Pin|IMU_I2C_SDA_Pin;
+    GPIO_InitStruct.Pin = I2C_SCL_Pin|I2C_SDA_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -222,7 +224,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
     PB8     ------> I2C1_SCL
     PB9     ------> I2C1_SDA 
     */
-    HAL_GPIO_DeInit(GPIOB, IMU_I2C_SCL_Pin|IMU_I2C_SDA_Pin);
+    HAL_GPIO_DeInit(GPIOB, I2C_SCL_Pin|I2C_SDA_Pin);
 
     /* I2C1 interrupt DeInit */
     HAL_NVIC_DisableIRQ(I2C1_EV_IRQn);
@@ -241,7 +243,8 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
   if(hspi->Instance==SPI1)
   {
   /* USER CODE BEGIN SPI1_MspInit 0 */
-	  __HAL_RCC_DMA2_CLK_ENABLE();
+    __HAL_RCC_DMA2_CLK_ENABLE()
+    ;
   /* USER CODE END SPI1_MspInit 0 */
     /* Peripheral clock enable */
     __HAL_RCC_SPI1_CLK_ENABLE();
