@@ -406,8 +406,6 @@ public class MainActivity extends AppCompatActivity {
                         mLogService.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +this.bearingZ);
                     }
                 }
-                TextView tv = (TextView) findViewById(R.id.zText);
-                tv.setText(String.valueOf(this.bearingZ));
             }
             else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
                 data = data.replace(',', '.');
@@ -493,7 +491,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-
         }
     }
 }

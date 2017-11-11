@@ -49,7 +49,7 @@ public class HistoryActivity extends AppCompatActivity {
     private Menu mMenu;
     private Toolbar myToolbar;
     private Button readLogBtn, mapLogBtn, graphLogBtn;
-    private TextView maxIncHolder, avgIncHolder, maxDriftHolder, totalDriftHolder, avgSOGHolder, topSOGHolder, maxPressureHolder, avgPressureHolder;
+    private TextView maxIncHolder, avgIncHolder, maxDriftHolder, totalDriftHolder, avgSOGHolder, topSOGHolder, maxPressureHolder, avgPressureHolder, totDistanceHolder;
     private SailLog mLogService;
     private View lastSelView;
 
@@ -75,17 +75,18 @@ public class HistoryActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
         myToolbar.setVisibility(View.GONE);
-        readLogBtn = (Button)findViewById(R.id.readLogBtn);
-        mapLogBtn = (Button) findViewById(R.id.mapLogBtn);
-        graphLogBtn = (Button) findViewById(R.id.graphLogBtn);
-        maxIncHolder = (TextView) findViewById(R.id.maxIncHolder);
-        avgIncHolder = (TextView) findViewById(R.id.avgIncHolder);
-        maxDriftHolder = (TextView) findViewById(R.id.maxDriftHolder);
-        totalDriftHolder = (TextView) findViewById(R.id.totalDriftHolder);
-        avgSOGHolder = (TextView) findViewById(R.id.avgSOGHolder);
-        topSOGHolder = (TextView) findViewById(R.id.topSOGHolder);
-        avgPressureHolder = (TextView) findViewById(R.id.avgPressureHolder);
-        maxPressureHolder = (TextView) findViewById(R.id.maxPressureHolder);
+        readLogBtn = findViewById(R.id.readLogBtn);
+        mapLogBtn = findViewById(R.id.mapLogBtn);
+        graphLogBtn = findViewById(R.id.graphLogBtn);
+        maxIncHolder = findViewById(R.id.maxIncHolder);
+        avgIncHolder = findViewById(R.id.avgIncHolder);
+        maxDriftHolder = findViewById(R.id.maxDriftHolder);
+        totalDriftHolder = findViewById(R.id.totalDriftHolder);
+        avgSOGHolder = findViewById(R.id.avgSOGHolder);
+        topSOGHolder = findViewById(R.id.topSOGHolder);
+        avgPressureHolder = findViewById(R.id.avgPressureHolder);
+        maxPressureHolder = findViewById(R.id.maxPressureHolder);
+        totDistanceHolder = findViewById(R.id.totDistanceHolder);
 
         assert readLogBtn != null;
         readLogBtn.setOnClickListener(new View.OnClickListener(){
@@ -319,14 +320,15 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void showTextViews(){
-        TextView maxIncText = (TextView) findViewById(R.id.maxIncText);
-        TextView avgIncText = (TextView) findViewById(R.id.avgIncText);
-        TextView maxDriftText = (TextView) findViewById(R.id.maxDriftText);
-        TextView totalDriftText = (TextView) findViewById(R.id.totalDriftText);
-        TextView avgSOGText = (TextView) findViewById(R.id.avgSOGText);
-        TextView topSOGText = (TextView) findViewById(R.id.topSOGText);
-        TextView avgPressureText = (TextView) findViewById(R.id.avgPressureText);
-        TextView maxPressureText = (TextView) findViewById(R.id.maxPressureText);
+        TextView maxIncText = findViewById(R.id.maxIncText);
+        TextView avgIncText = findViewById(R.id.avgIncText);
+        TextView maxDriftText = findViewById(R.id.maxDriftText);
+        TextView totalDriftText = findViewById(R.id.totalDriftText);
+        TextView avgSOGText = findViewById(R.id.avgSOGText);
+        TextView topSOGText = findViewById(R.id.topSOGText);
+        TextView avgPressureText = findViewById(R.id.avgPressureText);
+        TextView maxPressureText = findViewById(R.id.maxPressureText);
+        TextView totDistance = findViewById(R.id.totDistanceText);
         maxIncText.setVisibility(View.VISIBLE);
         avgIncText.setVisibility(View.VISIBLE);
         maxDriftText.setVisibility(View.VISIBLE);
@@ -335,6 +337,7 @@ public class HistoryActivity extends AppCompatActivity {
         topSOGText.setVisibility(View.VISIBLE);
         avgPressureText.setVisibility(View.VISIBLE);
         maxPressureText.setVisibility(View.VISIBLE);
+        totDistance.setVisibility(View.VISIBLE);
         maxIncHolder.setVisibility(View.VISIBLE);
         avgIncHolder.setVisibility(View.VISIBLE);
         maxDriftHolder.setVisibility(View.VISIBLE);
@@ -343,6 +346,7 @@ public class HistoryActivity extends AppCompatActivity {
         topSOGHolder.setVisibility(View.VISIBLE);
         avgPressureHolder.setVisibility(View.VISIBLE);
         maxPressureHolder.setVisibility(View.VISIBLE);
+        totDistanceHolder.setVisibility(View.VISIBLE);
     }
 
     private void getLogDataToArray(){
@@ -357,6 +361,7 @@ public class HistoryActivity extends AppCompatActivity {
         totalDriftHolder.setText(String.valueOf(mLogService.getTotalDrift()));
         avgPressureHolder.setText(String.valueOf(mLogService.getAvgPressure()));
         maxPressureHolder.setText(String.valueOf(mLogService.getMaxPressure()));
+        totDistanceHolder.setText(String.valueOf(mLogService.getTotDistance()));
         setInclineData();
         setSOGData();
         setPressureData();

@@ -170,6 +170,21 @@
         app:layout_constraintTop_toBottomOf="@id/maxPressureHolder"/>
 
     <TextView
+        android:id="@+id/totDistanceText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/avgPressureText"
+        android:text="Distance traveled:  "/>
+    <TextView
+        android:id="@+id/totDistanceHolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintLeft_toRightOf="@id/totDistanceText"
+        app:layout_constraintTop_toBottomOf="@id/avgPressureHolder"/>
+
+    <TextView
         android:id="@+id/sailorScoreText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -22,6 +22,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -96,37 +97,46 @@ public class FeedbackActivity extends AppCompatActivity{
     private static final float DRIFT_ARROW_SCALE_Y = 3.0f;
     private static final float NEEDLE_BOTTOM_POS = -1.5f;
     private static final float DRIFT_ARROW_CENTER = 3.6f;
+    private static final float WAVE_SCALE_X = 1.9f;
+    private static final float WAVE_SCALE_Y = 1.9f;
+    private static final float WAVE_BOAT_SCALE_X = 1.4f;
+    private static final float WAVE_BOAT_SCALE_Y = 1.4f;
+    private static final float WAVE_X_POS = 1.6f;
+    private static final float WAVE_Y_POS = -0.5f;
+    private static final float WAVE_BOAT_X_POS = -1.4f;
+    private static final float WAVE_BOAT_Y_POS = 0.2f;
+
+    private boolean isWaving = false;
+    private float wavePos = 0;
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
-    private static final int INTERVAL = 500;
+    private static final int INTERVAL = 3000;
     private static final int UNINITIALIZED = 9999;
 
-    private enum FeedbackStates {CLEAR, HEEL, DRIFT, HAULING, REEFING}
+    private enum FeedbackStates {CLEAR, HEEL, DRIFT, HAULING, REEFING, HARDWIND}
+    private Handler mFeedbackHandler;
+    private Handler mVibratorHandler;
+    private Handler mWaveHandler;
+    private FeedbackStates lastFeedbackState;
 
     private FeedbackStates mFeedbackState;
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
     private IntentFilter filter;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics;
-    private RotatableGLView mInclineBoatView;
-    private RotatableGLView mCompassView;
-    private RotatableGLView mPressureNeedleView;
-    private RotatableGLView mLeftDriftView;
-    private RotatableGLView mRightDriftView;
+    private RotatableGLView mInclineBoatView, mCompassView,mPressureNeedleView,mLeftDriftView,mRightDriftView,mWaveView,mBoatWaveView;
     private TextView feedbackText;
     private SailLog mLogService;
     private boolean logging = false;
     private BTLEConnection mBluetoothLeService;
     private Menu mMenu;
-    private MapView mMapView;
-    private GoogleMap mGoogleMap;
     private Bundle mSavedInstaceStare;
     private String prevTime;
     private int lastView = 0;
-    private Handler mFeedbackHandler;
-    private Handler mVibratorHandler;
-    private String lastWords;
+    private List<Float> waveData = new ArrayList<Float>();
+    private List<Float> filteredData = new ArrayList<Float>();
+    private float wavePeriod;
     /*
     Sensor variables
      */
@@ -140,6 +150,7 @@ public class FeedbackActivity extends AppCompatActivity{
     private Button btnMap;
     private TextToSpeech txtToSpeech1;
     private int startFlag = 0;
+    private GoogleMap mMap;
     //Location variables
 
     static private List<LatLng> travelRoute = new ArrayList<LatLng>();
@@ -155,21 +166,23 @@ public class FeedbackActivity extends AppCompatActivity{
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.feedback_activity);
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.feedback_toolbar);
+        Toolbar myToolbar = findViewById(R.id.feedback_toolbar);
         setSupportActionBar(myToolbar);
 
 
-        this.feedbackText = (TextView) findViewById(R.id.feedbackText);
-        btnMap = (Button) findViewById(R.id.mapviewbtn);
+        this.feedbackText = new TextView(this); //findViewById(R.id.feedbackText);
+        feedbackText.setText("Yo");
+        feedbackText.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+        btnMap = findViewById(R.id.mapviewbtn);
         mLogService = null;
         initFilter();
         initDynamicPics();
         displayInclineFocus();
-        if (mMapView != null){
-            showMap();
-        }
         mFeedbackHandler = new Handler();
         mVibratorHandler = new Handler();
+        mWaveHandler = new Handler();
 
 
         txtToSpeech1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
@@ -181,7 +194,7 @@ public class FeedbackActivity extends AppCompatActivity{
             }
         });
 
-        final ViewFlipper viewFlipper = (ViewFlipper) findViewById(R.id.myFeedbackViewFlipper);
+        final ViewFlipper viewFlipper = findViewById(R.id.myFeedbackViewFlipper);
         viewFlipper.setOnTouchListener(new OnSwipeTouchListener(FeedbackActivity.this) {
 
             public void onSwipeRight() {
@@ -210,12 +223,16 @@ public class FeedbackActivity extends AppCompatActivity{
             hideInclineFocus();
         } else if (lastView == 1){
             hideMapFocus();
+        } else if (lastView == 2){
+            hideSimpleFocus();
         }
         lastView = viewId;
         if (viewId == 0){
             displayInclineFocus();
         }else if (viewId == 1){
             displayMapFocus();
+        }else if (viewId == 2){
+            displaySimpleFocus();
         }
     }
     /*
@@ -273,9 +290,6 @@ public class FeedbackActivity extends AppCompatActivity{
             Intent logServiceIntent = new Intent(getApplicationContext(), SailLog.class);
             bindService(logServiceIntent, mLogServiceConnection, BIND_AUTO_CREATE);
         }
-        if (mMapView != null) {
-            mMapView.onResume();
-        }
     }
 
     @Override
@@ -286,37 +300,21 @@ public class FeedbackActivity extends AppCompatActivity{
         if (mLogServiceConnection!= null){
             unbindService(mLogServiceConnection);
         }
-        if (mMapView != null) {
-            try {
-                mMapView.onDestroy();
-            } catch (NullPointerException e) {
-                Log.e(TAG, "Error while attempting MapView.onDestroy(), ignoring exception", e);
-            }
-        }
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        if (mMapView != null) {
-            mMapView.onLowMemory();
-        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (mMapView != null) {
-            mMapView.onPause();
-        }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (mMapView != null) {
-            mMapView.onSaveInstanceState(outState);
-        }
     }
 
     /*
@@ -416,43 +414,59 @@ public class FeedbackActivity extends AppCompatActivity{
     /*
     Sets dynamic pictures on views defined by Id
      */
+    private void displayOnView(int id, RotatableGLView view){
+        LinearLayout linearLayout = findViewById(id);
+        linearLayout.addView(view.getGlView());
+
+    }
+
     private void displayBoatOnView(int id){
-        LinearLayout linearLayout = (LinearLayout) findViewById(id);
+        LinearLayout linearLayout = findViewById(id);
         linearLayout.addView(mInclineBoatView.getGlView());
     }
     private void hideBoatFromView(int id){
-        LinearLayout linearLayout = (LinearLayout) findViewById(id);
+        LinearLayout linearLayout = findViewById(id);
         linearLayout.removeView(mInclineBoatView.getGlView());
     }
     private void displayCompassOnView(int id){
-        LinearLayout linearCompassLayout = (LinearLayout) findViewById(id);
+        LinearLayout linearCompassLayout = findViewById(id);
         linearCompassLayout.addView(mCompassView.getGlView());
         mCompassView.moveGL2(0.02f,0);
     }
+    private void displayWaveOnView(int id){
+        LinearLayout linearCompassLayout = findViewById(id);
+        linearCompassLayout.addView(mWaveView.getGlView());
+        mWaveView.moveGL2(WAVE_BOAT_X_POS, WAVE_BOAT_Y_POS);
+        mWaveView.moveGL(WAVE_X_POS, WAVE_Y_POS);
+    }
     private void hideCompassFromView(int id){
-        LinearLayout linearCompassLayout = (LinearLayout) findViewById(id);
+        LinearLayout linearCompassLayout = findViewById(id);
         linearCompassLayout.removeView(mCompassView.getGlView());
     }
     private void displayNeedleOnView(int id){
-        LinearLayout linearPressureLayout = (LinearLayout) findViewById(id);
+        LinearLayout linearPressureLayout = findViewById(id);
         linearPressureLayout.addView(mPressureNeedleView.getGlView());
     }
     private void hideNeedleFromView(int id){
-        LinearLayout linearPressureLayout = (LinearLayout) findViewById(id);
+        LinearLayout linearPressureLayout = findViewById(id);
         linearPressureLayout.removeView(mPressureNeedleView.getGlView());
     }
+    private void hidewaveFromView(int id){
+        LinearLayout linearPressureLayout = findViewById(id);
+        linearPressureLayout.removeView(mWaveView.getGlView());
+    }
     private void displayDriftArrowOnView(int leftId, int rightId, float centerLeft, float centerRight){
-        LinearLayout leftDriftLayout = (LinearLayout) findViewById(leftId);
+        LinearLayout leftDriftLayout = findViewById(leftId);
         leftDriftLayout.addView(mLeftDriftView.getGlView());
-        LinearLayout rightDriftLayout = (LinearLayout) findViewById(rightId);
+        LinearLayout rightDriftLayout = findViewById(rightId);
         rightDriftLayout.addView(mRightDriftView.getGlView());
         mLeftDriftView.moveGL(centerLeft,0);
         mRightDriftView.moveGL(-centerRight,0);
     }
     private void hideDriftArrowFromView(int leftId, int rightId){
-        LinearLayout leftDriftLayout = (LinearLayout) findViewById(leftId);
+        LinearLayout leftDriftLayout = findViewById(leftId);
         leftDriftLayout.removeView(mLeftDriftView.getGlView());
-        LinearLayout rightDriftLayout = (LinearLayout) findViewById(rightId);
+        LinearLayout rightDriftLayout = findViewById(rightId);
         rightDriftLayout.removeView(mRightDriftView.getGlView());
     }
     private void displayMapFocus(){
@@ -467,6 +481,24 @@ public class FeedbackActivity extends AppCompatActivity{
         hideCompassFromView(R.id.compassMapFocusViewHolder);
         hideDriftArrowFromView(R.id.leftDriftMapFocus, R.id.rightDriftMapFocus);
     }
+    private void hideSimpleFocus(){
+        removeDynamicPics();
+        LinearLayout ll = findViewById(R.id.simplefeedbackTextLayout);
+        ll.removeView(feedbackText);
+        hideBoatFromView(R.id.simpleboatalignmentholder);
+        hidewaveFromView(R.id.simplewaveholder);
+        mWaveHandler.removeCallbacks(mWaveRunner);
+
+    }
+    private void displaySimpleFocus(){
+        initDynamicPics();
+        LinearLayout ll = findViewById(R.id.simplefeedbackTextLayout);
+        feedbackText.setTextSize(38);
+        feedbackText.setGravity(Gravity.CENTER);
+        ll.addView(feedbackText);
+        displayBoatOnView(R.id.simpleboatalignmentholder);
+        displayWaveOnView(R.id.simplewaveholder);
+    }
     private void displayInclineFocus(){
         initDynamicPics();
         displayBoatOnView(R.id.boatalignmentholder);
@@ -474,7 +506,10 @@ public class FeedbackActivity extends AppCompatActivity{
         displayDriftArrowOnView(R.id.leftDrift, R.id.rightDrift, DRIFT_ARROW_CENTER, DRIFT_ARROW_CENTER);
         displayNeedleOnView(R.id.pressureMeter);
         mPressureNeedleView.moveGL(0, NEEDLE_BOTTOM_POS);
-
+        LinearLayout ll = findViewById(R.id.feedbackTextLayout);
+        feedbackText.setTextSize(20);
+        feedbackText.setGravity(Gravity.CENTER);
+        ll.addView(feedbackText);
     }
     private void hideInclineFocus(){
         removeDynamicPics();
@@ -482,17 +517,18 @@ public class FeedbackActivity extends AppCompatActivity{
         hideCompassFromView(R.id.driftImg);
         hideNeedleFromView(R.id.pressureMeter);
         hideDriftArrowFromView(R.id.leftDrift, R.id.rightDrift);
-
+        LinearLayout ll = findViewById(R.id.feedbackTextLayout);
+        ll.removeView(feedbackText);
     }
     private void initDynamicPics(){
         mInclineBoatView = new RotatableGLView(this,decodeSampledBitmapFromResource(getResources(),
-                R.drawable.boat_alignement, 170, 170),
+                R.drawable.boat_alignement, 180, 180),
                 BOAT_SCALE_X, BOAT_SCALE_Y);
         mPressureNeedleView = new RotatableGLView(this,
                 decodeSampledBitmapFromResource(getResources(), R.drawable.needle, 20, 20),
                 NEEDLE_SCALE_X, NEEDLE_SCALE_Y);
         mCompassView = new RotatableGLView(this,
-                decodeSampledBitmapFromResource(getResources(), R.drawable.compass, 140, 140), decodeSampledBitmapFromResource(getResources(), R.drawable.rowboat, 100,100),
+                decodeSampledBitmapFromResource(getResources(), R.drawable.compass, 160, 160), decodeSampledBitmapFromResource(getResources(), R.drawable.rowboat, 100,100),
                 COMPASS_SCALE_Y, COMPASS_SCALE_X, COMPASS_BOAT_SCALE_X, COMPASS_BOAT_SCALE_Y);
         mLeftDriftView = new RotatableGLView(this,
                 decodeSampledBitmapFromResource(getResources(), R.drawable.left_drift_arrow, 20, 20),
@@ -500,6 +536,15 @@ public class FeedbackActivity extends AppCompatActivity{
         mRightDriftView = new RotatableGLView(this,
                 decodeSampledBitmapFromResource(getResources(), R.drawable.right_drift_arrow, 20, 20),
                 DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+        mWaveView = new RotatableGLView(this,
+                decodeSampledBitmapFromResource(getResources(), R.drawable.wave, 160, 160), decodeSampledBitmapFromResource(getResources(), R.drawable.pico_dyn, 100,100),
+                WAVE_SCALE_X, WAVE_SCALE_Y, WAVE_BOAT_SCALE_X, WAVE_BOAT_SCALE_Y);
+        /*mWaveView = new RotatableGLView(this,
+                decodeSampledBitmapFromResource(getResources(), R.drawable.wave, 160, 160),
+                WAVE_SCALE_X, WAVE_SCALE_Y);
+        mBoatWaveView = new RotatableGLView(this,
+                decodeSampledBitmapFromResource(getResources(), R.drawable.pico_dyn, 160, 160),
+                WAVE_BOAT_SCALE_X, WAVE_BOAT_SCALE_Y);*/
     }
 
     public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
@@ -546,6 +591,7 @@ public class FeedbackActivity extends AppCompatActivity{
         mPressureNeedleView.getGlView().onPause();
         mLeftDriftView.getGlView().onPause();
         mRightDriftView.getGlView().onPause();
+        mWaveView.getGlView().onPause();
     }
 
     /*
@@ -554,26 +600,9 @@ public class FeedbackActivity extends AppCompatActivity{
     public void getKnownGattServices(List<BluetoothGattService> gattServices){
         if (gattServices == null) return;
         String uuid = null;
-        String unknownServiceString = getResources().
-                getString(R.string.unknown_service);
-        String unknownCharaString = getResources().
-                getString(R.string.unknown_characteristic);
-        ArrayList<HashMap<String, String>> gattServiceData =
-                new ArrayList<HashMap<String, String>>();
-        ArrayList<ArrayList<HashMap<String, String>>> gattCharacteristicData
-                = new ArrayList<ArrayList<HashMap<String, String>>>();
-        mGattCharacteristics =
-                new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
         // Loops through available GATT Services.
         for (BluetoothGattService gattService : gattServices) {
-            HashMap<String, String> currentServiceData =
-                    new HashMap<String, String>();
             uuid = gattService.getUuid().toString();
-            currentServiceData.put(
-                    LIST_NAME, SampleGattAttributes.
-                            lookup(uuid, unknownServiceString));
-            currentServiceData.put(LIST_UUID, uuid);
-            gattServiceData.add(currentServiceData);
             if (uuid.equals(SampleGattAttributes.ACCELEROMETER_SERVICE.toString())
                 || uuid.equals(SampleGattAttributes.ENV_SERVICE.toString())
                 || uuid.equals(SampleGattAttributes.NUCLEO_GPS_SERVICE.toString())
@@ -638,6 +667,23 @@ public class FeedbackActivity extends AppCompatActivity{
                 this.bearingZ = Float.parseFloat(accelerometer[2]);
 
                 mInclineBoatView.rotateGl((int) this.inclineX);
+                mWaveView.rotateGl2((int) inclineY);
+                mWaveView.getGlView().requestRender();
+                waveData.add(inclineY);
+                TextView tv = findViewById(R.id.driftText);
+                tv.setText(String.format("%.1f\u00B0", inclineY));
+                if(waveData.size() > 500){
+                    wavePeriod = calculateWaveFrequency(waveData);
+                    tv = findViewById(R.id.zText);
+                    tv.setText(String.format("%.05f", wavePeriod)+"Hz");
+                    for (int i = 0; i<25; i++){
+                        waveData.remove(0);
+                    }
+                    if (!isWaving){
+                        mWaveRunner.run();
+                    }
+                }
+
                 //float positionBoat = this.x / 100;
                 //mInclineBoatView.moveGL(positionBoat, positionBoat);
                 // Rotates compass with pitch
@@ -649,10 +695,9 @@ public class FeedbackActivity extends AppCompatActivity{
                     }
                 }
                 setTiltText(inclineX);
-                TextView tv = (TextView) findViewById(R.id.zText);
-                tv.setText(String.valueOf(this.bearingZ));
                 mInclineBoatView.getGlView().requestRender();
                 mCompassView.getGlView().requestRender();
+                mWaveView.getGlView().requestRender();
             }
             else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
                 data = data.replace(',', '.');
@@ -685,7 +730,7 @@ public class FeedbackActivity extends AppCompatActivity{
             }
             else if(dataType.equals(DATA_TYPE_HUMIDITY)){
                 data = data.replace(',', '.');
-                setHumText(Float.parseFloat(data));
+                //setHumText(Float.parseFloat(data));
                 if(mLogService != null) {
                     if (mLogService.isLogging()){
                         mLogService.writeToLog(DATA_TYPE_HUMIDITY + ":" + time + ":" + data);
@@ -720,7 +765,7 @@ public class FeedbackActivity extends AppCompatActivity{
                             this.drift = UNINITIALIZED;
                         }
                         this.nextEstimate = calcNextEstimatePos(new LatLng(latitude,longitude), dist, abs(this.bearingZ));
-                        TextView tv = (TextView) findViewById(R.id.driftText);
+                        TextView tv = findViewById(R.id.driftText);
                         if (this.drift == UNINITIALIZED){
                             tv.setText("Nan");
                         } else{
@@ -731,7 +776,7 @@ public class FeedbackActivity extends AppCompatActivity{
                     }
                     this.gpsPos = new LatLng(latitude, longitude);
                     travelRoute.add(gpsPos);
-                    TextView tv = (TextView) findViewById(R.id.speedText);
+                    TextView tv = findViewById(R.id.speedText);
                     tv.setText(String.valueOf(this.speed));
                     if(mLogService != null) {
                         if (mLogService.isLogging()){
@@ -759,7 +804,7 @@ public class FeedbackActivity extends AppCompatActivity{
                 data = data.replace(',', '.');
                 this.range = Float.parseFloat(data);
 
-                TextView tv = (TextView) findViewById(R.id.rangeText);
+                TextView tv = findViewById(R.id.rangeText);
                 tv.setText(String.valueOf(this.range));
                 if(mLogService != null) {
                     if (mLogService.isLogging()){
@@ -767,33 +812,79 @@ public class FeedbackActivity extends AppCompatActivity{
                     }
                 }
             }
-
         }
     }
+    Runnable mWaveRunner = new Runnable() {
 
-    /*
-    Shows a map inside a view
-     */
-    private void showMap(){
-        MapView mMapView = (MapView) findViewById(R.id.mapFragment);
-        MapsInitializer.initialize(getApplicationContext());
-        mMapView.onCreate(mSavedInstaceStare);
-        mMapView.onResume();
-        mMapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(final GoogleMap googleMap) {
-                LatLng pos = new LatLng(0,0);
-                if (travelRoute != null){
-                    pos = travelRoute.get(travelRoute.size()); ////your lat lng
+        @Override
+        public void run() {
+            try {
+                isWaving = true;
+                wavePos +=wavePeriod;
+                mWaveView.moveGL(WAVE_X_POS-wavePos,WAVE_Y_POS);
+                mWaveView.moveGL2(WAVE_BOAT_X_POS+0.5f*wavePos,WAVE_BOAT_Y_POS);
+                mWaveView.getGlView().requestRender();
+
+
+            } finally {
+                if (wavePos > 5f && wavePeriod > 0){
+                    mWaveView.moveGL(WAVE_X_POS,WAVE_Y_POS);
+                    mWaveView.moveGL2(WAVE_BOAT_X_POS, WAVE_BOAT_Y_POS);
+                    mWaveView.getGlView().requestRender();
+                    wavePos = 0;
+                    isWaving = false;
+                } else{
+                    mWaveHandler.postDelayed(mWaveRunner, 200);
                 }
-                googleMap.addMarker(new MarkerOptions().position(pos).title("Your title"));
-                googleMap.moveCamera(CameraUpdateFactory.newLatLng(pos));
-                googleMap.getUiSettings().setZoomControlsEnabled(true);
-                googleMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
+
+
+
+                // 100% guarantee that this always happens, even if
+                // your update method throws an exception
+
             }
-        });
+        }
+    };
+    private float calculateWaveFrequency(List<Float> data) {
+        float period;
+        float incPos = 0;
+        boolean posFlag = false;
+        float incNeg = 0;
+        boolean negFlag = false;
+        for (Float measurement: data){
+            if (measurement > 0.00f && !posFlag){
+                negFlag = false;
+                incPos += 1 ;
+                posFlag = true;
+            } else if (measurement < 0.00f && !negFlag){
+                posFlag = false;
+                incNeg += 1 ;
+                negFlag = true;
+            }
+        }
+        period = (incPos + incNeg) / 2.00f;
+        return period/10.00f;
     }
 
+    private float movingAverageFilter(Float value){
+        int filterLength = 10;
+        float sum = 0;
+        if (waveData.size() > filterLength){
+            for (int i = waveData.size()-filterLength; i<waveData.size(); i++){
+                filteredData.add(waveData.get(i));
+            }
+        }
+        if (filteredData.size() >= filterLength && filterLength > 0) {
+            sum -= filteredData.get(filteredData.size()-filterLength);
+            filteredData.remove(0);
+            sum += value;
+            filteredData.add(value);
+            float average = sum / filteredData.size();
+            return average;
+        } else {
+            return value;
+        }
+    }
     /*
         Gives User feedback tips based on sensor data
      */
@@ -805,57 +896,29 @@ public class FeedbackActivity extends AppCompatActivity{
                 Todo add states depending on sensor data to give sailor usable feedback
                  */
                 String txt ="";
-                if(drift <1 && speed > 30 && range > 50 && inclineX < 4){
+                if(abs(inclineX) < 4 && abs(inclineY) < 15){
                     mFeedbackState = FeedbackStates.CLEAR;
-                    txt = "Your an able seaman \n Congrats!";
-                    feedbackText.setText(txt);
-                    feedbackText.setTextColor(getColor(R.color.green));
-                } else if(drift > 3 && range > 5){
-                    txt = "Ship Adrift! \n Lower Centerboard more!";
-                    feedbackText.setText(txt);
-                    feedbackText.setTextColor(getColor(R.color.orange));
-                } else if(abs(inclineX) > 50){
+                } else if(abs(inclineX) < 15 && abs(inclineY) < 15){
+                    mFeedbackState = FeedbackStates.DRIFT;
+                } else if(abs(inclineX) > 50 && abs(inclineY) < 15){
                     mFeedbackState = FeedbackStates.HEEL;
-                    txtToSpeech1.setLanguage(Locale.FRANCE);
-                    txt = "All hands! \n Abandon ship!";
-                    feedbackText.setText(txt);
-                    feedbackText.setTextColor(getColor(R.color.red));
-                } else if(abs(inclineY) > 30){
+                } else if(abs(inclineY) > 50 && abs(inclineX) < 15){
                     mFeedbackState = FeedbackStates.REEFING;
-                    txtToSpeech1.setLanguage(Locale.GERMAN);
-                    txt = "SCHEISSE! \n EIN MUTTER BIST LOSE BEIGELEGT!";
-                    feedbackText.setText(txt);
-                    feedbackText.setTextColor(getColor(R.color.red));
+                } else if(abs(inclineY) > 60){
+                    mFeedbackState = FeedbackStates.HARDWIND;
+                } else if(abs(inclineY) > 30 && range < 50){
+                    mFeedbackState = FeedbackStates.HAULING;
                 } else if(bearingZ > -300) {
                     mFeedbackState = FeedbackStates.DRIFT;
-                    txtToSpeech1.setLanguage(Locale.ITALY);
-                    txt = "Vaffanculu! Porko dio!";
-                    feedbackText.setText(txt);
-                    feedbackText.setTextColor(getColor(R.color.red));
-                } else if(bearingZ > -300){
-                    txtToSpeech1.setLanguage(Locale.ITALIAN);
-                    txt = "Vaffanculu! Porko dio!";
-                    feedbackText.setText(txt);
-                    feedbackText.setTextColor(getColor(R.color.red));
-                } else if(drift < 3 && pressure < 1500 && range < 70){
-                    mFeedbackState = FeedbackStates.HAULING;
-                    txt = "Ahoy! \n Lift Centerboard";
-                    feedbackText.setText(txt);
-                    feedbackText.setTextColor(getColor(R.color.blue));
-                } else if(pressure > 500 && abs(inclineX) > 10 && range > 60){
-                    feedbackText.setText("Furl the jib \n Lower the mainsail");
-                    feedbackText.setTextColor(getColor(R.color.orange));
                 }
-
-                txt = txt.replace("\n", " ");
-                if (!txt.equals(lastWords)){
+                if (!mFeedbackState.equals(lastFeedbackState)){
                     if (startFlag == 0){
                         startFlag = 1;
                     } else {
-                        talkFeedback(txt);
+                        talkFeedback();
                     }
                 }
-                lastWords = txt;
+                lastFeedbackState = mFeedbackState;
             } finally {
                 // 100% guarantee that this always happens, even if
                 // your update method throws an exception
@@ -864,30 +927,53 @@ public class FeedbackActivity extends AppCompatActivity{
         }
     };
 
-    private void talkFeedback(String say){
-        IntervalVibrator mVibrator;
+    private void talkFeedback(){
+        IntervalVibrator mVibrator =  new IntervalVibrator(0, 0, 0);
+        String txt = "";
         switch (mFeedbackState) {
             case CLEAR:
-                mVibrator = new IntervalVibrator(4, 200, 500);
+                if (lastFeedbackState.equals(mFeedbackState.HEEL)){
+                    break;
+                }
+                txt = "Your an able seaman \n Congrats!";
+                feedbackText.setText(txt);
+                feedbackText.setTextColor(getColor(R.color.darkgreen));
+                mVibrator = new IntervalVibrator(3, 200, 500);
                 break;
-
             case HEEL:
-                mVibrator = new IntervalVibrator(2, 1000, 500);
+                txt = "All hands! \n Abandon ship!";
+                feedbackText.setText(txt);
+                feedbackText.setTextColor(getColor(R.color.red));
+                mVibrator = new IntervalVibrator(1, 1000, 500);
                 break;
-
             case HAULING:
-                mVibrator = new IntervalVibrator(4, 1200, 800);
+                txt = "Ahoy! \n Lift Centerboard";
+                feedbackText.setText(txt);
+                feedbackText.setTextColor(getColor(R.color.blue));
+                mVibrator = new IntervalVibrator(2, 1200, 800);
                 break;
             case REEFING:
-                mVibrator = new IntervalVibrator(4, 200, 700);
+                txtToSpeech1.setLanguage(Locale.GERMAN);
+                txt = "SCHEISSE! \n EIN MUTTER BIST LOSE BEIGELEGT!";
+                feedbackText.setText(txt);
+                feedbackText.setTextColor(getColor(R.color.orange));
+                mVibrator = new IntervalVibrator(3, 200, 700);
                 break;
             case DRIFT:
-                mVibrator = new IntervalVibrator(4, 100, 500);
+                txt = "Ship Adrift! \n Lower Centerboard more!";
+                feedbackText.setText(txt);
+                feedbackText.setTextColor(getColor(R.color.orange));
+                mVibrator = new IntervalVibrator(2, 100, 500);
                 break;
+            case HARDWIND:
+                txt = "Furl the jib \n Lower the mainsail";
+                feedbackText.setText(txt);
+                feedbackText.setTextColor(getColor(R.color.orange));
             default:
                 mVibrator = new IntervalVibrator(2, 200, 600);
         }
-        txtToSpeech1.speak(say, TextToSpeech.QUEUE_FLUSH, null, null);
+        txtToSpeech1.speak(txt, TextToSpeech.QUEUE_FLUSH, null, null);
+        txtToSpeech1.setLanguage(Locale.ENGLISH);
         mVibrator.run();
     }
 
@@ -948,7 +1034,7 @@ public class FeedbackActivity extends AppCompatActivity{
     /*
     Calculate distance in meters based on two points in longitude latitude
      */
-    static double distance_on_geoid(double lat1, double lon1, double lat2, double lon2) {
+    public static double distance_on_geoid(double lat1, double lon1, double lat2, double lon2) {
 
         // Convert degrees to radians
         lat1 = lat1 * Math.PI / 180.0;
@@ -1011,22 +1097,22 @@ public class FeedbackActivity extends AppCompatActivity{
     }
 
     private void setTiltText(float degree){
-        TextView tv = (TextView) findViewById(R.id.tiltText);
+        TextView tv = findViewById(R.id.tiltText);
         String ph = String.format("%.1f\u00B0", degree);
         tv.setText(ph);
     }
     private void setPressureText(float pressure){
-        TextView tv = (TextView) findViewById(R.id.pressureText);
+        TextView tv = findViewById(R.id.pressureText);
         String ph = String.format("%.1f Psi", pressure);
         tv.setText(ph);
     }
     private void setTempText(float degree){
-        TextView tv = (TextView) findViewById(R.id.tempText);
+        TextView tv = findViewById(R.id.tempText);
         String ph = String.format("%.1f\u00B0C", degree);
         tv.setText(ph);
     }
     private void setHumText(float degree){
-        TextView tv = (TextView) findViewById(R.id.humText);
+        TextView tv = findViewById(R.id.humText);
         String ph = String.format("%.1f%%", degree);
         tv.setText(ph);
     }

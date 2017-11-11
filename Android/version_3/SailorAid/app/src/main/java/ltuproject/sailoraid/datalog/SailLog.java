@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.EmptyStackException;
 import java.util.zip.Inflater;
 
+import ltuproject.sailoraid.FeedbackActivity;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
 
 import static java.lang.Math.abs;
@@ -65,6 +66,7 @@ public class SailLog extends Service {
     private float avgIncline, maxIncline;
     private float avgDrift, totalDrift;
     private float avgSOG, topSOG, avgPressure, maxPressure;
+    private double totDistance;
     private boolean isLoggin;
     private boolean isInit = false;
     PowerManager.WakeLock wl;
@@ -189,6 +191,7 @@ public class SailLog extends Service {
         calcIMUData();
         calcPressureData();
         calcSOGData();
+        calcDistance();
     }
 
     public boolean deleteLog(String fileName){
@@ -300,6 +303,25 @@ public class SailLog extends Service {
         maxPressure = max;
     }
 
+    private void calcDistance(){
+        float lon = 0;
+        float lat = 0;
+        float prevLon = 0;
+        float prevLat = 0;
+        float distance = 0;
+        for (String[] data : posDataList){
+            lon = Float.parseFloat(data[2]);
+            lat = Float.parseFloat(data[3]);
+            if (prevLon != 0 && prevLat != 0){
+                distance += FeedbackActivity.distance_on_geoid(lat,lon, prevLat, prevLon);
+            }
+            prevLon = lon;
+            prevLat = lat;
+        }
+        totDistance = distance /1000;
+    }
+
+    public double getTotDistance() {return totDistance;}
     public ArrayList<String[]> getCompassDataList(){
         return compassDataList;
     }
