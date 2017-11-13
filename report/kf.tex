@@ -1,17 +1,20 @@
-
-
-
-\section{Introduction}
 \subsection*{Sensor theory}
 Sensor fusion can be observed everywhere e.g., living animals uses all of its senses to survive daily, an animal cannot hunt using its eyes only, it has to combine its sense of smell, eyes and hearing to hunt the pray\cite{animal}. Sensor fusion theory is not only found in the living species it is found in cars, planes, computers and so on and this to enhance performance and accuracy \cite{animal}. In this project sensor fusion will be used to enhance the accuracy of the dinghy's position and velocity. The fusion will be between a global positioning system, GPS and an inertial navigation system, INS. The INS build on a low price inertial measurement unit.\\ 
 The GPS's accuracy is not uniform since it might be buildings reflections, atmospherics delays or clock bias errors \cite{boken}. Using only information provided by a INS is not sufficient either since the sensors in the IMU will drift after time, but using the information provided by the sensors in the IMU only for short time will give accurate readings.  
 
+\subsection{Inertial Navigation System}
+In navigation there exist different techniques on how to navigate using an IMU, a typical technique is using a strapdown inertial navigation system, SINS. A SINS consists of an IMU which is mounted on the dinghy so it measures the acceleration and rotational rate that the dinghy encounters.
+The concepts of inertial navigation are to determine the position and velocity of the dinghy from a known staring point, using only measurements from the IMU. The IMU, in this case consists of a 3-axis gyroscope, a 3-axis accelerometer, and a 3-axis magnetometer. \\
+Measurement from the gyroscope is to determine the angular motion of the dinghy, from that its heading relative to a reference frame can be derived.
+By measuring specific forces acting on the dinghy using the accelerometer, then resolve the specific force measurements into the reference frame using the knowledge derived from the information provided by the gyroscope. 
+Integrate the resolved specific force measurements to obtain its velocity and position. \cite{non-linear} 
 
-\subsection{Kalman Filter}
+
+\subsection{Sensor fusion}
 A popular filter to use when applying sensor fusion is to use a Kalman filter, (KF). The Kalman Filter is a recursive filtering method for discrete data, the algorithm was developed by an Hungarian mathematician Rudolf (Rudi) Emil Kalman in 1960 \cite{boken}. Its popular to use due to its efficiency when calculating predictions. \cite{kf eff}
 
-\subsection*{Different Frames}
-Navigation algorithm involves various coordinate frames and therefore transformation between frame is a must.
+\subsection*{Navigation Frames}
+Navigation algorithm involves various coordinate frames and therefore transformation between frame is a must. In this case four different frames will be used.
 
 The inertial frame denoted $i$-frame for future notation is defined such that its origin is at the center of Earth and its axes $X_i$, $Y_i$ and $Z_i$ is non-rotating with respect to the stars. $Z_i$ is coincident with the Earth's polar axis, i.e. North.\\
 
@@ -21,7 +24,7 @@ The Navigation frame denoted $n$-frame for future notation is a local frame and 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.3\textwidth]{Figures/WGS-coordinates.png}
+\includegraphics[width=0.3\textwidth]{WGS-coordinates.png}
 \caption{Earth and navigation frame.}
 \label{WGS}
 \end{figure}
@@ -35,7 +38,7 @@ E-N plane (i.e. local horizontal) owing to a rotation around its transversal $x$
 forward axis is also called the roll axis and the roll angle i
 \end{itemize}
 
-\subsection*{Transformation between Earth frame and Navigation frame}
+\subsection*{Transformation Between Frames}
 Referring to Fig. \ref{WGS} it can be observed that its possible to align the $n$-frame with the $e$-frame, this is done by rotating the $n$-frame by ($\lambda-90$)-degrees around its $x$-axis (east-direction) and ($-\phi-90$)-degrees about its $z-axis$, (downward direction) \cite{nonlinear}. Where $\lambda$ and $\varphi$ is the latitude and longitude, respectively. Then the transformation between the two frames can be done using the Direction Cosine Matrix, noted DCM for future notation, which is defined as \cite{nonlinear}.
 \begin{equation}
 C_n^e=R_z(-\lambda-90)R_x(\varphi-90)
@@ -80,7 +83,6 @@ Exploring the orthogonality its possible to transform from $e$-frame to $n$-fram
 Using Eq. \eqref{Eq.Earth2Nav} its now possible to move from $e$-frame to $n$-frame. 
 
 
-\subsection*{Transformation between Body frame and Navigation-frame}
 Transforming from $n$-frame to $b$-frame is done in the same way, i.e. using rotation matrices. The DCM, moving from $b$-frame to $n$-frame is given by \cite{nonlinear}
 \begin{equation}
 C_b^n=R_z(-\psi)R_y(-\theta)R_x(-\phi).
@@ -126,14 +128,42 @@ cos(\theta) & 0 & sin(\theta)\\
 0 & sin(\phi) & cos(\phi)
 \end{bmatrix}
 \label{expand_Body_rotation} \\ \\
-C_b^n =&
+C_b^n  = & 
 \begin{bmatrix}
 cos(\theta)cos(\psi) & -cos(\phi)sin(\psi)+sin(\phi)sin(\theta)cos(\psi) &  sin(\phi)sin(\psi)+cos(\phi)sin(\theta)cos(\psi) \\
 cos(\theta)sin(\psi) & cos(\phi)cos(\psi)+sin(\phi)sin(\theta)sin(\psi) & -sin(\phi)cos(\psi)+cos(\phi)sin(\theta)sin(\psi)\\
 -sin(\theta) & sin(\phi)cos(\theta) & cos(\phi)cos(\theta) 
 \end{bmatrix}.
 \end{align}
-Where $\psi$, $\theta$ and $\phi$ are the Euler angles as described earlier. \\
+Where $\psi$, $\theta$ and $\phi$ are the Euler angles as described earlier. Expressing the matrix above in a more compact form.
+\begin{align}
+C_b^n = &
+\begin{bmatrix}
+c_{11} && c_{12} && c_{13}\\
+c_{21} && c_{22} && c_{23} \\
+c_{31} && c_{32} && c_{33}
+\end{bmatrix}
+\label{Eq.C_b_n_compact}
+\end{align}
+The Euler angles is a transformation from one coordinate frame to another and are defined by three successive rotations about the different axis. Its possible to see the three angles as a set of mechanical gimbals. 
+The problem with Euler angles is that when rotating about each axis, its possible to drive two of the three gimbals so they appear parallel to each other this implies that a degree of freedom is lost, this is called a gimbal-lock \cite{nonlinear}. To resolve this issue its possible to use quaternion attitude representation instead, as Euler angels the representation allows transformation between one coordinate frame to another, but the difference is that the transformation s done in a single rotation, instead of three	 about a vector defined in the reference frame. The DCM using quaternion is defined such that\cite{nonlinear}.
+\begin{align}
+C_b^n & =
+\begin{bmatrix}
+(q_1^2 + q_2^2 - q_3^2-q^4) && 2(q_2q_3 - q_1q_4) && 2(q_2q_4 + q_1q_3) \\
+2(q_2q_3 - q_1q_4) && (q_1^2 - q_2^2 + q_3^2-q^4) && 2(q_3q_4 - q_1q_2) \\
+2(q_2q_4 - q_1q_3) && 2(q_3q_4 + q_1q_2) && (q_1^2 - q_2^2 - q_3^2+q^4)
+\end{bmatrix}
+\end{align}
+
+Where $q_1$, $q_2$, $q_3$ and $q_4$ can be derived using the Euler angles from Eq. \eqref{Eq.C_b_n_compact}
+\begin{align*}
+q_1 =& \frac{1}{2}(1+c_{11} + c_{22} + c_{33})^{0.5} \\
+q_2 =& \frac{1}{4q_1}(c_{32} - c_{23})\\
+q_3 =& \frac{1}{4q_1}(c_{13} - c_{31})\\
+q_4 =& \frac{1}{4q_1}(c_{21} - c_{12})\\
+\end{align*}
+
 
 The angular velocity of the $e$-frame with respect to the $i$-frame projected onto the $i$-frame is given as \cite{nonlinear}
 \begin{equation}
@@ -151,26 +181,26 @@ $7.2921158 \times 10^{-5}$ $rad/s$ \cite{nonlinear}. Using the projection matrix
 \end{bmatrix}^T.
 \label{omega_ie}
 \end{align}
-$\bar{\omega}_{en}^n$ represents the turn of the $n$-frame with respect to the $e$-frame its called the transport rate and may be expressed as the rate of change of latitude and longitude as follows
+$\bar{\omega}_{en}^n$ represents the turn rate of the $n$-frame with respect to the $e$-frame its called the transport rate and may be expressed as the rate of change of latitude and longitude as follows
 \begin{align}
 \bar{\omega}_{en}^n=
 \begin{bmatrix}
-\dot{\lambda}cos(L) & -\dot{L} & -\dot{\lambda}sin(L)
+\dot{\lambda}cos(\varphi) & -\dot{\varphi} & -\dot{\lambda}sin(\varphi)
 \end{bmatrix}^T.
 \label{omega_en}
 \end{align}
-Where $\dot{\lambda}=v_e/(R_N+h)cos(L)$ and $\dot{L}=v_n/(R_E+h)$ \cite{nonlinear}, here we assume the Earth to be an ellipsoid and that there is no variation in earth gravitation depending on where the user is on the ellipsoid. $R_N$ is the meridian radius of curvature and defined as $R_N=R_0(1-e^2)/(1-e^2sin^2L)^{3/2}$ \cite{nonlinear}. $R_E$ is the transverse radius of curvature and defined as $R_E=R_0/(1-e^2sin^2L)^{1/2}$. $h$ is the height above the surface of the earth. Rewriting Eq. \eqref{omega_en} with $\dot{\lambda}$ and $\dot{L}$
+Where $\dot{\lambda}=v_e/(R_N+h)cos(\varphi)$ and $\dot{\varphi}=v_n/(R_E+h)$ \cite{nonlinear}, here we assume the Earth to be an ellipsoid and that there is no variation in Earth's gravitation depending on where the user is on the ellipsoid. $R_N$ is the meridian radius of curvature and defined as $R_N=R_0(1-e^2)/(1-e^2sin^2\varphi)^{3/2}$ \cite{nonlinear}. $R_E$ is the transverse radius of curvature and defined as $R_E=R_0/(1-e^2sin^2\varphi)^{1/2}$. Where $R_0$ is the length of the semi-major axis and has a constant value of $6356752.3142$ m, $e$ is the major eccentricity of the ellipsoid and has a constant value of $0.081819$, $\varphi$ is the current latitude in radians, $v_e$ and $v_n$ is the velocity in east and north direction, respectively and $h$ is the height above the surface of the Earth. Then Rewriting Eq. \eqref{omega_en} with the new expressions.
 \begin{align}
 \bar{\omega}_{en}^n=
 \begin{bmatrix}
-v_e/(R_E+h) & -v_n/(R_N+h) & -v_e tan(L)/(R_N+h)
+v_e/(R_E+h) & -v_n/(R_N+h) & -v_e tan(\varphi)/(R_N+h)
 \end{bmatrix}^T \label{omega_en_ny}
 \end{align}
-where $v_e$ and $v_n$ are the velocities in East and North direction, respectively. Now $\bar{\omega}_{in}^n$ can be obtained by adding Eq. \eqref{omega_ie} and \eqref{omega_en_ny}.
+Now the turn rate of the $n$-frame with respect to $i$-frame, $\bar{\omega}_{in}^n$ can be obtained by adding Eq. \eqref{omega_ie} and \eqref{omega_en_ny}.
 \begin{align}
 \bar{\omega}_{in}^n=
 \begin{bmatrix}
-\omega_e cos(\varphi) + v_e/(R_E+h) & v_n/(R_N+h) & -\omega_e sin(\varphi) + v_e tan(L)/(R_N+h)
+\omega_e cos(\varphi) + v_e/(R_E+h) & v_n/(R_N+h) & -\omega_e sin(\varphi) + v_e tan(\varphi)/(R_N+h)
 \end{bmatrix}^T
 \label{Eq.omega_in}
 \end{align}
@@ -205,7 +235,7 @@ v_D
 \end{bmatrix}
 \label{Eq.v_n}
 \end{align}
-Where $\dot{}$ symbolizes the first derivative with respect to time. Thus, $\dot{\varphi}$, $\dot{\lambda}$ and $\dot{h}$ can be found by rewriting Eq. \eqref{Eq.v_n} as
+Where $\dot{.}$ symbolizes the first derivative with respect to time. Thus, $\dot{\varphi}$, $\dot{\lambda}$ and $\dot{h}$ can be derived by rewriting Eq. \eqref{Eq.v_n} as
 
 \begin{align}
 \begin{bmatrix}
@@ -214,11 +244,11 @@ Where $\dot{}$ symbolizes the first derivative with respect to time. Thus, $\dot
 \dot{h}
 \end{bmatrix}
 =
-\begin{bmatrix}
+\underbrace{\begin{bmatrix}
 \frac{1}{(R_E+h)} & 0 & 0 \\
 0 & \frac{1}{(R_N+h)cos(\varphi)} & 0\\
 0 & 0 & -1
-\end{bmatrix}
+\end{bmatrix}}_{D^{-1}}
 \begin{bmatrix}
 v_N \\
 v_E \\
@@ -227,54 +257,35 @@ v_D
 \label{Eq.v_n}
 \end{align}
 
-The velocity dynamics $\dot{\bar{v}}$ can be described in its respective direction \cite{non-linear}
-\begin{equation}
-\dot{v}_N = f_n-v_E(2\omega_e+\dot{\lambda})sin(L) + v_d\dot{L}+g
-\label{Eq.v_n}
-\end{equation}
-\begin{equation}
-\dot{v}_E = f_n+v_N(2\omega_e+\dot{\lambda})sin(L) + v_D(2\omega_e+\dot{\lambda})cos(L)-g
-\label{Eq.v_e}
-\end{equation}
-\begin{equation}
-\dot{v}_D = f_n-v_E(2\omega_e+\dot{\lambda})cos(L) - v_N\dot{L}+g
-\end{equation}
-The attitude dynamics are defined such \cite{non-linear}
-\begin{equation}
-\dot{C}_b^n = C_b^n\Omega_{ib}^b-\Omega_{in}^nC_b^n.
-\end{equation}
-The first term, $C_b^n\Omega_{ib}^b$ is a function of the body rates, as sensed by the strapdown gyroscope, the second term, $-\Omega_{in}^nC_b^n$ is a function of lower navigation frame rates. $\Omega$ is a skew matrix formed from the elements of the turn rate
+Thus the dynamics describing the system can be expressed as \cite{nonlinear}.
 
-
-
-\subsection*{Integration of INS/GPS Kalman Filter}
-\subsubsection*{Linearizion of Non-Linear Equations}
-Non-linear differential equations of navigation must be linearized in order to be usable in estimation methods such as the Kalman Filtering \cite{non-linear}. Using perturbation method to linearize the non-linearized equation for example, the perturbation of the position, velocity and attitude DCM can be expressed as:
-\begin{equation}
-\hat{\bar{r}}^n = \bar{r}^n + \delta\bar{r^n}
-\label{Eq.pos}
-\end{equation}
-\begin{equation}
-\hat{\bar{v}}^n = \bar{v}^n + \delta\bar{v^n}
-\label{Eq.vel}
-\end{equation}
-\begin{equation}
-\hat{C}_b^n  = (I-E^n)C_b^n
-\label{eq:atti}
-\end{equation}
-Where $\hat{.}$ is referred to the estimated value, $\delta$ is the perturbation errors. $E^n$ is the skew-matrix of the attitude errors \cite{non-linear}, i.e.
 \begin{align}
-E^n=
-\begin{bmatrix}
-0 & -\delta_D & -\delta_E\\
-\delta_D & 0 & -\delta_N \\
--\delta_E & \delta_N & 0
-\end{bmatrix}
+\dot{\bar{r}}_n = & D^{-1}v_n
+\label{Eq.r_n_t}\\
+\dot{\bar{v}}_n = & C_b^n \bar{f}^b-(2\omega_{ie}^n+\omega_{en}^n) \times \bar{v}_n +\bar{g}^n
+\label{Eq.v_n_t}\\
+\dot{C}_b^n = & -\Omega_{bn}^n C_b^n 
+\label{Eq.C_b_n_t}
 \end{align}
+Where $\bar{f}^b$ is the specific force vector defined as the difference between the true acceleration in
+space and the acceleration due to gravity, $\bar{g}^n$ is the gravity vector, $\Omega_{bn}^n$ is the output from the strapdown gyroscope.
 
-\subsection*{Attitude, Velocity and Position errors}
-\subsubsection*{Position errors}
 
+\subsection*{INS mechanization}
+Since the INS has to work in discrete domain, Eq. \eqref{Eq.r_n_t}, \eqref{Eq.v_n_t} and \eqref{Eq.C_b_n_t} has to be discretized. The sampling time should be seen as a changing variable since it may not be constant instead it will fluctuate around $100Hz$, this means that $\Delta t_k = \Delta k_{k-1} - t_{k}$, this to improve the accuracy. The discrete dynamics are
+\begin{align}
+\bar{r}_{k+1}^n = & \bar{r}_k + 0.5D^{-1}(\bar{v}_k^n + \bar{v}_{k+1}^n)\Delta t
+\label{Eq.r_n_t}\\
+v_{k+1}^n= & \bar{v}_k + \Delta \bar{v}_{k+1}^n
+\label{Eq.v_n_t}\\
+\dot{C}_b^n = & -\Omega_{bn}^n C_b^n \Delta t
+\label{Eq.C_b_n_t}
+\end{align}
+Where 
+\begin{equation}
+\Delta \bar{v}_{k+1}^n = \Delta \bar{v}_f^n - (2\omega_{ie}^n+\omega_{en}^n) \times \bar{v}_n \Delta t +\bar{\gamma}\Delta t
+\end{equation}
+Where $\gamma = [0 \quad 0 \quad 9.8123]$.
 
 \subsection*{Implementing the fusion Kalman Filter}
 Implementing a continuous Kalman filter using integration between Inertial Navigation System and a Global Positioning System.
@@ -423,10 +434,10 @@ R_k = diag(\sigma_{r_n}^2 \quad \sigma_{r_e}^2 \quad \sigma_{r_d}^2 \quad \sigma
 \end{equation}
 where $\sigma_{r}^2$ and $\sigma_{v}^2$ is the variance of the position and velocity in all direction, respectively.\\
 
-The Kalman Filter is invoked every time the GPS is updated, i.e. $1Hz$, but since the IMU and the GPS updates at different frequencies a problem arises. The problem is such that at $t_{GPS}(k)$ there won't be a value to read from the IMU, since discrete time domain. To solve this problem a linear interpolation is done between $t_{imu}(k)$ and $t_{imu}(k+1)$, where $t_{imu}(k)$ $\leq$ $t_{GPS}(k)$ $\geq$  $t_{imu}(k+1)$. See Fig. \ref{Fig.different_update}.
+The Kalman Filter is invoked every time the GPS is updated, i.e. $1Hz$, but since the IMU and the GPS updates at different frequencies a problem arises. The problem is such that at $t_{GPS}(k)$ there won't be a value to read from the IMU, since discrete time domain. To solve this problem a linear interpolation is done between $t_{imu}(k)$ and $t_{imu}(k+1)$, where $t_{imu}(k)$ $\leq$ $t_{GPS}(k)$ $\leq$  $t_{imu}(k+1)$. See Fig. \ref{Fig.different_update}.
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.4\textwidth]{Figures/linear.JPG}
+\includegraphics[width=0.4\textwidth]{linear.JPG}
 \caption{Different update sequences IMU and GPS}
 \label{Fig.different_update}
 \end{figure}
@@ -441,27 +452,20 @@ v_n(t_k(GPS) = v_n(t_{imu}(k)) + \frac{v_n(t_{imu}(k+1))-v_n(t_{imu}(k))}{t_{imu
 \end{equation}
 
 
+\subsection*{Future Work}
+Implement a working real-time system for the sensor fusion between the GPS and INS,(the INS code should be working) here one should consider computer efficient algorithms. This since the algorithm contains multiple matrix multiplications and a matrix inverse, here one should consider literature as Fundamentals of Scientific Computing, Bertil Gustafsson.\newline
+
+To obtain much more accurate information from the INS one should consider more advanced techniques for calibrating the IMU. In this case, a static calibration technique was studied. This is done by keeping the IMU in a fix position to observe the effect of gravity.
+Consider implementing a more advanced technique, e.g. using this three-stage process.
+\begin{itemize}
+\item Coarse checking or evaluation using very simple test, such as a single stationary test on a bench, to establish the variance and standard deviation of the IMU.
+\item Static testing and studying the effects of natural phenomenon on the IMU.
+\item Dynamic testing where the IMU is subjected to motions that should resemble the conditions out on the sea, e.g. constant waves hitting the sides of the boat, constant changing acceleration.
+\end{itemize}
+Also, the dinghy's body may flex due to rough sea conditions, to solve this implement one master IMU and one slave IMU, consider literature as Strap Down Inertial Navigation Technology, D.H. Titterton and J.L. Weston as a starting point for these different calibration methods. \newline 
+
+A more advanced interpolation technique between IMU data and GPS data, here referencing to literature like Fundamentals of Scientific Computing, Bertil Gustafsson. E.g. Lagrange polynomial can be used to capture the true value much better.\newline
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+One should also try different types of control methods to see if one can achieve more accurate results or not, e.g. feed-forward method.\\
+Weighted parameters if one believes the INS more than the GPS or vice-versa, this question arises when e.g. the GPS is connected to many/few satellites or if the user is having a large/small velocity or sensor anomalies.
