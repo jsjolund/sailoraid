@@ -24,7 +24,7 @@ The Navigation frame denoted $n$-frame for future notation is a local frame and 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.3\textwidth]{WGS-coordinates.png}
+\includegraphics[width=0.3\textwidth]{Figures/WGS-coordinates.png}
 \caption{Earth and navigation frame.}
 \label{WGS}
 \end{figure}
@@ -437,7 +437,7 @@ where $\sigma_{r}^2$ and $\sigma_{v}^2$ is the variance of the position and velo
 The Kalman Filter is invoked every time the GPS is updated, i.e. $1Hz$, but since the IMU and the GPS updates at different frequencies a problem arises. The problem is such that at $t_{GPS}(k)$ there won't be a value to read from the IMU, since discrete time domain. To solve this problem a linear interpolation is done between $t_{imu}(k)$ and $t_{imu}(k+1)$, where $t_{imu}(k)$ $\leq$ $t_{GPS}(k)$ $\leq$  $t_{imu}(k+1)$. See Fig. \ref{Fig.different_update}.
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.4\textwidth]{linear.JPG}
+\includegraphics[width=0.4\textwidth]{Figures/linear.JPG}
 \caption{Different update sequences IMU and GPS}
 \label{Fig.different_update}
 \end{figure}
