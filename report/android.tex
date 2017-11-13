@@ -11,6 +11,7 @@ It was determined that the visual feedback given to the sailor was to include ve
 \item [\ref{feedback-map} Map] displayed current locaion of the ship
 \item [\ref{feedback-drift} Drift] was represented with a colored bar with two arrows that moved to the relative drift direction to show the sailor if the ship was holding it's set navigaitional reference.
 \item [Feedback] a text that changed values based on the current state of the boat
+\item [Height] the height of the centerboard was represented with a visual centerboard moving up and down along a graphical ruler
 \end{labeling}
 
 \begin{figure}[H]
@@ -66,6 +67,12 @@ The ability to analyse the sailtrip a log was implemented and stored on the devi
 \caption{Log graphs}
 \label{log-graph}
 \end{figure}
+
+\subsubsection{Bluethooth connection}
+A list of all devices in the nearby area was displayed when the user decided to connect to the system, this added flexibility to the user and allowed connection between multiple systems with different MAC-adressess. The application uses bluetooth low energy technology to match the systems implementation. This allowed for the device to recieve notifications when the data is altered on the system and updates would occur in different frequencies for different types of data. To ensure a stable connection between the system and the device the connection class was implemented as an android service\cite{android-service}. This allowed the device to keep the connection alive between different views and even when the device was put to sleep mode.
+
+\subsubsection{Log}
+Similarly to the bluetooth connectiong
 
 \subsubsection{Map}
 For the sailor to get more information about location a map was implemented. The sailor then had the ability to see a path over the trip and the total distance traveled. Waypoint could be placed if the sailor wanted to decide in advance a certain trip. The distance of all the waypoints was displayed and the distance currently traveled to give the sailor information on how long the trip was and how much of the trip was left to be sailed. A path to the nearest waypoint was showed to the sailor to help navigating, when the sailor way close to the waypoint the path to the next waypoint was shown.
