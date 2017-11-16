@@ -1,5 +1,6 @@
 package ltuproject.sailoraid;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -10,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -18,6 +20,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -40,10 +43,12 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.w3c.dom.Text;
@@ -55,6 +60,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import ltuproject.sailoraid.bluetooth.BTHandler;
@@ -67,6 +73,7 @@ import static java.lang.Math.abs;
 import static java.lang.Math.acos;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_BATTERY;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_COMPASS;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_DRIFT;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_FREE_FALL;
@@ -77,12 +84,13 @@ import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_PRESSURE;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_RANGE;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_SOG;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_TEMPERATURE;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_WAVES;
 
 /**
  * Created by Henrik on 2017-09-05.
  */
 
-public class FeedbackActivity extends AppCompatActivity{
+public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCallback{
     private final static String TAG = FeedbackActivity.class.getSimpleName();
 
     private static final float BOAT_SCALE_X = 2.8f;
@@ -91,21 +99,35 @@ public class FeedbackActivity extends AppCompatActivity{
     private static final float NEEDLE_SCALE_Y = 1.0f;
     private static final float COMPASS_SCALE_X = 3.2f;
     private static final float COMPASS_SCALE_Y = 3.2f;
-    private static final float COMPASS_BOAT_SCALE_X = 0.5f;
-    private static final float COMPASS_BOAT_SCALE_Y = 0.6f;
+    private static final float COMPASS_BOAT_SCALE_X = 1.6f;
+    private static final float COMPASS_BOAT_SCALE_Y = 1.8f;
     private static final float DRIFT_ARROW_SCALE_X = 1.0f;
     private static final float DRIFT_ARROW_SCALE_Y = 3.0f;
     private static final float NEEDLE_BOTTOM_POS = -1.5f;
     private static final float DRIFT_ARROW_CENTER = 3.6f;
+    private static final float MAP_DRIFT_ARROW_CENTER = 4.8f;
     private static final float WAVE_SCALE_X = 1.9f;
     private static final float WAVE_SCALE_Y = 1.9f;
     private static final float WAVE_BOAT_SCALE_X = 1.4f;
     private static final float WAVE_BOAT_SCALE_Y = 1.4f;
-    private static final float WAVE_X_POS = 1.6f;
+    private static final float WAVE_X_POS = 2.0f;
     private static final float WAVE_Y_POS = -0.5f;
-    private static final float WAVE_BOAT_X_POS = -1.4f;
+    private static final float WAVE_BOAT_X_POS = -1.8f;
     private static final float WAVE_BOAT_Y_POS = 0.2f;
-
+    private static final float GRAPHIC_DAGGER_Y_POS = -3.3f;
+    private static final float GRAPHIC_DAGGER_X_POS = -0.3f;
+    private static final float GRAPHIC_DAGGER_Y_SCALE = 6.2f;
+    private static final float GRAPHIC_DAGGER_X_SCALE = 6.2f;
+    private static final float GRAPHIC_PRESSURE_X_POS = 0.0f;
+    private static final float GRAPHIC_PRESSURE_Y_POS = -1.5f;
+    private static final float GRAPHIC_PRESSURE_X_SCALE = 2.8f;
+    private static final float GRAPHIC_PRESSURE_Y_SCALE = 1.0f;
+    private static final float GRAPHIC_SPEED_X_POS = -7.0f;
+    private static final float GRAPHIC_SPEED_Y_POS = 0.4f;
+    private static final float GRAPHIC_SPEED_X_SCALE = 6.0f;
+    private static final float GRAPHIC_SPEED_Y_SCALE = 0.2f;
+    private static final float GRAPHIC_DRIFT_ARROW_CENTER = 6.2f;
+    private static final float KM_TO_KNOTS = 1/1.852f;
     private boolean isWaving = false;
     private float wavePos = 0;
     private static final int STATE_DISCONNECTED = 0;
@@ -113,21 +135,28 @@ public class FeedbackActivity extends AppCompatActivity{
     private static final int STATE_CONNECTED = 2;
     private static final int INTERVAL = 3000;
     private static final int UNINITIALIZED = 9999;
+    private int mInterval = 1000; // 1 seconds by default, can be changed later
 
+    private enum ViewStates {SIMPLE, INCLINE, MAP, GRAPHIC}
     private enum FeedbackStates {CLEAR, HEEL, DRIFT, HAULING, REEFING, HARDWIND}
     private Handler mFeedbackHandler;
     private Handler mVibratorHandler;
     private Handler mWaveHandler;
+    private Handler mMapHandler;
     private FeedbackStates lastFeedbackState;
+    private ViewStates mCurrentViewState;
 
     private FeedbackStates mFeedbackState;
-    private final String LIST_NAME = "NAME";
-    private final String LIST_UUID = "UUID";
     private IntentFilter filter;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics;
-    private RotatableGLView mInclineBoatView, mCompassView,mPressureNeedleView,mLeftDriftView,mRightDriftView,mWaveView,mBoatWaveView;
+    private RotatableGLView mInclineBoatView, mCompassView,mPressureNeedleView,mLeftDriftView,mRightDriftView,mWaveView,mDaggerView,mSpeedView;
     private TextView feedbackText;
     private SailLog mLogService;
+    private Polyline travelRoutePolyline;
+    private Marker hereMarker;
+    private Polyline wayPointPolyline;
+    private LatLng boat;
+    private final Map<Integer, Marker> mMarkers = new ConcurrentHashMap<Integer, Marker>();
     private boolean logging = false;
     private BTLEConnection mBluetoothLeService;
     private Menu mMenu;
@@ -136,6 +165,7 @@ public class FeedbackActivity extends AppCompatActivity{
     private int lastView = 0;
     private List<Float> waveData = new ArrayList<Float>();
     private List<Float> filteredData = new ArrayList<Float>();
+    private List<Float> sogData = new ArrayList<>();
     private float wavePeriod;
     /*
     Sensor variables
@@ -145,12 +175,16 @@ public class FeedbackActivity extends AppCompatActivity{
     private double drift;
     private float pressure;
     private float range;
+    private float batteryPower;
     private LatLng nextEstimate = new LatLng(0,0);
     private LatLng gpsPos = new LatLng(0,0);
     private Button btnMap;
     private TextToSpeech txtToSpeech1;
     private int startFlag = 0;
     private GoogleMap mMap;
+
+    private boolean enableVoice = false;
+    private boolean enableVibration = false;
     //Location variables
 
     static private List<LatLng> travelRoute = new ArrayList<LatLng>();
@@ -178,12 +212,10 @@ public class FeedbackActivity extends AppCompatActivity{
         btnMap = findViewById(R.id.mapviewbtn);
         mLogService = null;
         initFilter();
-        initDynamicPics();
         displayInclineFocus();
         mFeedbackHandler = new Handler();
         mVibratorHandler = new Handler();
         mWaveHandler = new Handler();
-
 
         txtToSpeech1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -225,6 +257,8 @@ public class FeedbackActivity extends AppCompatActivity{
             hideMapFocus();
         } else if (lastView == 2){
             hideSimpleFocus();
+        } else if (lastView == 3){
+            hideGraphicFocus();
         }
         lastView = viewId;
         if (viewId == 0){
@@ -233,6 +267,8 @@ public class FeedbackActivity extends AppCompatActivity{
             displayMapFocus();
         }else if (viewId == 2){
             displaySimpleFocus();
+        }else if (viewId == 3){
+            displayGraphicFocus();
         }
     }
     /*
@@ -406,6 +442,22 @@ public class FeedbackActivity extends AppCompatActivity{
                 }
                 return true;
 
+            case R.id.voice_enable:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                } else{
+                    item.setChecked(false);
+                }
+                enableVoice = item.isChecked();
+                return true;
+            case R.id.vibration_enable:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                } else{
+                    item.setChecked(false);
+                }
+                enableVibration = item.isChecked();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -417,136 +469,159 @@ public class FeedbackActivity extends AppCompatActivity{
     private void displayOnView(int id, RotatableGLView view){
         LinearLayout linearLayout = findViewById(id);
         linearLayout.addView(view.getGlView());
+    }
+    private void hideFromView(int id, RotatableGLView view){
+        LinearLayout linearPressureLayout = findViewById(id);
+        linearPressureLayout.removeView(view.getGlView());
+        view.getGlView().onPause();
+        view.clearRenderer();
+    }
 
-    }
-
-    private void displayBoatOnView(int id){
-        LinearLayout linearLayout = findViewById(id);
-        linearLayout.addView(mInclineBoatView.getGlView());
-    }
-    private void hideBoatFromView(int id){
-        LinearLayout linearLayout = findViewById(id);
-        linearLayout.removeView(mInclineBoatView.getGlView());
-    }
-    private void displayCompassOnView(int id){
-        LinearLayout linearCompassLayout = findViewById(id);
-        linearCompassLayout.addView(mCompassView.getGlView());
-        mCompassView.moveGL2(0.02f,0);
-    }
-    private void displayWaveOnView(int id){
-        LinearLayout linearCompassLayout = findViewById(id);
-        linearCompassLayout.addView(mWaveView.getGlView());
-        mWaveView.moveGL2(WAVE_BOAT_X_POS, WAVE_BOAT_Y_POS);
-        mWaveView.moveGL(WAVE_X_POS, WAVE_Y_POS);
-    }
-    private void hideCompassFromView(int id){
-        LinearLayout linearCompassLayout = findViewById(id);
-        linearCompassLayout.removeView(mCompassView.getGlView());
-    }
-    private void displayNeedleOnView(int id){
-        LinearLayout linearPressureLayout = findViewById(id);
-        linearPressureLayout.addView(mPressureNeedleView.getGlView());
-    }
-    private void hideNeedleFromView(int id){
-        LinearLayout linearPressureLayout = findViewById(id);
-        linearPressureLayout.removeView(mPressureNeedleView.getGlView());
-    }
-    private void hidewaveFromView(int id){
-        LinearLayout linearPressureLayout = findViewById(id);
-        linearPressureLayout.removeView(mWaveView.getGlView());
-    }
-    private void displayDriftArrowOnView(int leftId, int rightId, float centerLeft, float centerRight){
-        LinearLayout leftDriftLayout = findViewById(leftId);
-        leftDriftLayout.addView(mLeftDriftView.getGlView());
-        LinearLayout rightDriftLayout = findViewById(rightId);
-        rightDriftLayout.addView(mRightDriftView.getGlView());
-        mLeftDriftView.moveGL(centerLeft,0);
-        mRightDriftView.moveGL(-centerRight,0);
-    }
-    private void hideDriftArrowFromView(int leftId, int rightId){
-        LinearLayout leftDriftLayout = findViewById(leftId);
-        leftDriftLayout.removeView(mLeftDriftView.getGlView());
-        LinearLayout rightDriftLayout = findViewById(rightId);
-        rightDriftLayout.removeView(mRightDriftView.getGlView());
-    }
     private void displayMapFocus(){
-        initDynamicPics();
-        displayBoatOnView(R.id.inclineMapFocusViewHolder);
-        displayCompassOnView(R.id.compassMapFocusViewHolder);
-        displayDriftArrowOnView(R.id.leftDriftMapFocus, R.id.rightDriftMapFocus, DRIFT_ARROW_CENTER, DRIFT_ARROW_CENTER);
+        mCurrentViewState = ViewStates.MAP;
+        initInclineBoat(R.drawable.boat_alignement, BOAT_SCALE_X, BOAT_SCALE_Y);
+        initCompass(R.drawable.rowboat, COMPASS_BOAT_SCALE_X, COMPASS_BOAT_SCALE_Y);
+        initDrift(R.drawable.left_drift_arrow, R.drawable.right_drift_arrow, DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+        displayOnView(R.id.inclineMapFocusViewHolder, mInclineBoatView);
+        displayOnView(R.id.compassMapFocusViewHolder, mCompassView);
+        displayOnView(R.id.leftDriftMapFocus, mLeftDriftView);
+        displayOnView(R.id.rightDriftMapFocus, mRightDriftView);
+        mLeftDriftView.moveGL(MAP_DRIFT_ARROW_CENTER,0);
+        mRightDriftView.moveGL(-MAP_DRIFT_ARROW_CENTER,0);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.mapFragment);
+        mMapHandler = new Handler();
+        mapFragment.getMapAsync(this);
     }
     private void hideMapFocus(){
-        removeDynamicPics();
-        hideBoatFromView(R.id.inclineMapFocusViewHolder);
-        hideCompassFromView(R.id.compassMapFocusViewHolder);
-        hideDriftArrowFromView(R.id.leftDriftMapFocus, R.id.rightDriftMapFocus);
+        hideFromView(R.id.inclineMapFocusViewHolder, mInclineBoatView);
+        hideFromView(R.id.compassMapFocusViewHolder, mCompassView);
+        hideFromView(R.id.leftDriftMapFocus, mLeftDriftView);
+        hideFromView(R.id.rightDriftMapFocus, mRightDriftView);
+        stopRepeatingMapTask();
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.mapFragment);
+        mapFragment.onPause();
     }
     private void hideSimpleFocus(){
-        removeDynamicPics();
         LinearLayout ll = findViewById(R.id.simplefeedbackTextLayout);
         ll.removeView(feedbackText);
-        hideBoatFromView(R.id.simpleboatalignmentholder);
-        hidewaveFromView(R.id.simplewaveholder);
         mWaveHandler.removeCallbacks(mWaveRunner);
-
+        hideFromView(R.id.simpleboatalignmentholder, mInclineBoatView);
+        hideFromView(R.id.simplewaveholder, mWaveView);
+    }
+    private void hideGraphicFocus(){
+        hideFromView(R.id.graphicDaggerHolder, mDaggerView);
+        hideFromView(R.id.graphicPressureHolder, mPressureNeedleView);
+        hideFromView(R.id.graphicSpeedHolder, mSpeedView);
+        hideFromView(R.id.graphicDriftLeftHolder, mLeftDriftView);
+        hideFromView(R.id.graphicDriftRightHolder, mRightDriftView);
+        hideFromView(R.id.graphicInclineHolder, mInclineBoatView);
+        hideFromView(R.id.graphicCompassHolder, mCompassView);
     }
     private void displaySimpleFocus(){
-        initDynamicPics();
+        mCurrentViewState = ViewStates.SIMPLE;
+        initInclineBoat(R.drawable.boat_alignement, BOAT_SCALE_X, BOAT_SCALE_Y);
+        initWave(R.drawable.wave, R.drawable.pico_dyn, WAVE_SCALE_X, WAVE_SCALE_Y, WAVE_BOAT_SCALE_X, WAVE_BOAT_SCALE_Y);
         LinearLayout ll = findViewById(R.id.simplefeedbackTextLayout);
         feedbackText.setTextSize(38);
         feedbackText.setGravity(Gravity.CENTER);
         ll.addView(feedbackText);
-        displayBoatOnView(R.id.simpleboatalignmentholder);
-        displayWaveOnView(R.id.simplewaveholder);
+        displayOnView(R.id.simpleboatalignmentholder, mInclineBoatView);
+        displayOnView(R.id.simplewaveholder, mWaveView);
+        mWaveView.moveGL2(WAVE_BOAT_X_POS, WAVE_BOAT_Y_POS);
+        mWaveView.moveGL(WAVE_X_POS, WAVE_Y_POS);
     }
     private void displayInclineFocus(){
-        initDynamicPics();
-        displayBoatOnView(R.id.boatalignmentholder);
-        displayCompassOnView(R.id.driftImg);
-        displayDriftArrowOnView(R.id.leftDrift, R.id.rightDrift, DRIFT_ARROW_CENTER, DRIFT_ARROW_CENTER);
-        displayNeedleOnView(R.id.pressureMeter);
+        mCurrentViewState = ViewStates.INCLINE;
+        initInclineBoat(R.drawable.boat_alignement, BOAT_SCALE_X, BOAT_SCALE_Y);
+        initDrift(R.drawable.left_drift_arrow, R.drawable.right_drift_arrow, DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+        initCompass(R.drawable.rowboat, COMPASS_BOAT_SCALE_X, COMPASS_BOAT_SCALE_Y);
+        initPressure(R.drawable.needle, NEEDLE_SCALE_X, NEEDLE_SCALE_Y);
+        displayOnView(R.id.boatalignmentholder, mInclineBoatView);
+        displayOnView(R.id.driftImg, mCompassView);
+        displayOnView(R.id.leftDrift, mLeftDriftView);
+        displayOnView(R.id.rightDrift, mRightDriftView);
+        displayOnView(R.id.pressureMeter, mPressureNeedleView);
         mPressureNeedleView.moveGL(0, NEEDLE_BOTTOM_POS);
         LinearLayout ll = findViewById(R.id.feedbackTextLayout);
-        feedbackText.setTextSize(20);
-        feedbackText.setGravity(Gravity.CENTER);
+        feedbackText.setTextSize(16);
+        feedbackText.setGravity(Gravity.RIGHT);
         ll.addView(feedbackText);
+        mLeftDriftView.moveGL(DRIFT_ARROW_CENTER,0);
+        mRightDriftView.moveGL(-DRIFT_ARROW_CENTER,0);
+    }
+    private void displayGraphicFocus(){
+        mCurrentViewState = ViewStates.GRAPHIC;
+       // initInclineBoat();
+       // initDrift();
+       // initCompass();
+        initPressure(R.drawable.needle, GRAPHIC_PRESSURE_X_SCALE, GRAPHIC_PRESSURE_Y_SCALE);
+        initDagger(R.drawable.dagger, GRAPHIC_DAGGER_X_SCALE, GRAPHIC_DAGGER_Y_SCALE);
+        initSpeed(R.drawable.speedbar, GRAPHIC_SPEED_X_SCALE, GRAPHIC_SPEED_Y_SCALE);
+        initDrift(R.drawable.left_drift_arrow, R.drawable.right_drift_arrow, DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+        initInclineBoat(R.drawable.boat_alignement, BOAT_SCALE_X, BOAT_SCALE_Y);
+        initCompass(R.drawable.rowboat, COMPASS_BOAT_SCALE_X, COMPASS_BOAT_SCALE_Y);
+        displayOnView(R.id.graphicPressureHolder, mPressureNeedleView);
+        displayOnView(R.id.graphicDaggerHolder, mDaggerView);
+        displayOnView(R.id.graphicSpeedHolder, mSpeedView);
+        displayOnView(R.id.graphicDriftRightHolder, mRightDriftView);
+        displayOnView(R.id.graphicDriftLeftHolder, mLeftDriftView);
+        displayOnView(R.id.graphicInclineHolder, mInclineBoatView);
+        displayOnView(R.id.graphicCompassHolder, mCompassView);
+        mPressureNeedleView.moveGL(GRAPHIC_PRESSURE_X_POS, GRAPHIC_PRESSURE_Y_POS);
+        mDaggerView.moveGL(GRAPHIC_DAGGER_X_POS,GRAPHIC_DAGGER_Y_POS);
+        mSpeedView.moveGL(GRAPHIC_SPEED_X_POS,GRAPHIC_SPEED_Y_POS);
+        mLeftDriftView.moveGL(GRAPHIC_DRIFT_ARROW_CENTER,0);
+        mRightDriftView.moveGL(-GRAPHIC_DRIFT_ARROW_CENTER,0);
     }
     private void hideInclineFocus(){
-        removeDynamicPics();
-        hideBoatFromView(R.id.boatalignmentholder);
-        hideCompassFromView(R.id.driftImg);
-        hideNeedleFromView(R.id.pressureMeter);
-        hideDriftArrowFromView(R.id.leftDrift, R.id.rightDrift);
+        hideFromView(R.id.boatalignmentholder, mInclineBoatView);
+        hideFromView(R.id.driftImg, mCompassView);
+        hideFromView(R.id.pressureMeter, mPressureNeedleView);
+        hideFromView(R.id.leftDrift, mLeftDriftView);
+        hideFromView(R.id.rightDrift, mRightDriftView);
         LinearLayout ll = findViewById(R.id.feedbackTextLayout);
         ll.removeView(feedbackText);
     }
-    private void initDynamicPics(){
+    private void initInclineBoat(int drawable, float scaleX, float scaleY){
         mInclineBoatView = new RotatableGLView(this,decodeSampledBitmapFromResource(getResources(),
-                R.drawable.boat_alignement, 180, 180),
-                BOAT_SCALE_X, BOAT_SCALE_Y);
-        mPressureNeedleView = new RotatableGLView(this,
-                decodeSampledBitmapFromResource(getResources(), R.drawable.needle, 20, 20),
-                NEEDLE_SCALE_X, NEEDLE_SCALE_Y);
-        mCompassView = new RotatableGLView(this,
-                decodeSampledBitmapFromResource(getResources(), R.drawable.compass, 160, 160), decodeSampledBitmapFromResource(getResources(), R.drawable.rowboat, 100,100),
-                COMPASS_SCALE_Y, COMPASS_SCALE_X, COMPASS_BOAT_SCALE_X, COMPASS_BOAT_SCALE_Y);
-        mLeftDriftView = new RotatableGLView(this,
-                decodeSampledBitmapFromResource(getResources(), R.drawable.left_drift_arrow, 20, 20),
-                DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
-        mRightDriftView = new RotatableGLView(this,
-                decodeSampledBitmapFromResource(getResources(), R.drawable.right_drift_arrow, 20, 20),
-                DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
-        mWaveView = new RotatableGLView(this,
-                decodeSampledBitmapFromResource(getResources(), R.drawable.wave, 160, 160), decodeSampledBitmapFromResource(getResources(), R.drawable.pico_dyn, 100,100),
-                WAVE_SCALE_X, WAVE_SCALE_Y, WAVE_BOAT_SCALE_X, WAVE_BOAT_SCALE_Y);
-        /*mWaveView = new RotatableGLView(this,
-                decodeSampledBitmapFromResource(getResources(), R.drawable.wave, 160, 160),
-                WAVE_SCALE_X, WAVE_SCALE_Y);
-        mBoatWaveView = new RotatableGLView(this,
-                decodeSampledBitmapFromResource(getResources(), R.drawable.pico_dyn, 160, 160),
-                WAVE_BOAT_SCALE_X, WAVE_BOAT_SCALE_Y);*/
+                drawable, 180, 180),
+                scaleX, scaleY);
     }
-
+    private void initPressure(int drawable, float scaleX, float scaleY){
+        mPressureNeedleView = new RotatableGLView(this,
+                decodeSampledBitmapFromResource(getResources(), drawable, 20, 20),
+                scaleX, scaleY);
+    }
+    private void initCompass(int drawable, float scaleX, float scaleY){
+        mCompassView = new RotatableGLView(this,
+                decodeSampledBitmapFromResource(getResources(), drawable, 60,60),
+                scaleX, scaleY);
+    }
+    private void initDrift(int drawable, int drawable2, float scaleX, float scaleY){
+        mLeftDriftView = new RotatableGLView(this,
+                decodeSampledBitmapFromResource(getResources(), drawable, 10, 10),
+                scaleX, scaleY);
+        mRightDriftView = new RotatableGLView(this,
+                decodeSampledBitmapFromResource(getResources(), drawable2, 10, 10),
+                scaleX, scaleY);
+    }
+    private void initWave(int drawable, int drawable2, float scaleX, float scaleY, float scaleX2, float scaleY2){
+        mWaveView = new RotatableGLView(this,
+                decodeSampledBitmapFromResource(getResources(), drawable, 140, 140), decodeSampledBitmapFromResource(getResources(), drawable2, 100,100),
+                scaleX, scaleY, scaleX2, scaleY2);
+    }
+    private void initDagger(int drawable, float scaleX, float scaleY){
+        mDaggerView = new RotatableGLView(this,
+                decodeSampledBitmapFromResource(getResources(), drawable, 120, 180),
+                scaleX, scaleY);
+    }
+    private void initSpeed(int drawable, float scaleX, float scaleY){
+        mSpeedView = new RotatableGLView(this,
+                decodeSampledBitmapFromResource(getResources(), drawable, 120, 20),
+                scaleX, scaleY);
+    }
     public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
                                                          int reqWidth, int reqHeight) {
 
@@ -583,15 +658,6 @@ public class FeedbackActivity extends AppCompatActivity{
         }
 
         return inSampleSize;
-    }
-
-    private void removeDynamicPics(){
-        mInclineBoatView.getGlView().onPause();
-        mCompassView.getGlView().onPause();
-        mPressureNeedleView.getGlView().onPause();
-        mLeftDriftView.getGlView().onPause();
-        mRightDriftView.getGlView().onPause();
-        mWaveView.getGlView().onPause();
     }
 
     /*
@@ -661,43 +727,57 @@ public class FeedbackActivity extends AppCompatActivity{
             if(dataType.equals(DATA_TYPE_INCLINE)){
                 // Get Roll, pitch and yaw
                 String[] accelerometer = data.split(":");
-
                 this.inclineX = Float.parseFloat(accelerometer[0]);
                 this.inclineY = Float.parseFloat(accelerometer[1]);
                 this.bearingZ = Float.parseFloat(accelerometer[2]);
 
-                mInclineBoatView.rotateGl((int) this.inclineX);
-                mWaveView.rotateGl2((int) inclineY);
-                mWaveView.getGlView().requestRender();
-                waveData.add(inclineY);
-                TextView tv = findViewById(R.id.driftText);
-                tv.setText(String.format("%.1f\u00B0", inclineY));
-                if(waveData.size() > 500){
-                    wavePeriod = calculateWaveFrequency(waveData);
+                if (mCurrentViewState == ViewStates.INCLINE){
+                    setTiltText(inclineX);
+                    TextView tv = findViewById(R.id.tiltYText);
+                    tv.setText(String.format("%.1f\u00B0", inclineY));
                     tv = findViewById(R.id.zText);
-                    tv.setText(String.format("%.05f", wavePeriod)+"Hz");
-                    for (int i = 0; i<25; i++){
-                        waveData.remove(0);
-                    }
+                    tv.setText(String.format("%.2f", wavePeriod)+"Hz");
+                }
+                if (mCurrentViewState == ViewStates.INCLINE
+                        || mCurrentViewState == ViewStates.MAP
+                        || mCurrentViewState == ViewStates.SIMPLE
+                        || mCurrentViewState == ViewStates.GRAPHIC){
+                    mInclineBoatView.rotateGl((int) this.inclineX);
+                    mInclineBoatView.getGlView().requestRender();
+                }
+                if (mCurrentViewState == ViewStates.SIMPLE){
+                    mWaveView.rotateGl2((int) inclineY);
+                    mWaveView.getGlView().requestRender();
                     if (!isWaving){
                         mWaveRunner.run();
                     }
                 }
-
+                if (mCurrentViewState == ViewStates.SIMPLE
+                        ||mCurrentViewState == ViewStates.INCLINE){
+                    waveData.add(inclineY);
+                    if(waveData.size() > 500){
+                        wavePeriod = calculateWaveFrequency(waveData);
+                        for (int i = 0; i<25; i++){
+                            waveData.remove(0);
+                        }
+                    }
+                }
+                if (mCurrentViewState == ViewStates.INCLINE
+                        || mCurrentViewState == ViewStates.MAP
+                        || mCurrentViewState == ViewStates.GRAPHIC){
+                    mCompassView.rotateGl((int) bearingZ);
+                    mCompassView.getGlView().requestRender();
+                }
                 //float positionBoat = this.x / 100;
                 //mInclineBoatView.moveGL(positionBoat, positionBoat);
                 // Rotates compass with pitch
-                mCompassView.rotateGl((int) bearingZ);
                 if(mLogService != null){
                     if (mLogService.isLogging()){
                         mLogService.writeToLog(DATA_TYPE_INCLINE +":" +time  +":" +this.inclineX);
                         mLogService.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +this.bearingZ);
+                        mLogService.writeToLog(DATA_TYPE_WAVES +":" +time +":" +this.wavePeriod);
                     }
                 }
-                setTiltText(inclineX);
-                mInclineBoatView.getGlView().requestRender();
-                mCompassView.getGlView().requestRender();
-                mWaveView.getGlView().requestRender();
             }
             else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
                 data = data.replace(',', '.');
@@ -717,20 +797,23 @@ public class FeedbackActivity extends AppCompatActivity{
                     Range of move needle Min moveGL -1.5f, max moveGl 1.2f
                     No calibration made
                 */
-                mPressureNeedleView.moveGL(0, this.pressure/1000 - 1.01325f);
+                if(mCurrentViewState == ViewStates.INCLINE
+                        || mCurrentViewState == ViewStates.GRAPHIC){
+                    mPressureNeedleView.moveGL(0, this.pressure/1000 - 1.01325f);
+                    mPressureNeedleView.getGlView().requestRender();
+                }
                 if (mLogService != null){
                     if (mLogService.isLogging()){
                         mLogService.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" + this.pressure);
                     }
                 }
-                mPressureNeedleView.getGlView().requestRender();
             }
             else if(dataType.equals(DATA_TYPE_FREE_FALL)){
 
             }
             else if(dataType.equals(DATA_TYPE_HUMIDITY)){
                 data = data.replace(',', '.');
-                //setHumText(Float.parseFloat(data));
+                setHumText(Float.parseFloat(data));
                 if(mLogService != null) {
                     if (mLogService.isLogging()){
                         mLogService.writeToLog(DATA_TYPE_HUMIDITY + ":" + time + ":" + data);
@@ -740,11 +823,10 @@ public class FeedbackActivity extends AppCompatActivity{
             else if (dataType.equals(DATA_TYPE_POSITION)) {
                 data = data.replace(',', '.');
                 String[] pos = data.split(":");
-                String newTime = new SimpleDateFormat("ssSSS").format(new Date());
                 float latitude = Float.parseFloat(pos[0]);
                 float longitude = Float.parseFloat(pos[1]);
                 float elevation = Float.parseFloat(pos[2]);
-                this.speed = Float.parseFloat(pos[3]);
+                this.speed = Float.parseFloat(pos[3])*KM_TO_KNOTS;
                 this.direction = Float.parseFloat(pos[4]);
                 if (latitude != 0f && longitude != 0f) {
                     //double speed_mps = 0;
@@ -752,11 +834,13 @@ public class FeedbackActivity extends AppCompatActivity{
                         //Calculate distance and speed from last point, possibly could filter moving avg
                         double dist = distance_on_geoid(latitude, longitude, this.gpsPos.latitude, this.gpsPos.longitude);
 
-                        //double time_s = (Double.valueOf(prevTime) - Double.valueOf(newTime)) / 1000.0;
-                        //speed_mps = dist/time_s;
-                        // Estimates next position using brearing, now just z axis from IMU
-                        // TODO this.z should be compass bearing, gps direction bearing atm
-
+                        sogData.add(this.speed);
+                        if(sogData.size() >= 3){
+                            this.speed = movingAverageFilter(sogData, 3);
+                            sogData.remove(0);
+                            sogData.remove(sogData.get(sogData.size()));
+                            sogData.add(this.speed);
+                        }
                         // Calculate perpendicular drift from the ship navigational bearing will update from previously calculated value to compare with the new values.
                         if (this.nextEstimate.latitude != 0 && this.nextEstimate.longitude != 0){
                             //this.drift = (this.nextEstimate.longitude-longitude) * Math.cos((latitude+this.nextEstimate.latitude)/2);
@@ -765,19 +849,26 @@ public class FeedbackActivity extends AppCompatActivity{
                             this.drift = UNINITIALIZED;
                         }
                         this.nextEstimate = calcNextEstimatePos(new LatLng(latitude,longitude), dist, abs(this.bearingZ));
-                        TextView tv = findViewById(R.id.driftText);
-                        if (this.drift == UNINITIALIZED){
-                            tv.setText("Nan");
-                        } else{
-                            tv.setText(String.valueOf(this.drift) +"m");
-                            displayDrift((float) this.drift);
-                            mCompassView.rotateGl2(this.direction);
+                        if (mCurrentViewState == ViewStates.INCLINE){
+                            TextView tv = findViewById(R.id.driftText);
+                            if (this.drift == UNINITIALIZED){
+                                tv.setText("Nan");
+                            } else{
+                                tv.setText(String.format("%.1f\u00B0", this.drift) +"m");
+                                tv = findViewById(R.id.speedText);
+                                tv.setText(String.format("%.1f", this.speed) +"Knots");
+                            }
                         }
+                        if (mCurrentViewState == ViewStates.INCLINE
+                                || mCurrentViewState == ViewStates.MAP){
+                            displayDrift((float) this.drift);
+                            mCompassView.rotateGl((int) bearingZ);
+                            mCompassView.getGlView().requestRender();
+                        }
+
                     }
                     this.gpsPos = new LatLng(latitude, longitude);
                     travelRoute.add(gpsPos);
-                    TextView tv = findViewById(R.id.speedText);
-                    tv.setText(String.valueOf(this.speed));
                     if(mLogService != null) {
                         if (mLogService.isLogging()){
                             mLogService.writeToLog(DATA_TYPE_POSITION + ":" + time + ":" + latitude + ":" + longitude + ":" +direction);
@@ -786,26 +877,52 @@ public class FeedbackActivity extends AppCompatActivity{
                         }
                     }
                 }
-                prevTime = new SimpleDateFormat("ssSSS").format(new Date());
-            }
-            else if (dataType.equals(DATA_TYPE_COMPASS)){
+            } else if (dataType.equals(DATA_TYPE_COMPASS)){
                 //String[] accelerometer = data.split(":");
                 data = data.replace(',', '.');
                 this.bearingZ = Float.parseFloat(data);
                 // Rotates Boat bearing with Yaw
-                mCompassView.rotateGl2(this.bearingZ);
                 if(mLogService != null) {
                     if (mLogService.isLogging()){
                         mLogService.writeToLog(DATA_TYPE_COMPASS + ":" + time + ":" + this.bearingZ);
                     }
                 }
-                mCompassView.getGlView().requestRender();
+                if (mCurrentViewState == ViewStates.INCLINE
+                        || mCurrentViewState == ViewStates.MAP
+                        || mCurrentViewState == ViewStates.GRAPHIC){
+                    mCompassView.rotateGl(this.bearingZ);
+                    mCompassView.getGlView().requestRender();
+                }
+            } else if (dataType.equals(DATA_TYPE_BATTERY)){
+                data = data.replace(',', '.');
+                 String[] stat = data.split(":");
+                float batteryPower = Float.parseFloat(stat[0]);
+                float batLeft = Float.parseFloat(stat[1]);
+                // Rotates Boat bearing with Yaw
+                showBatteryLeft(this.batteryPower);
+                if (mCurrentViewState == ViewStates.INCLINE){
+                    TextView tv = findViewById(R.id.batPer);
+                    tv.setText(String.format("%.0f",batteryPower) +"%0");
+                    tv = findViewById(R.id.batLeft);
+                    tv.setText(String.format("%.1f",batLeft));
+                }
             } else if (dataType.equals(DATA_TYPE_RANGE)){
                 data = data.replace(',', '.');
                 this.range = Float.parseFloat(data);
 
                 TextView tv = findViewById(R.id.rangeText);
-                tv.setText(String.valueOf(this.range));
+                tv.setText(String.format("%.0f",this.range) +"cm");
+                if (mCurrentViewState == ViewStates.GRAPHIC){
+                    if (this.range < 80){
+                        mDaggerView.moveGL(GRAPHIC_DAGGER_X_POS, GRAPHIC_DAGGER_Y_POS +(this.range/35));
+                        mSpeedView.moveGL(GRAPHIC_SPEED_X_POS+(this.range/14), GRAPHIC_SPEED_Y_POS);
+                    } else{
+                        mDaggerView.moveGL(GRAPHIC_DAGGER_X_POS, GRAPHIC_DAGGER_Y_POS +(80/35));
+                        mSpeedView.moveGL(GRAPHIC_SPEED_X_POS+(80/14), GRAPHIC_SPEED_Y_POS);
+                    }
+                    mDaggerView.getGlView().requestRender();
+                    mSpeedView.getGlView().requestRender();
+                }
                 if(mLogService != null) {
                     if (mLogService.isLogging()){
                         //mLogService.writeToLog(DATA_TYPE_RANGE + ":" + time + ":" + z);
@@ -820,9 +937,9 @@ public class FeedbackActivity extends AppCompatActivity{
         public void run() {
             try {
                 isWaving = true;
-                wavePos +=wavePeriod;
+                wavePos +=wavePeriod*0.50f;
                 mWaveView.moveGL(WAVE_X_POS-wavePos,WAVE_Y_POS);
-                mWaveView.moveGL2(WAVE_BOAT_X_POS+0.5f*wavePos,WAVE_BOAT_Y_POS);
+                mWaveView.moveGL2(WAVE_BOAT_X_POS+0.60f*wavePos,WAVE_BOAT_Y_POS);
                 mWaveView.getGlView().requestRender();
 
 
@@ -836,12 +953,6 @@ public class FeedbackActivity extends AppCompatActivity{
                 } else{
                     mWaveHandler.postDelayed(mWaveRunner, 200);
                 }
-
-
-
-                // 100% guarantee that this always happens, even if
-                // your update method throws an exception
-
             }
         }
     };
@@ -863,27 +974,15 @@ public class FeedbackActivity extends AppCompatActivity{
             }
         }
         period = (incPos + incNeg) / 2.00f;
-        return period/10.00f;
+        return period/data.size();
     }
 
-    private float movingAverageFilter(Float value){
-        int filterLength = 10;
-        float sum = 0;
-        if (waveData.size() > filterLength){
-            for (int i = waveData.size()-filterLength; i<waveData.size(); i++){
-                filteredData.add(waveData.get(i));
-            }
+    private float movingAverageFilter(List<Float> data, int filterLength){
+      float sum = 0;
+        for (Float value : data){
+            sum+=value;
         }
-        if (filteredData.size() >= filterLength && filterLength > 0) {
-            sum -= filteredData.get(filteredData.size()-filterLength);
-            filteredData.remove(0);
-            sum += value;
-            filteredData.add(value);
-            float average = sum / filteredData.size();
-            return average;
-        } else {
-            return value;
-        }
+        return sum/data.size();
     }
     /*
         Gives User feedback tips based on sensor data
@@ -927,6 +1026,17 @@ public class FeedbackActivity extends AppCompatActivity{
         }
     };
 
+    private void showBatteryLeft(float bat){
+        if (mMenu != null){
+            if(bat > 70){
+                mMenu.getItem(R.id.battery).setIcon(getDrawable(R.drawable.high_bat));
+            } else if(bat<70 && bat > 30){
+                mMenu.getItem(R.id.battery).setIcon(getDrawable(R.drawable.mid_bat));
+            } else if(bat < 30){
+                mMenu.getItem(R.id.battery).setIcon(getDrawable(R.drawable.low_bat));
+            }
+        }
+    }
     private void talkFeedback(){
         IntervalVibrator mVibrator =  new IntervalVibrator(0, 0, 0);
         String txt = "";
@@ -972,9 +1082,13 @@ public class FeedbackActivity extends AppCompatActivity{
             default:
                 mVibrator = new IntervalVibrator(2, 200, 600);
         }
-        txtToSpeech1.speak(txt, TextToSpeech.QUEUE_FLUSH, null, null);
+        if (enableVoice){
+            txtToSpeech1.speak(txt, TextToSpeech.QUEUE_FLUSH, null, null);
+        }
         txtToSpeech1.setLanguage(Locale.ENGLISH);
-        mVibrator.run();
+        if (enableVibration){
+            mVibrator.run();
+        }
     }
 
     private class IntervalVibrator implements Runnable{
@@ -1094,6 +1208,78 @@ public class FeedbackActivity extends AppCompatActivity{
         double lon2 = lon1 + deltaLon;
 
         return new LatLng(lat2,lon2);
+    }
+
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        startRepeatingMapTask();
+    }
+    Runnable mMapStatusChecker = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                // Update travel route on timer update
+                PolylineOptions newTravelRoute = new PolylineOptions();
+                newTravelRoute.addAll(travelRoute);
+                if (travelRoutePolyline != null)
+                    travelRoutePolyline.remove();
+                travelRoutePolyline = mMap.addPolyline(newTravelRoute);
+
+                PolylineOptions newWaypointRoute = new PolylineOptions();
+                if (travelRoute.size() > 0) {
+                    if (hereMarker != null) {
+                        hereMarker.remove();
+                    }
+                    boat = travelRoute.get(travelRoute.size() - 1);
+                    if(!mMarkers.isEmpty()){
+                        if (wayPointPolyline != null){
+                            wayPointPolyline.remove();
+                        }
+                        Set<Integer> keySet = mMarkers.keySet();
+                        Object[] keys = keySet.toArray();
+                        int index = 0;
+                        for (int i = 0; i< keySet.size(); i++){
+                            if (mMarkers.get(keys[i]).isVisible()){
+                                index = i;
+                            }
+                        }
+                        newWaypointRoute.add(boat, mMarkers.get(keys[index]).getPosition());
+                        newWaypointRoute.color(getColor(R.color.green));
+                        wayPointPolyline = mMap.addPolyline(newWaypointRoute);
+                        double dist = FeedbackActivity.distance_on_geoid(boat.latitude,boat.longitude, mMarkers.get(keys[index]).getPosition().latitude, mMarkers.get(keys[index]).getPosition().longitude);
+                        MenuItem distItem = mMenu.findItem(R.id.dist_to_waypoint);
+                        //Check i close to wp and remove to redraw
+                        if (dist < 10){
+                            Marker closeMarker = mMarkers.get(keys[index]);
+                            closeMarker.setVisible(false);
+                        }
+                        distItem.setTitle(String.valueOf((int)dist) +"m to WP");
+                    }
+                    hereMarker = mMap.addMarker(new MarkerOptions().position(boat).title("You are here"));
+                    CameraPosition cameraPosition = new CameraPosition.Builder()
+                            .target(boat)
+                            .zoom(15)
+                            .bearing(0)
+                            .tilt(5)
+                            .build();
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                }
+            } finally {
+                // 100% guarantee that this always happens, even if
+                // your update method throws an exception
+              mMapHandler.postDelayed(mMapStatusChecker, mInterval);
+            }
+        }
+    };
+
+    void startRepeatingMapTask() {
+        mMapStatusChecker.run();
+    }
+
+    void stopRepeatingMapTask() {
+        mMapHandler.removeCallbacks(mMapStatusChecker);
     }
 
     private void setTiltText(float degree){

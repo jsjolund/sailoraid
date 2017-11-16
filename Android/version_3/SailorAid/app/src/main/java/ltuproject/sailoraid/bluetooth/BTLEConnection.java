@@ -62,6 +62,8 @@ public class BTLEConnection extends Service {
     public static final String DATA_TYPE_SOG = "Speed";
     public static final String DATA_TYPE_DRIFT = "Drift";
     public static final String DATA_TYPE_RANGE = "Range";
+    public static final String DATA_TYPE_WAVES = "Wave";
+    public static final String DATA_TYPE_BATTERY = "Battery";
 
     private int mConnectionState = STATE_DISCONNECTED;
 
@@ -106,7 +108,8 @@ public class BTLEConnection extends Service {
             UUID.fromString(SampleGattAttributes.HUMIDITY_MEASUREMENT);
     public final static UUID UUID_COMPASS_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.COMPASS_MEASUREMENT);
-
+    public final static UUID UUID_BATTERY_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.BATTERY_MEASUREMENT);
 
     private int listIterator = 0;
     private int serviceIterator = 0;
@@ -426,7 +429,8 @@ public class BTLEConnection extends Service {
                 //|| UUID_FREE_FALL_MEASUREMENT.equals(characteristic.getUuid())
                 || UUID_GPS_MEASUREMENT.equals(characteristic.getUuid())
                 || UUID_COMPASS_MEASUREMENT.equals(characteristic.getUuid())
-                || UUID_RANGE_MEASUREMENT.equals(characteristic.getUuid())) {
+                || UUID_RANGE_MEASUREMENT.equals(characteristic.getUuid())
+                || UUID_BATTERY_MEASUREMENT.equals(characteristic.getUuid())) {
             mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
                     UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
@@ -494,6 +498,12 @@ public class BTLEConnection extends Service {
             float humidity = bytesToFloats(characteristic.getValue())[0];
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_HUMIDITY);
             intent.putExtra(EXTRA_DATA, String.valueOf(humidity));
+
+        } else if (UUID_BATTERY_MEASUREMENT.equals(characteristic.getUuid())) {
+            float batteryPercentage = bytesToFloats(characteristic.getValue())[0];
+            float timeLeft = bytesToFloats(characteristic.getValue())[1];
+            intent.putExtra(EXTRA_TYPE, DATA_TYPE_BATTERY);
+            intent.putExtra(EXTRA_DATA, String.format("%f:%f", batteryPercentage, timeLeft));
 
         } else if (UUID_GPS_MEASUREMENT.equals(characteristic.getUuid())) {
             float[] coords = bytesToFloats(characteristic.getValue());

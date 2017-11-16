@@ -41,6 +41,8 @@ import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_POSITION;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_PRESSURE;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_SOG;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_TEMPERATURE;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_WAVES;
+
 /**
  * Created by Henrik on 2017-10-03.
  */
@@ -63,6 +65,7 @@ public class SailLog extends Service {
     private ArrayList<String[]> tempDataList;
     private ArrayList<String[]> humDataList;
     private ArrayList<String[]> driftDataList;
+    private ArrayList<String[]> wavesDataList;
     private float avgIncline, maxIncline;
     private float avgDrift, totalDrift;
     private float avgSOG, topSOG, avgPressure, maxPressure;
@@ -97,6 +100,7 @@ public class SailLog extends Service {
         tempDataList = new ArrayList<String[]>();
         humDataList = new ArrayList<String[]>();
         driftDataList = new ArrayList<String[]>();
+        wavesDataList = new ArrayList<String[]>();
     }
 
     public void initLogData(){
@@ -180,6 +184,8 @@ public class SailLog extends Service {
                     humDataList.add(splitLines);
                 } else if (type.equals(DATA_TYPE_DRIFT)){
                     driftDataList.add(splitLines);
+                } else if (type.equals(DATA_TYPE_WAVES)){
+                    wavesDataList.add(splitLines);
                 }
             }
             br.close();
@@ -208,6 +214,9 @@ public class SailLog extends Service {
     }
     public ArrayList<String[]> getDriftDataList(){
         return driftDataList;
+    }
+    public ArrayList<String[]> getWavesDataList(){
+        return wavesDataList;
     }
     private void calcIMUData(){
         float total = 0;

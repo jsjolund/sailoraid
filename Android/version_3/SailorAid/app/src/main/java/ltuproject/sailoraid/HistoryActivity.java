@@ -256,39 +256,46 @@ public class HistoryActivity extends AppCompatActivity {
         ArrayList<String[]> inclineList = new ArrayList<String[]>();
         inclineList = mLogService.getImuDataList();
         logInclineData.clear();
-        for (String[] loc : inclineList){{
-            logInclineData.add(loc);
+        for (String[] heel : inclineList){{
+            logInclineData.add(heel);
         }}
     }
 
     private void setPressureData(){
         ArrayList<String[]> pressureList = mLogService.getPressureDataList();
         logPressureData.clear();
-        for (String[] loc : pressureList){{
-            logPressureData.add(loc);
+        for (String[] psi : pressureList){{
+            logPressureData.add(psi);
         }}
     }
 
     private void setSOGData(){
         ArrayList<String[]> sogList = mLogService.getSogDataList();
         logSOGData.clear();
-        for (String[] loc : sogList){{
-            logSOGData.add(loc);
+        for (String[] speed : sogList){{
+            logSOGData.add(speed);
         }}
     }
     private void setCompassData(){
         ArrayList<String[]> compassList = mLogService.getCompassDataList();
         logCompassData.clear();
-        for (String[] loc : compassList){{
-            logCompassData.add(loc);
+        for (String[] bearing : compassList){{
+            logCompassData.add(bearing);
         }}
     }
     private void setDriftData(){
         ArrayList<String[]> driftList = mLogService.getDriftDataList();
         logDriftData.clear();
-            for (String[] loc : driftList){{
-                logDriftData.add(loc);
+            for (String[] drift : driftList){{
+                logDriftData.add(drift);
             }}
+    }
+    private void setWavesData(){
+        ArrayList<String[]> wavesList = mLogService.getWavesDataList();
+        logWavesData.clear();
+        for (String[] per : wavesList){{
+            logDriftData.add(per);
+        }}
     }
     static private List<String[]> logInclineData = new ArrayList<String[]>();
     public static void getInclineData(List<String[]> output) {
@@ -318,7 +325,10 @@ public class HistoryActivity extends AppCompatActivity {
     public static void getDriftData(List<String[]> output) {
         output.addAll(logDriftData);
     }
-
+    static private List<String[]> logWavesData = new ArrayList<String[]>();
+    public static void getWavesData(List<String[]> output) {
+        output.addAll(logWavesData);
+    }
     private void showTextViews(){
         TextView maxIncText = findViewById(R.id.maxIncText);
         TextView avgIncText = findViewById(R.id.avgIncText);

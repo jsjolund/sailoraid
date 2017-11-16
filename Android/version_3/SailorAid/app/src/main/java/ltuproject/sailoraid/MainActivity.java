@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_COARSE_LOCATION = 999;
     private static final int UNINITIALIZED = 9999;
-
+    private static final String BOATNAME = "SailorAid";
     private AlertDialog.Builder popDialog;
     private AlertDialog alertpop;
     private ArrayAdapter<String> BTArrayAdapter;
@@ -94,10 +94,10 @@ public class MainActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
 
-        Button feedbackviewbtn = (Button)findViewById(R.id.feedbackviewbtn);
-        Button bluetoothbtn = (Button)findViewById(R.id.btconbtn);
-        Button bluetoothdiscbtn = (Button)findViewById(R.id.btdisconbtn);
-        Button historybtn = (Button) findViewById(R.id.historyviewbtn);
+        Button feedbackviewbtn = findViewById(R.id.feedbackviewbtn);
+        Button bluetoothbtn = findViewById(R.id.btconbtn);
+        Button bluetoothdiscbtn = findViewById(R.id.btdisconbtn);
+        Button historybtn = findViewById(R.id.historyviewbtn);
 
         // Button to access the feedback view
         assert feedbackviewbtn != null;
@@ -293,10 +293,10 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void setConnectionButtons(int connected) {
-        TextView tv = (TextView) findViewById(R.id.mainConText);
-        Button btnCon = (Button) findViewById(R.id.btconbtn);
-        Button btnDis = (Button) findViewById(R.id.btdisconbtn);
-        LinearLayout ivCon = (LinearLayout) findViewById(R.id.main_connection_holder);
+        TextView tv = findViewById(R.id.mainConText);
+        Button btnCon = findViewById(R.id.btconbtn);
+        Button btnDis = findViewById(R.id.btdisconbtn);
+        LinearLayout ivCon = findViewById(R.id.main_connection_holder);
         if (connected == STATE_CONNECTED) {
             btnCon.setVisibility(View.GONE);
             btnDis.setVisibility(View.VISIBLE);
@@ -352,9 +352,13 @@ public class MainActivity extends AppCompatActivity {
             super.onScanResult(callbackType, result);
             BluetoothDevice bd = result.getDevice();
             if (!myBTHandler.deviceExists(myBTHandler.getLeDeviceList(), bd)) {
-                myBTHandler.addLeDeviceList(bd);
-                BTArrayAdapter.add(bd.getName() + "\n" + bd.getAddress());
-                BTArrayAdapter.notifyDataSetChanged();
+                String dname = bd.getName();
+                if (dname != null && dname.equals(BOATNAME)){
+                    myBTHandler.addLeDeviceList(bd);
+                    BTArrayAdapter.add(bd.getName() + "\n" + bd.getAddress());
+                    BTArrayAdapter.notifyDataSetChanged();
+                }
+
             } else {
                 BTArrayAdapter.notifyDataSetChanged();
             }

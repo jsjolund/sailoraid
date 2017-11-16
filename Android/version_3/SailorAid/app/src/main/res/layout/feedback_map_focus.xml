@@ -53,6 +53,7 @@
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:orientation="horizontal"
+            android:background="@drawable/compass"
             app:layout_constraintLeft_toRightOf="@id/inclineMapFocusViewHolder"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
