@@ -37,13 +37,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".FeedbackActivity">
+        <activity android:name=".FeedbackActivity"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation|screenSize">
             <action android:name="android.intent.action.ACTION_FOUND" />
             <action android:name="ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_CONNECTED" />
             <action android:name="ltuproject.sailoraid.bluetooth.BTLEConnection.ACTION_GATT_SERVICE_NOTIFIED" />
         </activity>
         <activity
             android:name=".MapsActivity"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="Map">
         </activity>
         <activity android:name=".HistoryActivity" />
@@ -51,7 +55,6 @@
         <activity android:name=".GraphActivity"
             android:screenOrientation="landscape"
             android:configChanges="keyboardHidden|orientation|screenSize"/>
-
         <service android:name=".bluetooth.BTLEConnection" />
         <service android:name=".datalog.SailLog" />
     </application>

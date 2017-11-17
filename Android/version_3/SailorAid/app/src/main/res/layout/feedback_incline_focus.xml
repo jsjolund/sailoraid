@@ -22,24 +22,164 @@
 
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:id="@+id/feedbackTextLayout"
         app:layout_constraintTop_toBottomOf="@+id/boatalignmentholder"
         app:layout_constraintBottom_toTopOf="@+id/tableLayoutHolder"
-        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginRight="10dp"
         android:layout_height="50dp"
-        android:baselineAligned="false">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:id="@+id/feedbackText"
-            android:gravity="center"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:text="Yo"
-            android:textSize="10pt" />
+        android:baselineAligned="false"
+        android:orientation="horizontal">
 
     </LinearLayout>
+
+    <TableLayout
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:padding="3dp"
+        android:background="@color/darkblue"
+        android:id="@+id/tableLeftFeedback1"
+
+        android:gravity="bottom"
+        app:layout_constraintTop_toBottomOf="@id/boatalignmentholder">
+        <TableRow
+            android:layout_margin="1dp"
+            android:layout_width="wrap_content"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Tilt: "
+                android:textSize="8pt"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:id="@+id/tiltText"
+                android:textSize="8pt"
+                />
+        </TableRow>
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+            <TextView
+                android:text="SOG: "
+                android:textSize="8pt"/>
+            <TextView
+                android:id="@+id/speedText"
+                android:textSize="8pt"
+                />
+        </TableRow>
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+            <TextView
+                android:text="TEMP: "
+                android:textSize="8pt"
+                />
+            <TextView
+                android:id="@+id/tempText"
+                android:textSize="8pt"
+                />
+        </TableRow>
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+            <TextView
+                android:text="HUM: "
+                android:textSize="8pt"
+                />
+            <TextView
+                android:id="@+id/humText"
+                android:textSize="8pt"
+                />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="1dp"
+            android:background="@color/background">>
+
+            <TextView
+                android:text="Range: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/rangeText"
+                android:textSize="8pt" />
+        </TableRow>
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">>
+            <TextView
+                android:text="Tilt: "
+                android:textSize="8pt"
+                />
+            <TextView
+                android:id="@+id/tiltYText"
+                android:textSize="8pt"
+                />
+        </TableRow>
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">>
+            <TextView
+                android:text="Drift: "
+                android:textSize="8pt"
+                />
+            <TextView
+                android:id="@+id/driftText"
+                android:textSize="8pt"
+                />
+        </TableRow>
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">>
+            <TextView
+                android:text="Z: "
+                android:textSize="8pt"
+                />
+            <TextView
+                android:id="@+id/zText"
+                android:textSize="8pt"
+                />
+        </TableRow>
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">>
+            <TextView
+                android:text="Bat: "
+                android:textSize="8pt"
+                />
+            <TextView
+                android:id="@+id/batPer"
+                android:textSize="8pt"
+                />
+        </TableRow>
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">>
+            <TextView
+                android:text="Bat: "
+                android:textSize="8pt"
+                />
+            <TextView
+                android:id="@+id/batLeft"
+                android:textSize="8pt"
+                />
+        </TableRow>
+        <Button
+            android:id="@+id/mapviewbtn"
+            android:text="View map"
+            android:background="@color/laserblue"
+            android:layout_margin="1dp"
+            android:textSize="8pt"
+            android:textColor="@color/darkblue"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            />
+
+    </TableLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -48,119 +188,10 @@
         app:layout_constraintTop_toBottomOf="@+id/feedbackTextLayout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/tableLeftFeedback1"
         android:orientation="horizontal"
         android:baselineAligned="false">
-        <TableLayout
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:padding="3dp"
-            android:background="@color/darkblue"
-            android:id="@+id/tableLeftFeedback1"
-            android:gravity="bottom"
-            app:layout_constraintBottom_toBottomOf="parent">
-            <TableRow
-                android:layout_margin="1dp"
-                android:layout_width="wrap_content"
-                android:background="@color/background">
 
-                <TextView
-                    android:text="Tilt: "
-                    android:textSize="8pt"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:id="@+id/tiltText"
-                    android:textSize="10pt"
-                    />
-            </TableRow>
-            <TableRow
-                android:layout_margin="1dp"
-                android:background="@color/background">
-                <TextView
-                    android:text="SOG: "
-                    android:textSize="8pt"/>
-                <TextView
-                    android:id="@+id/speedText"
-                    android:textSize="10pt"
-                    android:layout_width="wrap_content"
-                    />
-            </TableRow>
-            <TableRow
-                android:layout_margin="1dp"
-                android:background="@color/background">
-                <TextView
-                    android:text="TEMP: "
-                    android:textSize="8pt"
-                    />
-                <TextView
-                    android:id="@+id/tempText"
-                    android:textSize="10pt"
-                    />
-            </TableRow>
-            <TableRow
-                android:layout_margin="1dp"
-                android:background="@color/background">
-                <TextView
-                    android:text="HUM: "
-                    android:textSize="8pt"
-                    />
-                <TextView
-                    android:id="@+id/humText"
-                    android:textSize="10pt"
-                    />
-            </TableRow>
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="1dp"
-                android:background="@color/background">>
-
-                <TextView
-                    android:text="Range: "
-                    android:textSize="8pt" />
-
-                <TextView
-                    android:id="@+id/rangeText"
-                    android:textSize="10pt" />
-            </TableRow>
-
-            <TableRow
-                android:layout_margin="1dp"
-                android:background="@color/background">>
-                <TextView
-                    android:text="Drift: "
-                    android:textSize="8pt"
-                    />
-                <TextView
-                    android:id="@+id/driftText"
-                    android:textSize="10pt"
-                    />
-            </TableRow>
-            <TableRow
-                android:layout_margin="1dp"
-                android:background="@color/background">>
-                <TextView
-                    android:text="Z: "
-                    android:textSize="8pt"
-                    />
-                <TextView
-                    android:id="@+id/zText"
-                    android:textSize="10pt"
-                    />
-            </TableRow>
-            <Button
-                android:id="@+id/mapviewbtn"
-                android:text="View map"
-                android:background="@color/laserblue"
-                android:layout_margin="2dp"
-                android:textSize="8pt"
-                android:textColor="@color/darkblue"
-                android:layout_width="match_parent"
-                />
-
-        </TableLayout>
         <TableLayout
             android:layout_width="150dp"
             android:layout_height="wrap_content"
@@ -175,6 +206,7 @@
             <LinearLayout
                 android:id="@+id/driftImg"
                 android:layout_height="150dp"
+                android:background="@drawable/compass"
                 android:layout_width="match_parent"
                 android:orientation="horizontal"
                 />
@@ -237,14 +269,14 @@
             </TableRow>
             <TableRow
                 android:id="@+id/pressureTextRow"
-                android:layout_height="wrap_content"
+                android:layout_height="70dp"
                 android:layout_width="wrap_content"
                 android:background="@color/background"
                 android:layout_margin="1dp">
                 <TextView
                     android:id="@+id/pressureText"
                     android:layout_width="wrap_content"
-                    android:textSize="12pt"
+                    android:textSize="8pt"
                     />
             </TableRow>
         </TableLayout>

@@ -1,10 +1,13 @@
 package ltuproject.sailoraid;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PersistableBundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -52,6 +55,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private Polyline travelRoutePolyline;
     private Polyline wayPointPolyline;
+    private List<Polyline> mWPLineList = new ArrayList<>();
     private Marker hereMarker;
     private String receivedIntent;
     private Menu mMenu;
@@ -61,6 +65,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private double totalWPDistance = 0;
     private final Map<Integer, Marker> mMarkers = new ConcurrentHashMap<Integer, Marker>();
     private List<LatLng> mWaypointRoute = new ArrayList<LatLng>();
+    private LatLng boat;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +74,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.map_activity);
         Bundle extras = getIntent().getExtras();
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.map_toolbar);
+        Toolbar myToolbar = findViewById(R.id.map_toolbar);
 
         if(extras == null) {
             receivedIntent= null;
@@ -77,6 +82,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             myToolbar.setVisibility(View.INVISIBLE);
             receivedIntent= extras.getString("log");
+           // setSupportActionBar(myToolbar);
         }
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -107,17 +113,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 @Override
                 public void onMapClick(LatLng point) {
                     if (isAdd == true){
+                        isRemove = false;
                         markWaypoint(point);
-                    } else if(isRemove == true){
-                        if (!mMarkers.isEmpty()){
-                            removeWaypoint(point);
-                        } else {
-                            isRemove = false;
-                        }
-
+                        calcNewWPRoute();
                     } else{
                         setResultToToast("Cannot add waypoint");
                     }
+                }
+            });
+            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    if(isRemove == true) {
+                        isAdd = false;
+                        if (!mMarkers.isEmpty()) {
+                            mMarkers.remove(marker);
+                            mWaypointRoute.remove(marker.getPosition());
+                            calcNewWPRoute();
+                            marker.remove();
+
+                        } else {
+                            isRemove = false;
+                        }
+                    }
+                    return false;
                 }
             });
         }
@@ -150,22 +169,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mWaypointRoute.add(point);
     }
 
-    private void removeWaypoint(LatLng point){
-        Set<Integer> keySet = mMarkers.keySet();
-        Object[] keys = keySet.toArray();
-        Marker nearestMarker = mMarkers.get(keys[0]);
-        int index = (int) keys[0];
-        double distance = FeedbackActivity.distance_on_geoid(nearestMarker.getPosition().latitude, nearestMarker.getPosition().longitude, point.latitude, point.longitude);;
-        for (int i = 1; i<mMarkers.size();i++){
-            double compare = FeedbackActivity.distance_on_geoid(mMarkers.get(keys[i]).getPosition().latitude, mMarkers.get(keys[i]).getPosition().longitude, point.latitude, point.longitude);
-            if (compare < distance){
-                distance = compare;
-                nearestMarker = mMarkers.get(keys[i]);
-                index = (int) keys[i];
+    private void calcNewWPRoute(){
+
+        if (!mWPLineList.isEmpty()){
+            for (Polyline line : mWPLineList) {
+                line.remove();
             }
+            mWPLineList.clear();
         }
-        nearestMarker.remove();
-        mMarkers.remove(index);
+        PolylineOptions newWPRoute = new PolylineOptions();
+        newWPRoute.color(getColor(R.color.red));
+        newWPRoute.addAll(mWaypointRoute);
+        mWPLineList.add(mMap.addPolyline(newWPRoute));
     }
 
     private double calcRouteDistance(List<LatLng> routeList){
@@ -186,6 +201,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onDestroy() {
         super.onDestroy();
         stopRepeatingTask();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
     }
 
     Runnable mStatusChecker = new Runnable() {
@@ -212,26 +232,43 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     //totDistItem.setText(String.valueOf((int) totalDistance) +" m sailed");
                     if (hereMarker != null)
                         hereMarker.remove();
-                    LatLng boat = newPoints.get(newPoints.size() - 1);
+                    boat = newPoints.get(newPoints.size() - 1);
                     if(!mMarkers.isEmpty()){
                         if (wayPointPolyline != null){
                             wayPointPolyline.remove();
                         }
                         Set<Integer> keySet = mMarkers.keySet();
                         Object[] keys = keySet.toArray();
-                        newWaypointRoute.add(boat, mMarkers.get(keys[0]).getPosition());
+                        int index = 0;
+                        for (int i = 0; i< keySet.size(); i++){
+                            if (mMarkers.get(keys[i]).isVisible()){
+                                index = i;
+                            }
+                        }
+                        newWaypointRoute.add(boat, mMarkers.get(keys[index]).getPosition());
                         newWaypointRoute.color(getColor(R.color.green));
-                        travelRoutePolyline = mMap.addPolyline(newWaypointRoute);
-                        double dist = FeedbackActivity.distance_on_geoid(boat.latitude,boat.longitude, mMarkers.get(keys[0]).getPosition().latitude, mMarkers.get(keys[0]).getPosition().longitude);
+                        wayPointPolyline = mMap.addPolyline(newWaypointRoute);
+                        double dist = FeedbackActivity.distance_on_geoid(boat.latitude,boat.longitude, mMarkers.get(keys[index]).getPosition().latitude, mMarkers.get(keys[index]).getPosition().longitude);
                         MenuItem distItem = mMenu.findItem(R.id.dist_to_waypoint);
+                        //Check i close to wp and remove to redraw
+                        if (dist < 10){
+                            Marker closeMarker = mMarkers.get(keys[index]);
+                            closeMarker.setVisible(false);
+                            mWaypointRoute.remove(closeMarker.getPosition());
+                            calcNewWPRoute();
+                        }
                         distItem.setTitle(String.valueOf((int)dist) +"m to WP");
                         MenuItem totDistItem = mMenu.findItem(R.id.dist_left);
-                        totDistItem.setTitle(String.valueOf((int) (totalDistance/totalWPDistance *100)) +" % sailed");
+                        if (totalWPDistance > 0){
+                            totDistItem.setTitle(String.valueOf((int) (totalDistance/totalWPDistance *100)) +" % sailed");
+                        } else{
+                            totDistItem.setTitle(String.valueOf((int) totalDistance) +"m sailed");
+                        }
                     }
                     hereMarker = mMap.addMarker(new MarkerOptions().position(boat).title("You are here"));
                     CameraPosition cameraPosition = new CameraPosition.Builder()
                             .target(boat)
-                            .zoom(14)
+                            .zoom(15)
                             .bearing(0)
                             .tilt(5)
                             .build();
@@ -278,13 +315,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.finnish_route:
                 isAdd = false;
                 totalWPDistance = calcRouteDistance(mWaypointRoute);
+                if (boat!= null){
+                    double dist = FeedbackActivity.distance_on_geoid(boat.latitude,boat.longitude, mWaypointRoute.get(0).latitude, mWaypointRoute.get(0).longitude);
+                    totalWPDistance += dist;
+                }
                 Toast.makeText(getApplicationContext(), "Finished routing! \n Total distance: " +totalWPDistance +"Km", Toast.LENGTH_SHORT).show();
                 item.setVisible(false);
                 mMenu.findItem(R.id.create_route).setVisible(true);
                 return true;
             case R.id.remove_waypoint:
-                isRemove = true;
-                Toast.makeText(getApplicationContext(), "Start removing waypoints!", Toast.LENGTH_SHORT).show();
+                if (isRemove){
+                    isRemove = false;
+                    Toast.makeText(getApplicationContext(), "No longer removing waypoints!", Toast.LENGTH_SHORT).show();
+                } else {
+                    isRemove = true;
+                    Toast.makeText(getApplicationContext(), "Start removing waypoints!", Toast.LENGTH_SHORT).show();
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

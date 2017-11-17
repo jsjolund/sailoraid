@@ -15,7 +15,7 @@ In order to speed up firmware development, the STM32CubeMX \cite{stm32cubemx} in
 
 The main challenge in working with this type of code generation is integrating it with external software libraries directly not built for it. If the library interferes with generated code by overriding settings and register values, the software may enter an undefined state and stop working. Care therefor had to be taken to only use the parts of the libraries which did not interfere. Frequent testing of any newly added functionality had to be done in order to find interfering parts.
 
-Two libraries produced by ST were used, one for the Bluetooth module, and one for the IMU.
+Three libraries produced by ST were used, one for the Bluetooth module, the IMU chips and the range sensor.
 
 \subsubsection{Bluetooth}
 \label{bluetooth}
@@ -84,7 +84,7 @@ The mathematical background of this algorithm is quite complicated and outside t
 
 \subsubsection{USB UART}
 \label{usb-uart}
-Since this project involved analyzing sensor data for developing sensor fusion algorithms, for example combining GPS and accelerometer for accurate positioning (section \ref{ekf}) and measuring water wave properties, it was important to be able to log data at a reasonably high frequency. Transferring serial commands between a computer and the MCU also helped in debugging the code. To this end, a hardware UART-over-USB chip was used, the ST-LINK/V2-1 on the Nucleo board, and FTDI FT232R on the custom project board.
+Since this project involved analyzing sensor data for developing sensor fusion algorithms, for example combining GPS and accelerometer for accurate positioning (section \ref{kf}) and measuring water wave properties, it was important to be able to log data at a reasonably high frequency. Transferring serial commands between a computer and the MCU also helped in debugging the code. To this end, a hardware UART-over-USB chip was used, the ST-LINK/V2-1 on the Nucleo board, and FTDI FT232R on the custom project board.
 
 At a relatively low baud rate of 115200 bps, it was determined that send and receive should both be interrupt based using DMA transfers to minimize the impact on system resources. Reception of data like key presses from a computer was handled one character at a time. The characters were appended as a string until the enter key was detected. At this point the string was matched against a list of valid commands, and the appropriate task performed -- such as sending current sensor values. Sending was implemented as a simple circular buffer which could be transferred to the UART peripheral registers using DMA.
 
@@ -92,7 +92,13 @@ In order to log sensor values for later analysis a simple MATLAB script was deve
 
 
 \subsubsection{GPS}
-The GPS module used in this project, EVA2235-H by Maestro \cite{gps} could communicate with the MCU through either I$^2$C or UART. Both protocols require only two pins to operate, but UART communication was determined to be easier to implement in code. The UART baud rate of the GPS module was set to 4800 Hz by default. While this could be changed by software there was no reason to do so. The low baud rate did however mean that blocking transmissions might cause problematic interruptions in the firmware code. To prevent this, interrupt based communication through DMA was implemented, using the same type of queuing system as the USB UART (section \ref{usb-uart}).
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.3\textwidth]{Figures/A2235-H.jpg}
+\caption{Maestro A2235-H GPS module with built-in antenna}
+\label{gps-figure}
+\end{figure}
+The GPS module used in this project, A2235-H by Maestro \cite{gps} could communicate with the MCU through either I$^2$C or UART. Both protocols require only two pins to operate, but UART communication was determined to be easier to implement in code. The UART baud rate of the GPS module was set to 4800 Hz by default. While this could be changed by software there was no reason to do so. The low baud rate did however mean that blocking transmissions might cause problematic interruptions in the firmware code. To prevent this, interrupt based communication through DMA was implemented, using the same type of queuing system as the USB UART (section \ref{usb-uart}).
 
 Data from the GPS was formatted according to the NMEA message standard. It is used by nearly all GPS devices internally, but is quite hard for a human to read. For example,
 \begin{lstlisting}
@@ -106,4 +112,6 @@ Several NMEA parsing libraries are freely available on the web. The one chosen f
 
 
 \subsubsection{Range sensor}
-\todo{todo}
+In order to communicate with the VL53L0X range finder sensor, another software library called X-CUBE-53L0A1 \cite{x-cube-53l0a} developed by ST was used. This software was written for another Nucleo expansion board called X-NUCLEO-53L0A1 which integrated three range sensor units to perform gesture recognition. It was however possible to modify the code to work with the single sensor used in this project. The library implemented a leaky integrator algorithm (basically a low-pass filter) to reduce measurement noise and improve accuracy.
+
+Since the sensor measures the time-of-flight of a laser beam, it was obvious that having the firmware code block while waiting for measurement data was not a realistic option. Instead, the code repeatedly alternated between instructing the sensor to initiate a measurement, and reading back the data from the last measurement. Since the module was meant only to measure the height of the dinghy center board a low measurement frequency of 1 Hz was used.
