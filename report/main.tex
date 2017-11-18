@@ -30,6 +30,7 @@
 
 %header layout
 \usepackage{suffix}
+\newcommand{\project}{\emph {SailorAid}}
 
 \newcommand\chapterauthor[1]{\authortoc{#1}\printchapterauthor{#1}}
 \WithSuffix\newcommand\chapterauthor*[1]{\printchapterauthor{#1}}
@@ -54,7 +55,7 @@
 
 %header style
 \pagestyle{fancy}
-\lhead{Project SailorAid}
+\lhead{Project \project}
 \chead{}
 
 
@@ -92,19 +93,20 @@
 
 \section{The Physics of Sailing}
 \label{sec:physics}
-\chapterauthor{Henrik Theolin (Oskar Axelsson)}
+\chapterauthor{Henrik, Theolin (Oskar, Axelsson)}
 \input{physics.tex}
 
 \section{Product Application}
 \label{sec:application}
 \input{application.tex}
 
-\section{Hardware Design}
-\label{sec:hwdesign}
+\section{Hardware Design}\label{sec:hwdesign}
+\chapterauthor{Brolin, Daniel (one, no)}
+\input{hw_design.tex}
 
 \clearpage
 \section{Sensors}
-\chapterauthor{Lundberg, Josef (Brolin, Daniel)}
+\chapterauthor{Lundberg, Josef (no onel)}
 \input{sensors.tex}
 
 \clearpage
