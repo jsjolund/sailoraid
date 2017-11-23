@@ -1,10 +1,12 @@
+\newpage
+\section{Introduction}
 \subsection*{Sensor theory}
 Sensor fusion can be observed everywhere e.g., living animals uses all of its senses to survive daily, an animal cannot hunt using its eyes only, it has to combine its sense of smell, eyes and hearing to hunt the pray\cite{animal}. Sensor fusion theory is not only found in the living species it is found in cars, planes, computers and so on and this to enhance performance and accuracy \cite{animal}. In this project sensor fusion will be used to enhance the accuracy of the dinghy's position and velocity. The fusion will be between a global positioning system, GPS and an inertial navigation system, INS. The INS build on a low price inertial measurement unit.\\ 
 The GPS's accuracy is not uniform since it might be buildings reflections, atmospherics delays or clock bias errors \cite{boken}. Using only information provided by a INS is not sufficient either since the sensors in the IMU will drift after time, but using the information provided by the sensors in the IMU only for short time will give accurate readings.  
 
 \subsection{Inertial Navigation System}
-In navigation there exist different techniques on how to navigate using an IMU, a typical technique is using a strapdown inertial navigation system, SINS. A SINS consists of an IMU which is mounted on the dinghy so it measures the acceleration and rotational rate that the dinghy encounters.
-The concepts of inertial navigation are to determine the position and velocity of the dinghy from a known staring point, using only measurements from the IMU. The IMU, in this case consists of a 3-axis gyroscope, a 3-axis accelerometer, and a 3-axis magnetometer. \\
+In navigation there exist different techniques on how to navigate using an IMU, a typical technique is using a strapdown inertial navigation system, SINS. A SINS consists of an Inertial Measurement Unit, IMU which is mounted on the dinghy so it measures the acceleration and rotational rate that the dinghy encounters.
+The concepts of inertial navigation are to determine the position and velocity of the dinghy from a known staring point, using only measurements from the IMU. The IMU, in this case consists of a three-axis gyroscope, a three-axis accelerometer, and a three-axis magnetometer. \\
 Measurement from the gyroscope is to determine the angular motion of the dinghy, from that its heading relative to a reference frame can be derived.
 By measuring specific forces acting on the dinghy using the accelerometer, then resolve the specific force measurements into the reference frame using the knowledge derived from the information provided by the gyroscope. 
 Integrate the resolved specific force measurements to obtain its velocity and position. \cite{non-linear} 
@@ -13,8 +15,8 @@ Integrate the resolved specific force measurements to obtain its velocity and po
 \subsection{Sensor fusion}
 A popular filter to use when applying sensor fusion is to use a Kalman filter, (KF). The Kalman Filter is a recursive filtering method for discrete data, the algorithm was developed by an Hungarian mathematician Rudolf (Rudi) Emil Kalman in 1960 \cite{boken}. Its popular to use due to its efficiency when calculating predictions. \cite{kf eff}
 
-\subsection*{Navigation Frames}
-Navigation algorithm involves various coordinate frames and therefore transformation between frame is a must. In this case four different frames will be used.
+\subsection{Navigation Frames}
+Navigation algorithm involves various coordinate frames and therefore transformation between frame is a must. In this case four different frames will be used.\\
 
 The inertial frame denoted $i$-frame for future notation is defined such that its origin is at the center of Earth and its axes $X_i$, $Y_i$ and $Z_i$ is non-rotating with respect to the stars. $Z_i$ is coincident with the Earth's polar axis, i.e. North.\\
 
@@ -29,7 +31,14 @@ The Navigation frame denoted $n$-frame for future notation is a local frame and 
 \label{WGS}
 \end{figure}
 
-The Body frame denoted $b$-frame is the sensitive axes of the IMU's sensors are made to coincide with the axes of the moving platform in which the sensors are mounted. The body, in this case, is referred to the dinghy, from Fig. HÄR SKA EN BILD IN
+The Body frame denoted $b$-frame is the sensitive axes of the IMU's sensors are made to coincide with the axes of the moving platform in which the sensors are mounted. The body, in this case, is referred to the dinghy, see Fig. \ref{Fig:body_frame}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{Figures/Euler_angle.pdf}
+\caption{Body frame}
+\label{Fig:body_frame}
+\end{figure}
 \begin{itemize}
 \item Yaw $(\psi)$: is the is the deviation of the vehicle’s forward $y$-axis from north, measured clockwise in the E-N plane.
 \item Pitch $(\theta)$: This is the angle that the forward $y$-axis of the b-frame makes with the
@@ -38,7 +47,7 @@ E-N plane (i.e. local horizontal) owing to a rotation around its transversal $x$
 forward axis is also called the roll axis and the roll angle i
 \end{itemize}
 
-\subsection*{Transformation Between Frames}
+\subsection{Transformation Between Frames}
 Referring to Fig. \ref{WGS} it can be observed that its possible to align the $n$-frame with the $e$-frame, this is done by rotating the $n$-frame by ($\lambda-90$)-degrees around its $x$-axis (east-direction) and ($-\phi-90$)-degrees about its $z-axis$, (downward direction) \cite{nonlinear}. Where $\lambda$ and $\varphi$ is the latitude and longitude, respectively. Then the transformation between the two frames can be done using the Direction Cosine Matrix, noted DCM for future notation, which is defined as \cite{nonlinear}.
 \begin{equation}
 C_n^e=R_z(-\lambda-90)R_x(\varphi-90)
@@ -80,15 +89,15 @@ Exploring the orthogonality its possible to transform from $e$-frame to $n$-fram
 (C_n^e)^{-1}=C_e^n
 \label{Eq.Earth2Nav}
 \end{equation}
-Using Eq. \eqref{Eq.Earth2Nav} its now possible to move from $e$-frame to $n$-frame. 
+Using Eq. \eqref{Eq.Earth2Nav} its now possible to move from $e$-frame to $n$-frame. \\
 
 
 Transforming from $n$-frame to $b$-frame is done in the same way, i.e. using rotation matrices. The DCM, moving from $b$-frame to $n$-frame is given by \cite{nonlinear}
 \begin{equation}
-C_b^n=R_z(-\psi)R_y(-\theta)R_x(-\phi).
+C_b^n=R_z(-\psi)R_y(-\theta)R_x(-\phi),
 \label{Body_rotation}
 \end{equation}
-Where 
+where 
 \begin{align}
 R_z(-\psi) = &
 \begin{bmatrix}
@@ -207,7 +216,7 @@ Now the turn rate of the $n$-frame with respect to $i$-frame, $\bar{\omega}_{in}
 
 Now Eq. \eqref{Eq.omega_in} is a function dependent both on velocity and position.
 
-\subsection*{Inertial Navigation equation}
+\subsection{Inertial Navigation Equation}
 describing the position of the dinghy in the $n$-frame is done by \cite{nonlinear}.
 \begin{align}
 \bar{r}^n=
@@ -264,38 +273,230 @@ Thus the dynamics describing the system can be expressed as \cite{nonlinear}.
 \label{Eq.r_n_t}\\
 \dot{\bar{v}}_n = & C_b^n \bar{f}^b-(2\omega_{ie}^n+\omega_{en}^n) \times \bar{v}_n +\bar{g}^n
 \label{Eq.v_n_t}\\
-\dot{C}_b^n = & -\Omega_{bn}^n C_b^n 
+\dot{C}_b^n = & C_b^n(\Omega_{ib}^b - \Omega_{in}^b)
 \label{Eq.C_b_n_t}
 \end{align}
 Where $\bar{f}^b$ is the specific force vector defined as the difference between the true acceleration in
-space and the acceleration due to gravity, $\bar{g}^n$ is the gravity vector, $\Omega_{bn}^n$ is the output from the strapdown gyroscope.
+space and the acceleration due to gravity, $\bar{g}^n$ is the gravity vector,
 
 
-\subsection*{INS mechanization}
-Since the INS has to work in discrete domain, Eq. \eqref{Eq.r_n_t}, \eqref{Eq.v_n_t} and \eqref{Eq.C_b_n_t} has to be discretized. The sampling time should be seen as a changing variable since it may not be constant instead it will fluctuate around $100Hz$, this means that $\Delta t_k = \Delta k_{k-1} - t_{k}$, this to improve the accuracy. The discrete dynamics are
+\subsection{INS mechanization}
+Since the INS has to work in discrete domain, Eq. \eqref{Eq.r_n_t}, \eqref{Eq.v_n_t} and \eqref{Eq.C_b_n_t} has to be discretized. The sampling time should be seen as a changing variable since it may not be constant instead it will fluctuate around $100Hz$, this means that $\Delta t_k = \Delta k_{k-1} - t_{k}$, this to improve the accuracy. The discrete dynamics are \cite{non-linear}
 \begin{align}
 \bar{r}_{k+1}^n = & \bar{r}_k + 0.5D^{-1}(\bar{v}_k^n + \bar{v}_{k+1}^n)\Delta t
-\label{Eq.r_n_t}\\
+\label{Eq.r_n_d}\\
 v_{k+1}^n= & \bar{v}_k + \Delta \bar{v}_{k+1}^n
-\label{Eq.v_n_t}\\
+\label{Eq.v_n_d}\\
 \dot{C}_b^n = & -\Omega_{bn}^n C_b^n \Delta t
-\label{Eq.C_b_n_t}
+\label{Eq.C_b_n_d}
 \end{align}
-Where 
+where 
 \begin{equation}
 \Delta \bar{v}_{k+1}^n = \Delta \bar{v}_f^n - (2\omega_{ie}^n+\omega_{en}^n) \times \bar{v}_n \Delta t +\bar{\gamma}\Delta t
 \end{equation}
-Where $\gamma = [0 \quad 0 \quad 9.8123]$.
+where $\gamma = [0 \quad 0 \quad 9.8123]$.\\ \\
+The Navigation frame Inertial Navigation System can be seen in Fig. \ref{Fig:body_frame}, Where its possible to examine all the steps which were derived earlier
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{Figures/ins_2}
+\caption{The Inertial Navigation Frame}
+\label{Fig:body_frame}
+\end{figure}
+\subsection*{Perturbation Analysis}
+Since the differential equations describing velocity, position and attitude DCM are non-linear, utilize a perturbation series to minimize the errors \cite{pertubation}.
+\begin{equation}
+\hat{r}^n =r^n+\delta r^n
+\label{Eq.per_r}
+\end{equation}
+\begin{equation}
+\hat{v}^n =v^n+\delta v^n
+\label{Eq.per_v}
+\end{equation}
+\begin{equation}
+\hat{C}_b^n = (I-E^n)C_b^n
+\label{Eq.per_c}
+\end{equation}
+Where $E^n$ is the skew matrix
+\begin{align}
+\begin{bmatrix} 
+0 && -e_D && e_E \\
+e_D && 0 && -e_N \\
+-e_E && e_N && 0
+\end{bmatrix}
+\end{align}
+Where $\hat{}$ is the computed values, $\delta$ and $e$ are the errors.
 
-\subsection*{Implementing the fusion Kalman Filter}
-Implementing a continuous Kalman filter using integration between Inertial Navigation System and a Global Positioning System.
+\subsubsection{Error Dynamics Position}
+Perturbing \eqref{Eq.per_r}, the linearized position is obtained, since the position dynamics is a function of both position and velocity, the position error dynamics is obtained as
+\begin{equation}
+\delta \dot{\bar{r}}^n = F_{rr}\delta \bar{r}^n + F_{rv}\delta \bar{v}^n
+\end{equation}
+
+\noindent Where
+\begin{align}
+F_{rr} &=
+\begin{bmatrix}
+0 && 0 && \frac{-v_N}{(M+h)^2}\\
+\frac{v_E sin(\varphi)}{(N+h)cos^2(\varphi)} && 0 && \frac{-v_E}{(N+h)^2cos(\varphi)} \\
+0 && 0 && 0
+\end{bmatrix}
+\label{Eq.Frr}
+\end{align}
+and
+\begin{align}
+F_{rv} &=
+\begin{bmatrix}
+\frac{1}{(M+h)} && 0 && 0\\
+0 && \frac{1}{(N+h)cos(\varphi)} && 0 \\
+0 && 0 && -1
+\end{bmatrix}.
+\label{Eq.Frv}
+\end{align}
+\subsubsection{Error Dynamics Velocity}
+The same is used when deriving the perturbation for the velocity, Eq. \eqref{Eq.per_v}, here, velocity is described by forces acting on the dinghy and gravity. Using Eq. \eqref{Eq.v_n_t}, and perturbation Eq. \eqref{Eq.per_v}, the following is obtained \cite{nonlinear}.
+\begin{equation}
+\delta \dot{\bar{v}}^n = \bar{v}_n \times \underbrace{(2\delta \bar{\omega}_{ie}^n+ \delta \bar{\omega}_{en}^n)}_{I}+\delta \bar{g}^n -\underbrace{(2\bar{\omega}_{ie}^n + \bar{\omega}_{en}^n)}_{II}\times \delta \bar{v}^n + \bar{f}^n\times e^n +C_b^n\delta \bar{f}^n
+\label{Eq.delta_v}
+\end{equation}
+where $II$ is expressed as follow, using Eq. \eqref{Eq.omega_in}.
+\begin{align}
+2\bar{\omega}_{ie}^n + \bar{\omega}_{en}^n = 
+\begin{bmatrix}
+2\omega_e cos(\varphi) + \frac{v_E}{(N+h)} \\
+\frac{-v_N}{(M+h)} \\
+-2\omega_e sin(\varphi) - \frac{v_E tan(\varphi)}{(N+h)}
+\end{bmatrix}.
+\label{Eq.II}
+\end{align}
+Now perturbing $I$ with $II$, using Eq. \eqref{omega_en} and \eqref{Eq.omega_in}, the following is obtained.
+\begin{align}
+2\delta \bar{\omega}_{ie}^n+ \delta \bar{\omega}_{en}^n =
+\delta \Omega_r\delta \bar{r}^n + \delta\Omega_r\delta\bar{v}^n
+\end{align}
+where
+\begin{align}
+\delta\Omega_r = 
+\begin{bmatrix}
+-2 \omega_e sin(\varphi) && 0 && \frac{-v_E}{(N+h)^2}\\
+0 && 0 && \frac{v_N}{(M+h)^2}\\
+2 \omega_e cos(\varphi)-\frac{v_E}{(N+h)cos^2(\varphi)} && 0 && \frac{v_E tan(\varphi)}{(N+h)^2}
+\end{bmatrix}
+\label{Eq.Omega_r}
+\end{align}
+and
+\begin{align}
+\delta\Omega_v = 
+\begin{bmatrix}
+0 &&  \frac{-1}{(N+h)} && 0\\
+\frac{-1}{(M+h)} && 0 && 0\\
+0 && \frac{-tan(\varphi)}{(N+h)} && \frac{v_E tan(\varphi)}{(N+h)^2}
+\end{bmatrix}
+\label{Eq.Omega_v}
+\end{align}
+Then calculating the first term on the left side of Eg. \eqref{Eq.delta_v}, using Eq. \eqref{Eq.Omega_r} and \eqref{Eq.Omega_v}
+\begin{align}
+\bar{v}^n\times(2\delta \bar{\omega}_{ie}^n+\delta \bar{\omega}_{en}^n) = 
+\bar{v}^n \times \delta\Omega_r\delta\bar{r}^n +\bar{v}^n\times\delta\Omega_v\delta\bar{v}^n
+\end{align}
+Then expressing Eq. \eqref{Eq.delta_v} as
+\begin{equation}
+\delta\bar{v}^n = F_{vr}\delta\bar{r}^n + F_{vv}\delta\bar{v}^n + (\bar{f}^n	\times)\bar{e}^n + C_n^b\delta \bar{f}^b
+\end{equation}
+Expressing $F_{vr}$ and $F_{vv}$ in matrix notation
+\begin{align}
+F_{vr} = 
+\begin{bmatrix}
+-2v_E\omega_e cos(\varphi)-\frac{v_E^2}{(N+h)cos^2(\varphi)} && 0 && \frac{-v_N v_D}{(M+h)^2} + \frac{v_E^2 tan(\varphi)}{(N+h)^2} \\
+2\omega_e(v_N cos(\varphi)-v_D sin(\varphi)) + \frac{v_Ev_N}{(N+h)cos^2(\varphi)} && 0 && \frac{-v_E v_D}{(N+h)^2} - \frac{v_Nv_E tan(\varphi)}{(N+h)^2} \\
+2v_E\omega_e sin(\varphi) && 0 && \frac{v_E^2}{(N+h)^2} + \frac{v_N^2}{(M+h)^2} - \frac{2\gamma}{R+h}
+\end{bmatrix}
+\label{Eq.Fvr}
+\end{align}
+and
+\begin{align}
+F_{vv} = 
+\begin{bmatrix}
+\frac{v_D}{(M+h)} && -2\omega_e sin(\varphi) -2\frac{v_Etan(\varphi)}{(N+h)} && \frac{v_N}{(M+h)} \\
+2\omega_e sin(\varphi) +\frac{v_E tan(\varphi)}{(N+h)} && \frac{v_D + v_N tan(\varphi)}{(N+h)} && 2\omega_e cos(\varphi)+ \frac{v_E}{(N+h)} \\
+-2\frac{v_N}{(M+h)} && -2\omega_e cos(\varphi) -2\frac{v_E}{(N+h)} && 0
+\end{bmatrix}
+\label{Eq.Fvv}
+\end{align}
+\subsubsection{Error Dynamics Attitude}
+The output from the INS can be expressed using Eq. \eqref{Eq.C_b_n_t}.
+\begin{equation}
+\hat{\dot{C}}_b^n = \hat{C}_b^n(\hat{\Omega}_{ib}^b - \hat{\Omega}_{in}^b)
+\end{equation}
+Then relate the above equation with Eq. \eqref{Eq.per_c}
+\begin{equation}
+-\dot{E}^nC_b^n = (I_E^n)C_b^n(\delta\Omega_{ib}^b-\delta\Omega_{in}^b)
+\end{equation}
+Expressing $\dot{E}^n$ by is self in left-hand side, the equation above can be expressed as
+\begin{equation}
+\dot{E}^n = -C_b^n(\delta\Omega_{ib}^b-\delta\Omega_{in}^b)
+\end{equation}
+or in vector form
+\begin{equation}
+\dot\bar{{e}}^n = -C_b^n(\delta\omega_{ib}^b-\delta\omega_{in}^b).
+\label{Eq.error_vec}
+\end{equation}
+
+Since we want to express the equation above in its error equation $\delta \bar{\omega}_{in}^b$, the following change can be done $\hat{\bar{\omega}}_{in}^b = \hat{C}_n^b\hat{\bar{\omega}}_{in}^n$ This can be expanded into
+\begin{equation}
+\bar{\omega}_{in}^b + \delta \bar{\omega}_{in}^b = C_b^n(I+E^n)(\bar{\omega}_{in}^n+\delta\bar{\omega}_{in}^n).
+\end{equation}
+Using vector notation for the skew matrix, the equation above can be written as
+\begin{equation}
+\delta\bar{\omega}_{in}^b = C_n^b [\delta\bar{\omega}_{in}^n + (e^n\times)\bar{\omega}_{in}^n].
+\label{Eq.del_omega}
+\end{equation}
+Substituting Eq. \eqref{Eq.del_omega} into Eq. \eqref{Eq.error_vec}, the following is obtained
+
+\begin{equation}
+\dot{\bar{e}}^n = \delta\bar{\omega}_{in}^n -(\bar{\omega}_{in}^n \times )\bar{e}^n - C_b^n\delta \bar{\omega}_{ib}^b 
+\label{Eq.err_final}
+\end{equation}
+Then expressing the first term on the right-hand side into the position and velocity error terms explicitly, using Eq. \eqref{Eq.v_n} and \eqref{Eq.II}. The error attitude dynamics is then obtained and written as
+\begin{equation}
+\dot{\bar{e}}^n = F_{er}\delta \bar{r}^n + F_{ev}\delta \bar{v}^n - (\bar{\omega}_{in}^n \times)\bar{e}^n - C_b^n\delta\bar{\omega}_{ib}^b.
+\end{equation}
+Where $F_{er}$ and $F_{ev}$ is	
+\begin{align} = 
+F_{er} =
+\begin{bmatrix}
+-\omega_e sin(\varphi) && 0 && \frac{-v_E}{(N+h)^2}\\
+0 && 0 && \frac{v_N}{(M+h)^2} \\
+\omega_e cos(\varphi) - \frac{v_E}{(N+h)cos^2(\varphi)} && 0 && \frac{v_E tan(\varphi)}{(N+h)^2}
+\end{bmatrix}
+\label{Eq.Fer}
+\end{align}
+
+\begin{align} = 
+F_{ev} =
+\begin{bmatrix}
+0 && \frac{1}{(N+h)} && 0\\
+\frac{-1}{(M+h)} && 0 && 0\\
+0 && \frac{-tan(\varphi)}{(N+h)} && 0
+\end{bmatrix}.
+\label{Eq.Fev}
+\end{align}
+
+\subsection{Implementing the Fusion Kalman Filter}
+This system uses a feedback method to control the errors, the model can be seen in Fig. \ref{Fig:Feedback}.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{Figures/feed-back.png}
+\caption{The feedback-method which is used in the system.}
+\label{Fig:Feedback}
+\end{figure}
+Implementing a continuous Kalman Filter using integration between Inertial Navigation System and a Global Positioning System.
 \begin{align}
 \hat{\bar{x}} = F \bar{x} + G \bar{u}
 \label{eq.state_1}
 \end{align}
 Where $F$ is describing the dynamics of the system, $\bar{x}$ is the state vector, $G$ is the design matrix, $\bar{u}$ is the input matrix, i.e. forces acting on the dinghy recorded by the IMU and $\hat{\bar{x}}$ is the estimated state vector. \\
 
-Where $F$ is a $9\times 9$ matrix and $\bar{x}$ is a $9 \times 1$ is given by
+Where $F$ is a $9\times 9$ matrix and contain Eq. \eqref{Eq.Frr}, \eqref{Eq.Frv}, \eqref{Eq.Fvr}, \eqref{Eq.Fvv}, \eqref{Eq.Fer}, \eqref{Eq.Fev}$, \eqref{Eq.omega_in} \bar{x}$ is a $9 \times 1$ is given by
 \begin{align}
 F=
 \begin{bmatrix}
@@ -308,7 +509,7 @@ F_{er} & F_{ev} & -(\bar{\omega}_{in}^n\times)
 \begin{bmatrix}
 \delta\bar{r}^n \\
 \delta\bar{v}^n\\
-\delta err^n
+\delta\bar{e}^n
 \end{bmatrix}
 \end{align}
 $G$ is a $6\times6$ matrix and $\bar{u}$ is a $6 \times 1$ vector and is defined as.
@@ -334,7 +535,7 @@ Q=diag
 \label{Eq.Q}
 \end{align}
 where $\sigma^2_{a(x,y,z)}$ and $\sigma^2_{g(x,y,z)}$ is the variance for the accelerometer and gyroscope in every direction, respectively.\\
-
+	
 Since a computer does not use continuous time domain the equation has to be transformed into discrete domain. The state equation will then be expressed as
 \begin{equation}
 \hat{\bar{x}}_{k+1} = \Phi_k \bar{x}_k +  \bar{w}_k	
@@ -366,7 +567,7 @@ Q_k\approx \Phi_k GQG^T \Phi_k^T.
 \label{Eq.Q_k}
 \end{equation}
 
-If Eq. \eqref{Eq.Q} is analyzed, by increase the norm of $Q_k$ the Kalman filter trusts the measurements more than the system, which will make the output more noisy due to noise induced from the measurements, the advantages with a large norm is that the time lag will decrease. If the norm is small the measurements will be less induced with measurement noise but time lag will increase, which means that we don't trust the measurements. Determining $Q_k$ can be done by testing several different settings and from that make an assumption, but a good assumption should be that the trajectory of the output should follow the GPS data.\\
+If Eq. \eqref{Eq.Q} is analyzed, by increase the norm of $Q_k$ the Kalman Filter trusts the measurements more than the system, which will make the output more noisy due to noise induced from the measurements, the advantages with a large norm is that the time lag will decrease. If the norm is small the measurements will be less induced with measurement noise but time lag will increase, which means that we don't trust the measurements. Determining $Q_k$ can be done by testing several different settings and from that make an assumption, but a good assumption should be that the trajectory of the output should follow the GPS data.\\
 
 
 
@@ -405,7 +606,7 @@ then updating its covariance
 \begin{equation}
 P_k^- = \Phi_k P_k \Phi_k^T + Q_k^.
 \end{equation}
-Where $(._k^-)$ should be interpreted such as calculating the prediction at time $k$ given time $k-1$.\\
+Where $(_k^-)$ should be inferred such as calculating the prediction at time $k$ given time $k-1$.\\
 
 The measurement vector $z_k$ is containing the difference of velocity and position from the INS and GPS
 \begin{align}
@@ -437,7 +638,7 @@ where $\sigma_{r}^2$ and $\sigma_{v}^2$ is the variance of the position and velo
 The Kalman Filter is invoked every time the GPS is updated, i.e. $1Hz$, but since the IMU and the GPS updates at different frequencies a problem arises. The problem is such that at $t_{GPS}(k)$ there won't be a value to read from the IMU, since discrete time domain. To solve this problem a linear interpolation is done between $t_{imu}(k)$ and $t_{imu}(k+1)$, where $t_{imu}(k)$ $\leq$ $t_{GPS}(k)$ $\leq$  $t_{imu}(k+1)$. See Fig. \ref{Fig.different_update}.
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.4\textwidth]{Figures/linear.JPG}
+\includegraphics[width=0.8\textwidth]{Figures/linear.pdf}
 \caption{Different update sequences IMU and GPS}
 \label{Fig.different_update}
 \end{figure}
@@ -450,22 +651,44 @@ r_n(t_k(GPS) = r_n(t_{imu}(k)) + \frac{r_n(t_{imu}(k+1))-r_n(t_{imu}(k))}{t_{imu
  \begin{equation}
 v_n(t_k(GPS) = v_n(t_{imu}(k)) + \frac{v_n(t_{imu}(k+1))-v_n(t_{imu}(k))}{t_{imu}(k+1)-t_{imu}(k)}(t_{GPS}(k)-t_{GPS}(k)).
 \end{equation}
+\subsection{Result}
+The data provided by the Inertial Navigation System is working better than just using the raw GPS data, this can be seen in Fig. \ref{Fig:result_kalman}. In the beginning the INS is more inaccurate, but after a while tunes it self, and can follow the true line much better than the GPS. This is expected since the Kalman Filter is be the best linear, unbiased estimator.
+The GPS precision does not change over time, this is also expected (Using constant amount of satellites), since the GPS will provide an absolute position with the same standard deviation.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{Figures/result.eps}
+\caption{True VS. Filtered and raw GPS data.}
+\label{Fig:result_kalman}
+\end{figure}
 
+Inspecting the Mean Squared Error, MSE in Fig \ref{Fig:mse} the Error is high in the beginning for the filtered data but converges to a better MSE compared to GPS data. Why one should consider using only GPS is since the user will have a more constant error, hence now the performance. 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{Figures/mse.eps}
+\caption{Mean Squared Error}
+\label{Fig:mse}
+\end{figure}
+\subsection{Future Work}
+Implement a working real-time system for the sensor fusion between the GPS and INS, here one should consider computer efficient algorithms. This since the algorithm contains multiple matrix multiplications and a matrix inverse, here one should consider literature as Fundamentals of Scientific Computing, Bertil Gustafsson.\newline
 
-\subsection*{Future Work}
-Implement a working real-time system for the sensor fusion between the GPS and INS,(the INS code should be working) here one should consider computer efficient algorithms. This since the algorithm contains multiple matrix multiplications and a matrix inverse, here one should consider literature as Fundamentals of Scientific Computing, Bertil Gustafsson.\newline
-
-To obtain much more accurate information from the INS one should consider more advanced techniques for calibrating the IMU. In this case, a static calibration technique was studied. This is done by keeping the IMU in a fix position to observe the effect of gravity.
+To obtain much more accurate information from the INS one should consider more advanced techniques for calibrating the IMU. In this case, a static calibration technique was studied. This is done by keeping the IMU in a fixed position to observe the effect of gravity.
 Consider implementing a more advanced technique, e.g. using this three-stage process.
 \begin{itemize}
-\item Coarse checking or evaluation using very simple test, such as a single stationary test on a bench, to establish the variance and standard deviation of the IMU.
+\item Coarse checking or evaluation using very simple test, such as a single stationary test on a bench, to establish the variance and standard deviation of the IMU, (gravity).
 \item Static testing and studying the effects of natural phenomenon on the IMU.
-\item Dynamic testing where the IMU is subjected to motions that should resemble the conditions out on the sea, e.g. constant waves hitting the sides of the boat, constant changing acceleration.
+\item Dynamic testing where the IMU is subjected to motions that should resemble the conditions out on the sea, e.g. constant waves hitting the sides of the boat. 
+\end{itemize}
+The purpose of these more advanced calibration technique is to determine the following parameters \cite{non-linear}
+\begin{itemize}
+\item scale factors
+\item scale factor linearity
+\item null bias error
+\item axis alignment error, (might not be perfectly perpendicular)
 \end{itemize}
 Also, the dinghy's body may flex due to rough sea conditions, to solve this implement one master IMU and one slave IMU, consider literature as Strap Down Inertial Navigation Technology, D.H. Titterton and J.L. Weston as a starting point for these different calibration methods. \newline 
 
-A more advanced interpolation technique between IMU data and GPS data, here referencing to literature like Fundamentals of Scientific Computing, Bertil Gustafsson. E.g. Lagrange polynomial can be used to capture the true value much better.\newline
+A more advanced interpolation technique between IMU data and GPS data, here referencing to literature like Fundamentals of Scientific Computing, Bertil Gustafsson. E.g. Lagrange polynomial can be used to capture the true value better then using a linear interpolation.\newline
 
 
 One should also try different types of control methods to see if one can achieve more accurate results or not, e.g. feed-forward method.\\
-Weighted parameters if one believes the INS more than the GPS or vice-versa, this question arises when e.g. the GPS is connected to many/few satellites or if the user is having a large/small velocity or sensor anomalies.
+Weighted parameters if one believes the INS more than the GPS or vice-versa, this question arises when e.g. the GPS is connected to many/few satellites or if the user is having a large/small velocity or sensor anomalies. \\ \\
