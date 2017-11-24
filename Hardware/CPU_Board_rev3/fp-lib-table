@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name FOOTPRINTS)(type KiCad)(uri E:\GitHub\sailoraid\Hardware\FOOTPRINTS.pretty)(options "")(descr ""))
+  (lib (name Buttons_Switches_THT)(type KiCad)(uri E:\GitHub\sailoraid\Hardware\FOOTPRINTS.pretty\Buttons_Switches_THT.pretty)(options "")(descr ""))
+)
