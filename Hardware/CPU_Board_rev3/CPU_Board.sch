@@ -8,8 +8,12 @@ LIBS:stm32f4
 LIBS:stm32f100
 LIBS:power
 LIBS:device
+LIBS:transistors
+LIBS:conn
 LIBS:linear
 LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
 LIBS:adc-dac
 LIBS:memory
 LIBS:xilinx
@@ -24,11 +28,14 @@ LIBS:audio
 LIBS:interface
 LIBS:digital-audio
 LIBS:philips
+LIBS:display
 LIBS:cypress
 LIBS:siliconi
 LIBS:opto
 LIBS:atmel
 LIBS:contrib
+LIBS:valves
+LIBS:a2235-h
 LIBS:MOSFET_depleted
 LIBS:misc_rfcom
 LIBS:IMU_Circuit
@@ -599,10 +606,10 @@ NoConn ~ 12150 3500
 NoConn ~ 10000 2850
 NoConn ~ 12150 3400
 NoConn ~ 12150 3300
-Text Notes 12300 3300 0    60   ~ 0
+Text Notes 12300 3350 0    60   ~ 0
 Timekeeping?\n 1PPS signal
 NoConn ~ 12150 3200
-Text Notes 12250 3050 0    60   ~ 0
+Text Notes 12200 3100 0    60   ~ 0
 For I2C use
 Text Notes 9150 1700 0    60   ~ 0
 GPS: A2235-H  schematic             Datasheet:\nhttp://www.mouser.com/catalog/specsheets/EVA2235-H.pdf
@@ -690,7 +697,7 @@ L C_Small C25
 U 1 1 59BCA5E4
 P 12350 6450
 F 0 "C25" H 12360 6520 50  0000 L CNN
-F 1 "220nF" H 12360 6370 50  0000 L CNN
+F 1 "100nF" H 12360 6370 50  0000 L CNN
 F 2 "Capacitors_SMD:C_0805_HandSoldering" H 12350 6450 50  0001 C CNN
 F 3 "" H 12350 6450 50  0001 C CNN
 	1    12350 6450
@@ -2097,35 +2104,24 @@ Aimed for: 5.36 kohm
 $Comp
 L R_Small R13
 U 1 1 59EE0085
-P 12800 14400
-F 0 "R13" H 12830 14420 50  0000 L CNN
-F 1 "5k" V 12800 14350 50  0000 L CNN
-F 2 "Resistors_SMD:R_0805_HandSoldering" H 12800 14400 50  0001 C CNN
-F 3 "" H 12800 14400 50  0001 C CNN
-	1    12800 14400
-	1    0    0    -1  
-$EndComp
-$Comp
-L POT RV2
-U 1 1 59EE02F1
-P 12650 14400
-F 0 "RV2" V 12550 14400 50  0000 C CNN
-F 1 "360" V 12650 14400 50  0000 C CNN
-F 2 "Potentiometers:Potentiometer_Trimmer_Bourns_PV36W" H 12650 14400 50  0001 C CNN
-F 3 "" H 12650 14400 50  0001 C CNN
-	1    12650 14400
-	-1   0    0    1   
+P 12750 14500
+F 0 "R13" V 12700 14450 50  0000 L CNN
+F 1 "5k" V 12750 14450 50  0000 L CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" H 12750 14500 50  0001 C CNN
+F 3 "" H 12750 14500 50  0001 C CNN
+	1    12750 14500
+	0    1    1    0   
 $EndComp
 $Comp
 L R_Small R10
 U 1 1 59EE4BA3
-P 10300 14400
-F 0 "R10" H 10330 14420 50  0000 L CNN
-F 1 "5k" V 10300 14350 50  0000 L CNN
-F 2 "Resistors_SMD:R_0805_HandSoldering" H 10300 14400 50  0001 C CNN
-F 3 "" H 10300 14400 50  0001 C CNN
-	1    10300 14400
-	1    0    0    -1  
+P 10250 14300
+F 0 "R10" V 10300 14300 50  0000 L CNN
+F 1 "5k" V 10250 14250 50  0000 L CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" H 10250 14300 50  0001 C CNN
+F 3 "" H 10250 14300 50  0001 C CNN
+	1    10250 14300
+	0    1    1    0   
 $EndComp
 $Comp
 L POT RV1
@@ -2475,11 +2471,11 @@ Wire Notes Line
 Wire Notes Line
 	12150 3150 12200 3150
 Wire Notes Line
-	12250 3300 12300 3300
+	12250 3350 12300 3350
 Wire Notes Line
 	12250 3200 12200 3200
 Wire Notes Line
-	12250 3100 12250 3300
+	12250 3150 12250 3350
 Wire Notes Line
 	12300 3100 12250 3100
 Wire Notes Line
@@ -3057,11 +3053,8 @@ Wire Wire Line
 Connection ~ 13900 2900
 Connection ~ 11350 14700
 Connection ~ 11350 14100
-Connection ~ 12800 14300
 Wire Wire Line
 	9600 14450 9900 14450
-Connection ~ 10300 14300
-Connection ~ 10300 14500
 Wire Notes Line
 	12600 13050 12900 13050
 Wire Notes Line
@@ -3112,27 +3105,10 @@ Wire Wire Line
 Wire Wire Line
 	10300 14500 10350 14500
 Wire Wire Line
-	10000 14300 10350 14300
-Wire Wire Line
 	10150 14300 10150 14350
 Wire Wire Line
 	10000 14500 10000 14300
 Connection ~ 10150 14300
-Wire Wire Line
-	12800 14500 12850 14500
-Wire Wire Line
-	12650 14250 12800 14250
-Wire Wire Line
-	12800 14250 12800 14300
-Wire Wire Line
-	12800 14300 12850 14300
-Wire Wire Line
-	12800 14550 12800 14500
-Wire Wire Line
-	12500 14550 12800 14550
-Wire Wire Line
-	12500 14550 12500 14400
-Connection ~ 12650 14550
 Wire Wire Line
 	3400 7250 4050 7250
 Wire Wire Line
@@ -3672,44 +3648,65 @@ F 3 "" H 15400 13200 50  0001 C CNN
 	1    15400 13200
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	9550 3150 9550 4550
-Wire Wire Line
-	9550 4550 13500 4550
 Connection ~ 9800 3150
 $Comp
-L R R?
+L R R22
 U 1 1 5A18D583
-P 13050 3000
-F 0 "R?" V 13130 3000 50  0000 C CNN
-F 1 "2.2k" V 13050 3000 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805_HandSoldering" V 12980 3000 50  0001 C CNN
-F 3 "" H 13050 3000 50  0001 C CNN
-	1    13050 3000
+P 13200 3000
+F 0 "R22" V 13280 3000 50  0000 C CNN
+F 1 "2.2k" V 13200 3000 50  0000 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 13130 3000 50  0001 C CNN
+F 3 "" H 13200 3000 50  0001 C CNN
+	1    13200 3000
 	0    1    1    0   
 $EndComp
 $Comp
-L R R?
+L R R20
 U 1 1 5A18E2EE
-P 13350 3100
-F 0 "R?" V 13430 3100 50  0000 C CNN
-F 1 "2.2k" V 13350 3100 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805_HandSoldering" V 13280 3100 50  0001 C CNN
-F 3 "" H 13350 3100 50  0001 C CNN
-	1    13350 3100
+P 12950 3100
+F 0 "R20" V 13030 3100 50  0000 C CNN
+F 1 "2.2k" V 12950 3100 50  0000 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 12880 3100 50  0001 C CNN
+F 3 "" H 12950 3100 50  0001 C CNN
+	1    12950 3100
 	0    1    1    0   
 $EndComp
-Wire Wire Line
-	13500 4550 13500 3000
-Wire Wire Line
-	13500 3000 13200 3000
-Connection ~ 13500 3100
 Wire Wire Line
 	13900 2900 13800 2900
 Wire Notes Line
 	12200 3150 12200 2950
 Wire Wire Line
-	12900 3000 12150 3000
+	13050 3000 12150 3000
 Wire Wire Line
-	13200 3100 12150 3100
+	12800 3100 12150 3100
+Text Label 9550 3150 0    60   ~ 0
+GPS_Vout
+Text Label 13400 3100 0    60   ~ 0
+GPS_Vout
+Wire Wire Line
+	13350 3000 13350 3100
+Wire Wire Line
+	13100 3100 13400 3100
+Connection ~ 13350 3100
+Wire Wire Line
+	12850 14300 12800 14300
+Wire Wire Line
+	12650 14450 12650 14500
+$Comp
+L POT RV2
+U 1 1 59EE02F1
+P 12650 14300
+F 0 "RV2" V 12550 14300 50  0000 C CNN
+F 1 "360" V 12650 14300 50  0000 C CNN
+F 2 "Potentiometers:Potentiometer_Trimmer_Bourns_PV36W" H 12650 14300 50  0001 C CNN
+F 3 "" H 12650 14300 50  0001 C CNN
+	1    12650 14300
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	12500 14300 12500 14500
+Wire Wire Line
+	12500 14500 12650 14500
+Wire Wire Line
+	10000 14300 10150 14300
 $EndSCHEMATC
