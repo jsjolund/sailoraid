@@ -82,6 +82,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 #define USB_IMU_OUTPUT_RATE 60.0
 #define USB_RANGE_OUTPUT_RATE 10.0
 #define USB_MATLAB_OUTPUT_RATE 100.0
+#define USB_ADC_OUTPUT_RATE 10.0
 #define BT_ENV_OUTPUT_RATE 1.0
 #define BT_GPS_OUTPUT_RATE 1.0
 #define BT_IMU_OUTPUT_RATE 50.0
@@ -90,7 +91,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 extern volatile uint8_t set_connectable;
 extern volatile int connected;
 volatile uint8_t adcFinished = 1;
-volatile uint8_t adcValues[] = { 0, 0, 0, 0 };
+volatile uint32_t adcValues[] = { 0, 0 };
 SensorState_t sensor;
 
 typedef struct Task_Data
@@ -127,6 +128,7 @@ static Task_Data usbGpsOutputTask = { .period = (uint32_t) (1000000.0 / USB_GPS_
 static Task_Data usbImuOutputTask = { .period = (uint32_t) (1000000.0 / USB_IMU_OUTPUT_RATE) };
 static Task_Data usbRangeOutputTask = { .period = (uint32_t) (1000000.0 / USB_RANGE_OUTPUT_RATE) };
 static Task_Data usbMatlabOutputTask = { .period = (uint32_t) (1000000.0 / USB_MATLAB_OUTPUT_RATE) };
+static Task_Data usbAdcOutputTask = { .period = (uint32_t) (1000000.0 / USB_MATLAB_OUTPUT_RATE) };
 static Task_Data btEnvOutputTask = { .period = (uint32_t) (1000000.0 / BT_ENV_OUTPUT_RATE) };
 static Task_Data btGpsOutputTask = { .period = (uint32_t) (1000000.0 / BT_GPS_OUTPUT_RATE) };
 static Task_Data btImuOutputTask = { .period = (uint32_t) (1000000.0 / BT_IMU_OUTPUT_RATE) };
@@ -153,9 +155,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
   // ADC has finished reading and converting the values on the four pins
   adcValues[0] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-//  adcValues[1] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_2);
-//  adcValues[2] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_3);
-//  adcValues[3] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_4);
+  adcValues[1] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_2);
   adcFinished = 1;
 }
 
@@ -199,6 +199,11 @@ void MATLABecho(BOOL echo)
   SetEcho(echo, &usbMatlabOutputTask);
 }
 
+void ADCecho(BOOL echo)
+{
+  SetEcho(echo, &usbAdcOutputTask);
+}
+
 /**
  * @brief  EXTI line detection callback.
  * @param  Specifies the pins connected EXTI line
@@ -212,6 +217,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     HCI_Isr();
     break;
   case USER_BUTTON_Pin:
+    printf("Button pressed\r\n");
     break;
   default:
     break;
@@ -224,10 +230,13 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  memset(&sensor, 0, sizeof(SensorState_t));
   SensorAxes_t ACC_Value; /*!< Acceleration Value */
   SensorAxes_t GYR_Value; /*!< Gyroscope Value */
   SensorAxes_t MAG_Value; /*!< Magnetometer Value */
+  memset(&sensor, 0, sizeof(SensorState_t));
+  memset(&ACC_Value, 0, sizeof(GYR_Value));
+  memset(&MAG_Value, 0, sizeof(MAG_Value));
+  memset(&MAG_Value, 0, sizeof(MAG_Value));
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -265,7 +274,6 @@ int main(void)
 
   /* Configure LED2 */
   BSP_LED_Init(LED2);
-
   /* Configure the User Button in GPIO Mode */
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
 
@@ -323,13 +331,13 @@ int main(void)
       sensor.imu.pitch = -MadgwickGetPitch();
       sensor.imu.yaw = -MadgwickGetYaw();
     }
-    if (taskTimeout(&envSampleTask, &htim2))
-    {
-      // Update environment sensors
-      Pressure_Sensor_Handler(&sensor.env.pressure);
-      Humidity_Sensor_Handler(&sensor.env.humidity);
-      Temperature_Sensor_Handler(&sensor.env.temperature);
-    }
+//    if (taskTimeout(&envSampleTask, &htim2))
+//    {
+//      // Update environment sensors
+//      Pressure_Sensor_Handler(&sensor.env.pressure);
+//      Humidity_Sensor_Handler(&sensor.env.humidity);
+//      Temperature_Sensor_Handler(&sensor.env.temperature);
+//    }
     if (adcFinished && (taskTimeout(&adcSampleTask, &htim2)))
     {
       // Update ADC
@@ -361,15 +369,15 @@ int main(void)
       GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation, sensor.gps.pos.speed, sensor.gps.pos.direction);
       HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
     }
-    if (taskTimeout(&btEnvOutputTask, &htim2))
-    {
-      Temp_Update(sensor.env.temperature);
-      Humidity_Update(sensor.env.humidity);
-      Press_Update(sensor.env.pressure);
-    }
+//    if (taskTimeout(&btEnvOutputTask, &htim2))
+//    {
+//      Temp_Update(sensor.env.temperature);
+//      Humidity_Update(sensor.env.humidity);
+//      Press_Update(sensor.env.pressure);
+//    }
     if (taskTimeout(&btRangeOutputTask, &htim2))
     {
-      Range_Update(sensor.range.range0);
+      Range_Update(123.123);
     }
     if (usbImuOutputTask.echo && taskTimeout(&usbImuOutputTask, &htim2))
     {
@@ -403,6 +411,9 @@ int main(void)
       char sync[] = { 0xff, 0xff, 0xff, 0xff };
       SerialUsbTransmit(sync, 4);
     }
+    if (usbAdcOutputTask.echo && taskTimeout(&usbAdcOutputTask, &htim2)) {
+      printf("adc %d, %d\r\n", adcValues[0], adcValues[1]);
+    }
   }
   /* USER CODE END 3 */
 
@@ -425,7 +436,7 @@ void SystemClock_Config(void)
     /**Initializes the CPU, AHB and APB busses clocks 
     */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 8;
@@ -474,14 +485,14 @@ static void MX_ADC1_Init(void)
     */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
-  hadc1.Init.Resolution = ADC_RESOLUTION_8B;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = ENABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 2;
   hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -493,7 +504,16 @@ static void MX_ADC1_Init(void)
     */
   sConfig.Channel = ADC_CHANNEL_14;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
+    */
+  sConfig.Channel = ADC_CHANNEL_15;
+  sConfig.Rank = 2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -503,13 +523,22 @@ static void MX_ADC1_Init(void)
     */
   sConfigInjected.InjectedChannel = ADC_CHANNEL_14;
   sConfigInjected.InjectedRank = 1;
-  sConfigInjected.InjectedNbrOfConversion = 1;
-  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_112CYCLES;
+  sConfigInjected.InjectedNbrOfConversion = 2;
+  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_28CYCLES;
   sConfigInjected.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONVEDGE_NONE;
   sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
   sConfigInjected.AutoInjectedConv = DISABLE;
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
   sConfigInjected.InjectedOffset = 0;
+  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
+    */
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_15;
+  sConfigInjected.InjectedRank = 2;
   if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -522,7 +551,7 @@ static void MX_I2C1_Init(void)
 {
 
   hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 400000;
+  hi2c1.Init.ClockSpeed = MAIN_I2C_SPEED;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -549,7 +578,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -678,10 +707,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPS_NRST_Pin|GPS_ON_OFF_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPS_NRST_GPIO_Port, GPS_NRST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, BNRG_SPI_CS_Pin|LED2_Pin|BNRG_SPI_RESET_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, BNRG_SPI_CS_Pin|LED2_Pin|BNRG_SPI_RESET_Pin|GPS_ON_OFF_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(RANGE_SHDN_GPIO_Port, RANGE_SHDN_Pin, GPIO_PIN_SET);
@@ -699,51 +728,42 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPS_NRST_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : M_INT2_O_Pin */
-  GPIO_InitStruct.Pin = M_INT2_O_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(M_INT2_O_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pin : BNRG_SPI_IRQ_Pin */
   GPIO_InitStruct.Pin = BNRG_SPI_IRQ_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BNRG_SPI_IRQ_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : BNRG_SPI_CS_Pin */
-  GPIO_InitStruct.Pin = BNRG_SPI_CS_Pin;
+  /*Configure GPIO pins : BNRG_SPI_CS_Pin BNRG_SPI_RESET_Pin */
+  GPIO_InitStruct.Pin = BNRG_SPI_CS_Pin|BNRG_SPI_RESET_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(BNRG_SPI_CS_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED2_Pin BNRG_SPI_RESET_Pin */
-  GPIO_InitStruct.Pin = LED2_Pin|BNRG_SPI_RESET_Pin;
+  /*Configure GPIO pins : LED2_Pin GPS_ON_OFF_Pin */
+  GPIO_InitStruct.Pin = LED2_Pin|GPS_ON_OFF_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LPS22H_INT1_O_Pin LSM6DSL_INT2_O_Pin LSM6DSL_INT1_O_Pin */
-  GPIO_InitStruct.Pin = LPS22H_INT1_O_Pin|LSM6DSL_INT2_O_Pin|LSM6DSL_INT1_O_Pin;
+  /*Configure GPIO pins : LPS22H_INT1_O_Pin LSM6DSL_INT1_O_Pin LSM6DSL_INT2_O_Pin */
+  GPIO_InitStruct.Pin = LPS22H_INT1_O_Pin|LSM6DSL_INT1_O_Pin|LSM6DSL_INT2_O_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : GPS_ON_OFF_Pin RANGE_SHDN_Pin */
-  GPIO_InitStruct.Pin = GPS_ON_OFF_Pin|RANGE_SHDN_Pin;
+  /*Configure GPIO pin : RANGE_SHDN_Pin */
+  GPIO_InitStruct.Pin = RANGE_SHDN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(RANGE_SHDN_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
 
   HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);

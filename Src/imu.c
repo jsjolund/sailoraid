@@ -136,21 +136,24 @@ void Temperature_Sensor_Handler(float *TEMPERATURE_Value)
 void IMUinit(void)
 {
   /* Try to use automatic discovery. By default use LSM6DSL on board */
-  BSP_ACCELERO_Init(ACCELERO_SENSORS_AUTO, &ACCELERO_handle);
+  if (BSP_ACCELERO_Init(ACCELERO_SENSORS_AUTO, &ACCELERO_handle) != COMPONENT_OK)
+    printf("ERROR ACC INIT\n");
   /* Try to use automatic discovery. By default use LSM6DSL on board */
-  BSP_GYRO_Init(GYRO_SENSORS_AUTO, &GYRO_handle);
+  if (BSP_GYRO_Init(GYRO_SENSORS_AUTO, &GYRO_handle) != COMPONENT_OK)
+     printf("ERROR GYRO INIT\n");
   /* Try to use automatic discovery. By default use LSM303AGR on board */
-  BSP_MAGNETO_Init(MAGNETO_SENSORS_AUTO, &MAGNETO_handle);
+  if (BSP_MAGNETO_Init(MAGNETO_SENSORS_AUTO, &MAGNETO_handle) != COMPONENT_OK)
+    printf("ERROR MAG INIT\n");
   /* Try to use automatic discovery. By default use HTS221 on board */
-  BSP_HUMIDITY_Init(HUMIDITY_SENSORS_AUTO, &HUMIDITY_handle);
-  /* Try to use automatic discovery. By default use HTS221 on board */
-  BSP_TEMPERATURE_Init(TEMPERATURE_SENSORS_AUTO, &TEMPERATURE_handle);
-  /* Try to use automatic discovery. By default use LPS22HB on board */
-  BSP_PRESSURE_Init(PRESSURE_SENSORS_AUTO, &PRESSURE_handle);
+//  BSP_HUMIDITY_Init(HUMIDITY_SENSORS_AUTO, &HUMIDITY_handle);
+//  /* Try to use automatic discovery. By default use HTS221 on board */
+//  BSP_TEMPERATURE_Init(TEMPERATURE_SENSORS_AUTO, &TEMPERATURE_handle);
+//  /* Try to use automatic discovery. By default use LPS22HB on board */
+//  BSP_PRESSURE_Init(PRESSURE_SENSORS_AUTO, &PRESSURE_handle);
 
-  BSP_PRESSURE_Sensor_Enable(PRESSURE_handle);
-  BSP_HUMIDITY_Sensor_Enable(HUMIDITY_handle);
-  BSP_TEMPERATURE_Sensor_Enable(TEMPERATURE_handle);
+//  BSP_PRESSURE_Sensor_Enable(PRESSURE_handle);
+//  BSP_HUMIDITY_Sensor_Enable(HUMIDITY_handle);
+//  BSP_TEMPERATURE_Sensor_Enable(TEMPERATURE_handle);
   BSP_ACCELERO_Sensor_Enable(ACCELERO_handle);
   BSP_GYRO_Sensor_Enable(GYRO_handle);
   BSP_MAGNETO_Sensor_Enable(MAGNETO_handle);

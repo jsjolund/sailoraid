@@ -166,6 +166,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
     ENVecho(FALSE);
     RangeEcho(FALSE);
     MATLABecho(FALSE);
+    ADCecho(FALSE);
     h = &usbHandle;
   }
   else if (huartHandle == gpsHandle.huart)
@@ -198,6 +199,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
     {
       h->rxString[h->rxIndex++] = '\r';
       h->rxString[h->rxIndex++] = '\n';
+//      SerialUsbTransmit(row, strlen(row));
       GPSparse(row, strlen(row), &gpsInfo, &sensor.gps);
     }
     else if (h == &usbHandle)

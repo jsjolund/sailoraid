@@ -22,6 +22,10 @@ void ShellExecute(char* string)
   {
     GPSecho(TRUE);
   }
+  else if (strlen(token) == 3 && strncmp(token, "adc", 1) == 0)
+  {
+    ADCecho(TRUE);
+  }
   else if (strlen(token) == 3 && strncmp(token, "env", 1) == 0)
   {
     ENVecho(TRUE);

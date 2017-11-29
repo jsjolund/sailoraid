@@ -457,13 +457,8 @@ static void I2C_EXPBD_Error( uint8_t Addr )
 {
 
   printf("ERROR CODE %d I2C1\n", (int) I2C_EXPBD_Handle.ErrorCode);
-  I2C_Module i2c;
-  i2c.instance = &I2C_EXPBD_Handle;
-  i2c.sclPin = I2C_SCL_Pin;
-  i2c.sclPort = I2C_SCL_GPIO_Port;
-  i2c.sdaPin = I2C_SDA_Pin;
-  i2c.sdaPort = I2C_SDA_GPIO_Port;
-  I2C_ClearBusyFlagErratum(&i2c);
+
+  I2C_ClearBusyFlagErratum();
 
 //  /* De-initialize the I2C comunication bus */
 //  HAL_I2C_DeInit( &I2C_EXPBD_Handle );
