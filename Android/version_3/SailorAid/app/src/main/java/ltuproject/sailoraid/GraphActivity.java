@@ -26,7 +26,7 @@ import java.util.List;
 
 
 public class GraphActivity extends AppCompatActivity {
-    List<String[]> inclineList, pressureList, sogList, compassList, humList, tempList, driftList, waveList;
+    List<String[]> inclineList, pressureList, sogList, compassList, humList, tempList, driftList, waveList, rangeList;
     ProgressBar progress;
 
 
@@ -58,7 +58,8 @@ public class GraphActivity extends AppCompatActivity {
         HistoryActivity.getDriftData(driftList);
         waveList = new ArrayList<>();
         HistoryActivity.getWavesData(waveList);
-
+        rangeList = new ArrayList<>();
+        HistoryActivity.getRangeData(rangeList);
     }
 
     public void populateChosenGraph(List<String[]> dataList, final int view, final String title, final String vLabel, int millis, final int horLabels){
@@ -196,6 +197,15 @@ public class GraphActivity extends AppCompatActivity {
                 if (!item.isChecked()){
                     item.setChecked(true);
                     new ProgressTask().execute(humList, R.id.graph_hum,"Humidity", "%", 0, 3);
+                } else{
+                    item.setChecked(false);
+                    removeChosenGraph(R.id.graph_hum);
+                }
+                return true;
+            case R.id.range_enable:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    new ProgressTask().execute(rangeList, R.id.graph_range,"Range", "cm", 0, 3);
                 } else{
                     item.setChecked(false);
                     removeChosenGraph(R.id.graph_hum);

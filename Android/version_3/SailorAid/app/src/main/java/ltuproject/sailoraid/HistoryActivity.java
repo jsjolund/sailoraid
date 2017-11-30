@@ -60,6 +60,7 @@ public class HistoryActivity extends AppCompatActivity {
     private ArrayList<String[]> tempDataList;
     private ArrayList<String[]> humDataList;
     private ArrayList<String[]> driftDataList;
+    private ArrayList<String[]> rangeDataList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -269,6 +270,14 @@ public class HistoryActivity extends AppCompatActivity {
             logInclineData.add(heel);
         }}
     }
+    private void setRangeData(){
+        ArrayList<String[]> rangeList = new ArrayList<String[]>();
+        rangeList = mLogService.getRangeDataList();
+        logRangeData.clear();
+        for (String[] heel : rangeList){{
+            logRangeData.add(heel);
+        }}
+    }
 
     private void setPressureData(){
         ArrayList<String[]> pressureList = mLogService.getPressureDataList();
@@ -306,6 +315,20 @@ public class HistoryActivity extends AppCompatActivity {
             logWavesData.add(per);
         }}
     }
+    private void setTempData(){
+        ArrayList<String[]> tempList = mLogService.getTempDataList();
+        logTempData.clear();
+        for (String[] per : tempList){{
+            logTempData.add(per);
+        }}
+    }
+    private void setHumData(){
+        ArrayList<String[]> humList = mLogService.getHumDataList();
+        logHumData.clear();
+        for (String[] per : humList){{
+            logHumData.add(per);
+        }}
+    }
     static private List<String[]> logInclineData = new ArrayList<String[]>();
     public static void getInclineData(List<String[]> output) {
         output.addAll(logInclineData);
@@ -337,6 +360,10 @@ public class HistoryActivity extends AppCompatActivity {
     static private List<String[]> logWavesData = new ArrayList<String[]>();
     public static void getWavesData(List<String[]> output) {
         output.addAll(logWavesData);
+    }
+    static private List<String[]> logRangeData = new ArrayList<String[]>();
+    public static void getRangeData(List<String[]> output) {
+        output.addAll(logRangeData);
     }
     private void showTextViews(){
         TextView maxIncText = findViewById(R.id.maxIncText);
@@ -388,6 +415,10 @@ public class HistoryActivity extends AppCompatActivity {
         setPressureData();
         setCompassData();
         setDriftData();
+        setWavesData();
+        setRangeData();
+        setTempData();
+        setHumData();
         calcSailorScore();
     }
 

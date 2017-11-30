@@ -81,7 +81,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:visibility="gone"
-
                 app:layout_constraintTop_toBottomOf="@id/graph_compass"
                 android:id="@+id/graph_drift" />
             <com.jjoe64.graphview.GraphView
@@ -90,7 +89,12 @@
                 android:visibility="gone"
                 app:layout_constraintTop_toBottomOf="@id/graph_drift"
                 android:id="@+id/graph_wave" />
-
+            <com.jjoe64.graphview.GraphView
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/graph_wave"
+                android:id="@+id/graph_range" />
         </LinearLayout>
 
     </android.support.v4.widget.NestedScrollView>

@@ -36,7 +36,6 @@ public class SampleGattAttributes {
     public static String TEMP_MEASUREMENT =         "a32e5520-e477-11e2-a9e3-0002a5d5c51b";
     public static String PRESSURE_MEASUREMENT =     "cd20c480-e48b-11e2-840b-0002a5d5c51b";
     public static String HUMIDITY_MEASUREMENT =     "01c50b60-e48c-11e2-a073-0002a5d5c51b";
-    public static String BATTERY_MEASUREMENT =     "01c50b60-e48c-11e2-a073-0002a5d5c51b";
 
     public static String ACCELEROMETER_MEASUREMENT ="340a1b80-cf4b-11e1-ac36-0002a5d5c51b";
     public static String COMPASS_MEASUREMENT =      "340a1b81-cf4b-11e1-ac36-0002a5d5c51b";
@@ -45,6 +44,7 @@ public class SampleGattAttributes {
     public static String FREE_FALL_MEASUREMENT =    "e23e78a0-cf4a-11e1-8ffc-0002a5d5c51b";
 
     public static String NUCLEO_GPS_MEASUREMENT = "aabb1b80-cf4b-11e1-ac36-0002a5d5c51b";
+    public static String BATTERY_MEASUREMENT =     "01c50b60-e48c-11e2-a073-0002a5d5c51b";
 
     public static String NUCLEO_RANGE_MEASUREMENT = "23bb1b80-cf4b-11e1-ac36-0002a5d5c51b";
 
