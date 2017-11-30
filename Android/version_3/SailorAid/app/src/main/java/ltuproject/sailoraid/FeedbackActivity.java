@@ -1,8 +1,5 @@
 package ltuproject.sailoraid;
 
-import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
@@ -11,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -20,8 +16,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
+import android.speech.tts.UtteranceProgressListener;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -31,7 +26,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -40,8 +34,6 @@ import android.widget.ViewFlipper;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -50,8 +42,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-
-import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -63,7 +53,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import ltuproject.sailoraid.bluetooth.BTHandler;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
 import ltuproject.sailoraid.bluetooth.SampleGattAttributes;
 import ltuproject.sailoraid.datalog.SailLog;
@@ -76,6 +65,7 @@ import static java.lang.Math.sin;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_BATTERY;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_COMPASS;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_DRIFT;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_ESTPOSITION;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_FREE_FALL;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_HUMIDITY;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_INCLINE;
@@ -97,8 +87,6 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     private static final float BOAT_SCALE_Y = 2.8f;
     private static final float NEEDLE_SCALE_X = 2.8f;
     private static final float NEEDLE_SCALE_Y = 1.0f;
-    private static final float COMPASS_SCALE_X = 3.2f;
-    private static final float COMPASS_SCALE_Y = 3.2f;
     private static final float COMPASS_BOAT_SCALE_X = 1.6f;
     private static final float COMPASS_BOAT_SCALE_Y = 1.8f;
     private static final float DRIFT_ARROW_SCALE_X = 1.0f;
@@ -127,15 +115,13 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     private static final float GRAPHIC_SPEED_X_SCALE = 6.0f;
     private static final float GRAPHIC_SPEED_Y_SCALE = 0.2f;
     private static final float GRAPHIC_DRIFT_ARROW_CENTER = 6.2f;
-    private static final float KM_TO_KNOTS = 1/1.852f;
-    private boolean isWaving = false;
-    private float wavePos = 0;
+    public static final float KM_TO_KNOTS = 1/1.852f;
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
-    private static final int INTERVAL = 3000;
+    private static final int INTERVAL = 250;
     private static final int UNINITIALIZED = 9999;
-    private int mInterval = 1000; // 1 seconds by default, can be changed later
+    private int mInterval = 1000;
 
     private enum ViewStates {SIMPLE, INCLINE, MAP, GRAPHIC}
     private enum FeedbackStates {CLEAR, HEEL, DRIFT, HAULING, REEFING, HARDWIND}
@@ -163,30 +149,39 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     private Bundle mSavedInstaceStare;
     private String prevTime;
     private int lastView = 0;
-    private List<Float> waveData = new ArrayList<Float>();
+    static private List<Float> waveData = new ArrayList<Float>();
+    public static synchronized void getWaveData(List<Float> output) {
+        output.addAll(waveData);
+    }
     private List<Float> filteredData = new ArrayList<Float>();
     private List<Float> sogData = new ArrayList<>();
     private float wavePeriod;
+    private boolean isWaving = false;
+    private float wavePos = 0;
+    private boolean isSpeaking = false;
     /*
     Sensor variables
      */
     private float inclineX, inclineY, bearingZ;
     private float direction, speed;
     private double drift;
-    private float pressure;
+    private float pressure, leftPressure, rightPressure;
     private float range;
     private float batteryPower;
     private LatLng nextEstimate = new LatLng(0,0);
     private LatLng gpsPos = new LatLng(0,0);
     private Button btnMap;
-    private TextToSpeech txtToSpeech1;
+    private TextToSpeech txtToSpeech;
     private int startFlag = 0;
     private GoogleMap mMap;
-
+    HashMap<String, String> map = new HashMap<String, String>();
     private boolean enableVoice = false;
     private boolean enableVibration = false;
     //Location variables
-
+    static private List<LatLng> estimatedRoute = new ArrayList<LatLng>();
+    public static synchronized void getEstimatedRoute(List<LatLng> output) {
+        output.addAll(estimatedRoute);
+    }
     static private List<LatLng> travelRoute = new ArrayList<LatLng>();
     public static synchronized void getRoute(List<LatLng> output) {
         output.addAll(travelRoute);
@@ -217,11 +212,26 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         mVibratorHandler = new Handler();
         mWaveHandler = new Handler();
 
-        txtToSpeech1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+        txtToSpeech=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                if(status != TextToSpeech.ERROR) {
-                    txtToSpeech1.setLanguage(Locale.UK);
+                txtToSpeech.setLanguage(Locale.UK);
+                if (status == TextToSpeech.SUCCESS) {
+                    txtToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onDone(String utteranceId) {
+                            isSpeaking = false;
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                        }
+
+                        @Override
+                        public void onStart(String utteranceId) {
+                            isSpeaking = true;
+                        }
+                    });
                 }
             }
         });
@@ -333,11 +343,39 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         super.onDestroy();
         this.unregisterReceiver(mGattUpdateReceiver);
         stopRepeatingTask();
+        clearBitmaps();
+        Runtime.getRuntime().gc();
         if (mLogServiceConnection!= null){
             unbindService(mLogServiceConnection);
         }
+        if (mServiceConnection != null){
+            unbindService(mServiceConnection);
+        }
     }
 
+    public void clearBitmaps(){
+        if(mInclineBoatView != null){
+            mInclineBoatView.clearBitmap();
+        }
+        if(mCompassView != null){
+            mCompassView.clearBitmap();
+        }
+        if(mSpeedView != null){
+            mSpeedView.clearBitmap();
+        }
+        if(mDaggerView != null){
+            mDaggerView.clearBitmap();
+        }
+        if(mRightDriftView != null){
+            mRightDriftView.clearBitmap();
+        }
+        if(mLeftDriftView != null){
+            mLeftDriftView.clearBitmap();
+        }
+        if(mPressureNeedleView != null){
+            mPressureNeedleView.clearBitmap();
+        }
+    }
     @Override
     public void onLowMemory() {
         super.onLowMemory();
@@ -413,8 +451,8 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 if (!logging && (mBluetoothLeService.getConnectionStatus() == STATE_CONNECTED)){
                     logging = true;
                     Toast.makeText(getApplicationContext(), "Logging started!", Toast.LENGTH_SHORT).show();
-                    Intent logServiceIntent = new Intent(getApplicationContext(), SailLog.class);
                     if(mLogService != null){
+                        Intent logServiceIntent = new Intent(getApplicationContext(), SailLog.class);
                         startService(logServiceIntent);
                     }
                     item.setIcon(getDrawable(R.drawable.loggo));
@@ -473,6 +511,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     private void hideFromView(int id, RotatableGLView view){
         LinearLayout linearPressureLayout = findViewById(id);
         linearPressureLayout.removeView(view.getGlView());
+        view.clearBitmap();
         view.getGlView().onPause();
         view.clearRenderer();
     }
@@ -752,20 +791,22 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                         mWaveRunner.run();
                     }
                 }
-                if (mCurrentViewState == ViewStates.SIMPLE
-                        ||mCurrentViewState == ViewStates.INCLINE){
-                    waveData.add(inclineY);
-                    if(waveData.size() > 500){
-                        wavePeriod = calculateWaveFrequency(waveData);
-                        for (int i = 0; i<25; i++){
-                            waveData.remove(0);
+                waveData.add(inclineY);
+                if(waveData.size() > 500){
+                    wavePeriod = calculateWaveFrequency(waveData);
+                    for (int i = 0; i<25; i++){
+                        waveData.remove(0);
+                    }
+                    if (mLogService != null){
+                        if(mLogService.isLogging()){
+                            mLogService.writeToLog(DATA_TYPE_WAVES +":" +time +":" +this.wavePeriod);
                         }
                     }
                 }
                 if (mCurrentViewState == ViewStates.INCLINE
                         || mCurrentViewState == ViewStates.MAP
                         || mCurrentViewState == ViewStates.GRAPHIC){
-                    mCompassView.rotateGl((int) bearingZ);
+                    mCompassView.rotateGl(abs(bearingZ));
                     mCompassView.getGlView().requestRender();
                 }
                 //float positionBoat = this.x / 100;
@@ -774,12 +815,10 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 if(mLogService != null){
                     if (mLogService.isLogging()){
                         mLogService.writeToLog(DATA_TYPE_INCLINE +":" +time  +":" +this.inclineX);
-                        mLogService.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +this.bearingZ);
-                        mLogService.writeToLog(DATA_TYPE_WAVES +":" +time +":" +this.wavePeriod);
+                        //mLogService.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +this.bearingZ);
                     }
                 }
-            }
-            else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
+            } else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
                 data = data.replace(',', '.');
                 setTempText(Float.parseFloat(data));
                 if (mLogService != null){
@@ -787,18 +826,29 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                         mLogService.writeToLog(DATA_TYPE_TEMPERATURE +":" +time +":" +data);
                     }
                 }
-            }
-            else if(dataType.equals(DATA_TYPE_PRESSURE)){
+            } else if(dataType.equals(DATA_TYPE_PRESSURE)){
                 data = data.replace(',', '.');
-                this.pressure = Float.parseFloat(data);
+                String[] loadCell = data.split(":");
+                this.pressure = Float.parseFloat(loadCell[0]);
+                // Todo uncomment
+               // this.leftPressure = Float.parseFloat(loadCell[1]);
+               // this.rightPressure = Float.parseFloat(loadCell[2]);
                 setPressureText(this.pressure);
                 //mNeedleView.setPressure(pressure/1000 - 1.01325f);
                 /* Todo Calibrate
                     Range of move needle Min moveGL -1.5f, max moveGl 1.2f
                     No calibration made
                 */
+
                 if(mCurrentViewState == ViewStates.INCLINE
-                        || mCurrentViewState == ViewStates.GRAPHIC){
+                        || mCurrentViewState == ViewStates.GRAPHIC) {
+                    // Todo pressure
+                    // float maxPressure;
+                    /* if (leftPressure > rightPressure){
+                        maxPressure = leftPressure;
+                    } else {
+                        maxPressure = rightPressure;
+                    }*/
                     mPressureNeedleView.moveGL(0, this.pressure/1000 - 1.01325f);
                     mPressureNeedleView.getGlView().requestRender();
                 }
@@ -807,11 +857,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                         mLogService.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" + this.pressure);
                     }
                 }
-            }
-            else if(dataType.equals(DATA_TYPE_FREE_FALL)){
-
-            }
-            else if(dataType.equals(DATA_TYPE_HUMIDITY)){
+            } else if(dataType.equals(DATA_TYPE_HUMIDITY)){
                 data = data.replace(',', '.');
                 setHumText(Float.parseFloat(data));
                 if(mLogService != null) {
@@ -819,8 +865,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                         mLogService.writeToLog(DATA_TYPE_HUMIDITY + ":" + time + ":" + data);
                     }
                 }
-            }
-            else if (dataType.equals(DATA_TYPE_POSITION)) {
+            } else if (dataType.equals(DATA_TYPE_POSITION)) {
                 data = data.replace(',', '.');
                 String[] pos = data.split(":");
                 float latitude = Float.parseFloat(pos[0]);
@@ -829,73 +874,68 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 this.speed = Float.parseFloat(pos[3])*KM_TO_KNOTS;
                 this.direction = Float.parseFloat(pos[4]);
                 if (latitude != 0f && longitude != 0f) {
+                    LatLng currPos = new LatLng(latitude, longitude);
                     //double speed_mps = 0;
-                    if (this.gpsPos.latitude != 0 && this.gpsPos.longitude!= 0){
+                    if (this.gpsPos.latitude != 0f && this.gpsPos.longitude != 0f){
                         //Calculate distance and speed from last point, possibly could filter moving avg
-                        double dist = distance_on_geoid(latitude, longitude, this.gpsPos.latitude, this.gpsPos.longitude);
+                        double dist = distance_on_geoid(currPos.latitude, currPos.longitude, this.gpsPos.latitude, this.gpsPos.longitude);
 
                         sogData.add(this.speed);
-                        if(sogData.size() >= 3){
+                        if(sogData.size() >= 4){
                             this.speed = movingAverageFilter(sogData, 3);
                             sogData.remove(0);
-                            sogData.remove(sogData.get(sogData.size()));
+                            sogData.remove(sogData.size()-1);
                             sogData.add(this.speed);
                         }
                         // Calculate perpendicular drift from the ship navigational bearing will update from previously calculated value to compare with the new values.
-                        if (this.nextEstimate.latitude != 0 && this.nextEstimate.longitude != 0){
-                            //this.drift = (this.nextEstimate.longitude-longitude) * Math.cos((latitude+this.nextEstimate.latitude)/2);
+                        if (this.nextEstimate.latitude != 0f && this.nextEstimate.longitude != 0f){
+                            if(mLogService != null) {
+                                if (mLogService.isLogging()) {
+                                    mLogService.writeToLog(DATA_TYPE_ESTPOSITION + ":" + time + ":" + this.nextEstimate.latitude + ":" + this.nextEstimate.longitude + ":" + direction);
+                                }
+                            }
                             this.drift = distance_on_geoid(this.nextEstimate.latitude, this.nextEstimate.longitude, latitude, longitude);
                         } else{
                             this.drift = UNINITIALIZED;
                         }
-                        this.nextEstimate = calcNextEstimatePos(new LatLng(latitude,longitude), dist, abs(this.bearingZ));
+                        this.nextEstimate = calcNextEstimatePos(new LatLng(latitude,longitude), dist, direction);
+                        if (this.nextEstimate.latitude != 0 && this.nextEstimate.longitude != 0){
+                            this.estimatedRoute.add(this.nextEstimate);
+                        }
                         if (mCurrentViewState == ViewStates.INCLINE){
                             TextView tv = findViewById(R.id.driftText);
                             if (this.drift == UNINITIALIZED){
                                 tv.setText("Nan");
                             } else{
-                                tv.setText(String.format("%.1f\u00B0", this.drift) +"m");
+                                tv.setText(String.format("%.1f", this.drift) +"m");
                                 tv = findViewById(R.id.speedText);
-                                tv.setText(String.format("%.1f", this.speed) +"Knots");
+                                tv.setText(String.format("%.1f", this.speed) +"kn");
                             }
                         }
                         if (mCurrentViewState == ViewStates.INCLINE
                                 || mCurrentViewState == ViewStates.MAP){
                             displayDrift((float) this.drift);
-                            mCompassView.rotateGl((int) bearingZ);
-                            mCompassView.getGlView().requestRender();
+                           // mCompassView.rotateGl(abs((int) direction));
+                           // mCompassView.getGlView().requestRender();
                         }
 
                     }
-                    this.gpsPos = new LatLng(latitude, longitude);
+                    this.gpsPos = currPos;
+                    this.estimatedRoute.add(this.gpsPos);
+
                     travelRoute.add(gpsPos);
                     if(mLogService != null) {
                         if (mLogService.isLogging()){
                             mLogService.writeToLog(DATA_TYPE_POSITION + ":" + time + ":" + latitude + ":" + longitude + ":" +direction);
                             mLogService.writeToLog(DATA_TYPE_SOG + ":" +time +":" +this.speed);
                             mLogService.writeToLog(DATA_TYPE_DRIFT + ":" +time +":" +this.drift);
+                            mLogService.writeToLog(DATA_TYPE_COMPASS + ":" +time +":" +direction);
                         }
                     }
                 }
-            } else if (dataType.equals(DATA_TYPE_COMPASS)){
-                //String[] accelerometer = data.split(":");
-                data = data.replace(',', '.');
-                this.bearingZ = Float.parseFloat(data);
-                // Rotates Boat bearing with Yaw
-                if(mLogService != null) {
-                    if (mLogService.isLogging()){
-                        mLogService.writeToLog(DATA_TYPE_COMPASS + ":" + time + ":" + this.bearingZ);
-                    }
-                }
-                if (mCurrentViewState == ViewStates.INCLINE
-                        || mCurrentViewState == ViewStates.MAP
-                        || mCurrentViewState == ViewStates.GRAPHIC){
-                    mCompassView.rotateGl(this.bearingZ);
-                    mCompassView.getGlView().requestRender();
-                }
             } else if (dataType.equals(DATA_TYPE_BATTERY)){
                 data = data.replace(',', '.');
-                 String[] stat = data.split(":");
+                String[] stat = data.split(":");
                 float batteryPower = Float.parseFloat(stat[0]);
                 float batLeft = Float.parseFloat(stat[1]);
                 // Rotates Boat bearing with Yaw
@@ -909,9 +949,10 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
             } else if (dataType.equals(DATA_TYPE_RANGE)){
                 data = data.replace(',', '.');
                 this.range = Float.parseFloat(data);
-
-                TextView tv = findViewById(R.id.rangeText);
-                tv.setText(String.format("%.0f",this.range) +"cm");
+                if (mCurrentViewState == ViewStates.INCLINE){
+                    TextView tv = findViewById(R.id.rangeText);
+                    tv.setText(String.format("%.0f",this.range) +"cm");
+                }
                 if (mCurrentViewState == ViewStates.GRAPHIC){
                     if (this.range < 80){
                         mDaggerView.moveGL(GRAPHIC_DAGGER_X_POS, GRAPHIC_DAGGER_Y_POS +(this.range/35));
@@ -925,7 +966,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 }
                 if(mLogService != null) {
                     if (mLogService.isLogging()){
-                        //mLogService.writeToLog(DATA_TYPE_RANGE + ":" + time + ":" + z);
+                        mLogService.writeToLog(DATA_TYPE_RANGE + ":" + time + ":" + this.range);
                     }
                 }
             }
@@ -937,7 +978,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         public void run() {
             try {
                 isWaving = true;
-                wavePos +=wavePeriod*0.50f;
+                wavePos +=wavePeriod;
                 mWaveView.moveGL(WAVE_X_POS-wavePos,WAVE_Y_POS);
                 mWaveView.moveGL2(WAVE_BOAT_X_POS+0.60f*wavePos,WAVE_BOAT_Y_POS);
                 mWaveView.getGlView().requestRender();
@@ -956,7 +997,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
             }
         }
     };
-    private float calculateWaveFrequency(List<Float> data) {
+    public static float calculateWaveFrequency(List<Float> data) {
         float period;
         float incPos = 0;
         boolean posFlag = false;
@@ -974,10 +1015,10 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
             }
         }
         period = (incPos + incNeg) / 2.00f;
-        return period/data.size();
+        return period/10.00f;
     }
 
-    private float movingAverageFilter(List<Float> data, int filterLength){
+    public static float movingAverageFilter(List<Float> data, int filterLength){
       float sum = 0;
         for (Float value : data){
             sum+=value;
@@ -995,29 +1036,31 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 Todo add states depending on sensor data to give sailor usable feedback
                  */
                 String txt ="";
-                if(abs(inclineX) < 4 && abs(inclineY) < 15){
-                    mFeedbackState = FeedbackStates.CLEAR;
-                } else if(abs(inclineX) < 15 && abs(inclineY) < 15){
-                    mFeedbackState = FeedbackStates.DRIFT;
-                } else if(abs(inclineX) > 50 && abs(inclineY) < 15){
-                    mFeedbackState = FeedbackStates.HEEL;
-                } else if(abs(inclineY) > 50 && abs(inclineX) < 15){
-                    mFeedbackState = FeedbackStates.REEFING;
-                } else if(abs(inclineY) > 60){
-                    mFeedbackState = FeedbackStates.HARDWIND;
-                } else if(abs(inclineY) > 30 && range < 50){
-                    mFeedbackState = FeedbackStates.HAULING;
-                } else if(bearingZ > -300) {
-                    mFeedbackState = FeedbackStates.DRIFT;
-                }
-                if (!mFeedbackState.equals(lastFeedbackState)){
-                    if (startFlag == 0){
-                        startFlag = 1;
-                    } else {
-                        talkFeedback();
+                if(!isSpeaking){
+                    if(abs(inclineX) < 4 && abs(inclineY) < 15){
+                        mFeedbackState = FeedbackStates.CLEAR;
+                    } else if(abs(inclineX) < 15 && abs(inclineY) < 15){
+                        mFeedbackState = FeedbackStates.DRIFT;
+                    } else if(abs(inclineX) > 50 && abs(inclineY) < 15){
+                        mFeedbackState = FeedbackStates.HEEL;
+                    } else if(abs(inclineY) > 50 && abs(inclineX) < 15){
+                        mFeedbackState = FeedbackStates.REEFING;
+                    } else if(abs(inclineY) > 60){
+                        mFeedbackState = FeedbackStates.HARDWIND;
+                    } else if(abs(inclineY) > 30 && range < 50){
+                        mFeedbackState = FeedbackStates.HAULING;
+                    } else if(bearingZ > -300) {
+                        mFeedbackState = FeedbackStates.DRIFT;
                     }
+                    if (!mFeedbackState.equals(lastFeedbackState)){
+                        if (startFlag == 0){
+                            startFlag = 1;
+                        } else {
+                            talkFeedback();
+                        }
+                    }
+                    lastFeedbackState = mFeedbackState;
                 }
-                lastFeedbackState = mFeedbackState;
             } finally {
                 // 100% guarantee that this always happens, even if
                 // your update method throws an exception
@@ -1042,9 +1085,6 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         String txt = "";
         switch (mFeedbackState) {
             case CLEAR:
-                if (lastFeedbackState.equals(mFeedbackState.HEEL)){
-                    break;
-                }
                 txt = "Your an able seaman \n Congrats!";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.darkgreen));
@@ -1063,7 +1103,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 mVibrator = new IntervalVibrator(2, 1200, 800);
                 break;
             case REEFING:
-                txtToSpeech1.setLanguage(Locale.GERMAN);
+                txtToSpeech.setLanguage(Locale.GERMAN);
                 txt = "SCHEISSE! \n EIN MUTTER BIST LOSE BEIGELEGT!";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.orange));
@@ -1083,9 +1123,11 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 mVibrator = new IntervalVibrator(2, 200, 600);
         }
         if (enableVoice){
-            txtToSpeech1.speak(txt, TextToSpeech.QUEUE_FLUSH, null, null);
+            isSpeaking = true;
+            map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "UniqueID");
+            txtToSpeech.speak(txt, TextToSpeech.QUEUE_FLUSH, map);
         }
-        txtToSpeech1.setLanguage(Locale.ENGLISH);
+        txtToSpeech.setLanguage(Locale.ENGLISH);
         if (enableVibration){
             mVibrator.run();
         }
@@ -1128,18 +1170,15 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
 
     private void displayDrift(float drift){
         // Use pitch for testing drifting feedback
-        if(drift >=0){
             // Max resize ARROW_SCALE*x = 12 also move from center with -x/6
-            mLeftDriftView.resizeGL(DRIFT_ARROW_SCALE_X*drift/15, DRIFT_ARROW_SCALE_Y);
-            mLeftDriftView.moveGL(DRIFT_ARROW_CENTER-drift/90, 0);
-            mRightDriftView.resizeGL(DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
-            mRightDriftView.moveGL(-DRIFT_ARROW_CENTER, 0);
-        } else{
-            mLeftDriftView.resizeGL(DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
-            mLeftDriftView.moveGL(DRIFT_ARROW_CENTER, 0);
-            mRightDriftView.resizeGL(DRIFT_ARROW_SCALE_X*(-drift/15), DRIFT_ARROW_SCALE_Y);
-            mRightDriftView.moveGL(-DRIFT_ARROW_CENTER-drift/90, 0);
-        }
+        mLeftDriftView.resizeGL(DRIFT_ARROW_SCALE_X*drift/15, DRIFT_ARROW_SCALE_Y);
+        mLeftDriftView.moveGL(DRIFT_ARROW_CENTER-drift/45, 0);
+        mRightDriftView.resizeGL(DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+        mRightDriftView.moveGL(-DRIFT_ARROW_CENTER, 0);
+        mLeftDriftView.resizeGL(DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+        mLeftDriftView.moveGL(DRIFT_ARROW_CENTER, 0);
+        mRightDriftView.resizeGL(DRIFT_ARROW_SCALE_X*(-drift/15), DRIFT_ARROW_SCALE_Y);
+        mRightDriftView.moveGL(-DRIFT_ARROW_CENTER-drift/45, 0);
         mLeftDriftView.getGlView().requestRender();
         mRightDriftView.getGlView().requestRender();
     }
@@ -1175,7 +1214,9 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         // Dot product
         double dot = (x1 * x2 + y1 * y2 + z1 * z2);
         double cos_theta = dot / (r * r);
-
+        if (cos_theta > 1){
+            cos_theta = 1;
+        }
         double theta = acos(cos_theta);
 
         // Distance in Metres
@@ -1185,7 +1226,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     /*
     Estimate where next position should be using bearing and distance traveled between last two points.
      */
-    static LatLng calcNextEstimatePos(LatLng pos, double distance, float radialBearing){
+    static LatLng calcNextEstimatePos(LatLng pos, double distance, double radialBearing){
         int R = 6378100; // Earth Radius in m
 
         /*double lat2 = Math.asin(Math.sin(Math.PI / 180 * pos.latitude) * Math.cos(distance / R) + Math.cos(Math.PI / 180 * pos.latitude) * Math.sin(distance / R) * Math.cos(Math.PI / 180 * radialBearing));
@@ -1194,19 +1235,23 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         return new LatLng(180 / Math.PI * lat2 , 180 / Math.PI * lon2);
         */
         //Rhumb
+        double rBearing = radialBearing * Math.PI /180;
+
         double lat1 = pos.latitude * Math.PI / 180.0;
         double lon1 = pos.longitude * Math.PI / 180.0;
 
         double angDistance = distance/R;
-        double deltaLat = angDistance * Math.cos(radialBearing);
+        double deltaLat = angDistance * Math.cos(rBearing);
         double lat2 = lat1 + deltaLat;
 
         double projLatDiff = Math.log(Math.tan(lat2/2+Math.PI/4)/Math.tan(lat1/2+Math.PI/4));
         double q = Math.abs(projLatDiff) > 10e-12 ? deltaLat / projLatDiff : Math.cos(lat1); // E-W course becomes ill-conditioned with 0/0
 
-        double deltaLon = angDistance*Math.sin(radialBearing)/q;
+        double deltaLon = angDistance*Math.sin(rBearing)/q;
         double lon2 = lon1 + deltaLon;
 
+        lat2 = lat2 * 180.0 / Math.PI;
+        lon2 = lon2  * 180.0 / Math.PI;
         return new LatLng(lat2,lon2);
     }
 

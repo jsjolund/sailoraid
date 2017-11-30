@@ -54,6 +54,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
 
     private Polyline travelRoutePolyline;
+    private Polyline estRoutePolyline;
     private Polyline wayPointPolyline;
     private List<Polyline> mWPLineList = new ArrayList<>();
     private Marker hereMarker;
@@ -61,6 +62,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Menu mMenu;
     private boolean isAdd = false;
     private boolean isRemove = false;
+    private boolean isAutoZoom = true;
     private double totalDistance = 0;
     private double totalWPDistance = 0;
     private final Map<Integer, Marker> mMarkers = new ConcurrentHashMap<Integer, Marker>();
@@ -77,6 +79,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Toolbar myToolbar = findViewById(R.id.map_toolbar);
 
         if(extras == null) {
+            myToolbar.setVisibility(View.VISIBLE);
             receivedIntent= null;
             setSupportActionBar(myToolbar);
         } else {
@@ -127,11 +130,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if(isRemove == true) {
                         isAdd = false;
                         if (!mMarkers.isEmpty()) {
-                            mMarkers.remove(marker);
-                            mWaypointRoute.remove(marker.getPosition());
-                            calcNewWPRoute();
-                            marker.remove();
-
+                            removeMarker(marker);
                         } else {
                             isRemove = false;
                         }
@@ -159,6 +158,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    private void removeMarker(Marker marker){
+        marker.setVisible(false);
+        Set<Integer> keySet = mMarkers.keySet();
+        Object[] keys = keySet.toArray();
+        for (int i = 0; i< keys.length; i++){
+            if (marker.equals(mMarkers.get(keys[i]))){
+                mMarkers.remove(keys[i]);
+            }
+        }
+        mWaypointRoute.remove(marker.getPosition());
+        calcNewWPRoute();
+        marker.remove();
+    }
     private void markWaypoint(LatLng point){
         //Create MarkerOptions object
         MarkerOptions markerOptions = new MarkerOptions();
@@ -195,7 +207,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 routeDistance += FeedbackActivity.distance_on_geoid(lat1, lon1, lat2, lon2);
             }
         }
-        return routeDistance / 1000;
+        return routeDistance;
     }
     @Override
     public void onDestroy() {
@@ -214,18 +226,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             try {
                 // Update travel route on timer update
                 List<LatLng> newPoints = new ArrayList<LatLng>();
+                List<LatLng> estPoints = new ArrayList<LatLng>();
                 if (receivedIntent != null) {
                     HistoryActivity.getRoute(newPoints);
+                    HistoryActivity.getEstRoute(estPoints);
                 } else {
                     FeedbackActivity.getRoute(newPoints);
+                    FeedbackActivity.getEstimatedRoute(estPoints);
                 }
                 PolylineOptions newTravelRoute = new PolylineOptions();
                 newTravelRoute.addAll(newPoints);
+                PolylineOptions newEstTravelRoute = new PolylineOptions();
+                newEstTravelRoute.color(getColor(R.color.yellow));
+                newEstTravelRoute.addAll(estPoints);
+                if (estRoutePolyline != null){
+                    estRoutePolyline.remove();
+                }
                 if (travelRoutePolyline != null)
                     travelRoutePolyline.remove();
+                estRoutePolyline = mMap.addPolyline(newEstTravelRoute);
                 travelRoutePolyline = mMap.addPolyline(newTravelRoute);
-
-                PolylineOptions newWaypointRoute = new PolylineOptions();
                 if (newPoints.size() > 0) {
                     totalDistance = calcRouteDistance(newPoints);
                     //TextView totDistItem = (TextView) findViewById(R.id.text_dist_left);
@@ -243,42 +263,63 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         for (int i = 0; i< keySet.size(); i++){
                             if (mMarkers.get(keys[i]).isVisible()){
                                 index = i;
+                                break;
                             }
                         }
+                        PolylineOptions newWaypointRoute = new PolylineOptions();
                         newWaypointRoute.add(boat, mMarkers.get(keys[index]).getPosition());
                         newWaypointRoute.color(getColor(R.color.green));
                         wayPointPolyline = mMap.addPolyline(newWaypointRoute);
                         double dist = FeedbackActivity.distance_on_geoid(boat.latitude,boat.longitude, mMarkers.get(keys[index]).getPosition().latitude, mMarkers.get(keys[index]).getPosition().longitude);
-                        MenuItem distItem = mMenu.findItem(R.id.dist_to_waypoint);
-                        //Check i close to wp and remove to redraw
+
+                        //Check if close to wp and remove to redraw
                         if (dist < 10){
                             Marker closeMarker = mMarkers.get(keys[index]);
-                            closeMarker.setVisible(false);
-                            mWaypointRoute.remove(closeMarker.getPosition());
-                            calcNewWPRoute();
+                            removeMarker(closeMarker);
                         }
-                        distItem.setTitle(String.valueOf((int)dist) +"m to WP");
-                        MenuItem totDistItem = mMenu.findItem(R.id.dist_left);
-                        if (totalWPDistance > 0){
-                            totDistItem.setTitle(String.valueOf((int) (totalDistance/totalWPDistance *100)) +" % sailed");
-                        } else{
-                            totDistItem.setTitle(String.valueOf((int) totalDistance) +"m sailed");
+                        if (mMenu != null){
+                            MenuItem distItem = mMenu.findItem(R.id.dist_to_waypoint);
+                            distItem.setVisible(true);
+                            distItem.setTitle(String.format("%.0f m to WP", dist));
+                            MenuItem totDistItem = mMenu.findItem(R.id.dist_tot);
+                            totDistItem.setVisible(false);
+                            totDistItem = mMenu.findItem(R.id.dist_left);
+                            totDistItem.setVisible(true);
+                            totDistItem.setTitle(String.format("%.0f % sailed", (totalDistance/totalWPDistance *100)));
                         }
+                    } else{
+                      //  MenuItem totDistItem = mMenu.findItem(R.id.dist_left);
+                      //  totDistItem.setVisible(false);
+                        if (wayPointPolyline != null){
+                            wayPointPolyline.remove();
+                        }
+                        if (mMenu != null){
+                            MenuItem totDistItem = mMenu.findItem(R.id.dist_left);
+                            if(totDistItem.isVisible()){
+                                totDistItem.setVisible(false);
+                            }
+                            totDistItem = mMenu.findItem(R.id.dist_tot);
+                            totDistItem.setVisible(true);
+                            totDistItem.setTitle(String.format("%.0f m sailed", totalDistance));
+                        }
+
                     }
                     hereMarker = mMap.addMarker(new MarkerOptions().position(boat).title("You are here"));
-                    CameraPosition cameraPosition = new CameraPosition.Builder()
-                            .target(boat)
-                            .zoom(15)
-                            .bearing(0)
-                            .tilt(5)
-                            .build();
-                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                    if (!isAdd && !isRemove && isAutoZoom){
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .target(boat)
+                                .zoom(15)
+                                .bearing(0)
+                                .tilt(5)
+                                .build();
+                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                    }
                 }
             } finally {
                 // 100% guarantee that this always happens, even if
                 // your update method throws an exception
                 if (receivedIntent == null) {
-                    mHandler.postDelayed(mStatusChecker, mInterval);
+                   mHandler.postDelayed(mStatusChecker, mInterval);
                 }
             }
         }
@@ -295,8 +336,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        this.mMenu = menu;
-        getMenuInflater().inflate(R.menu.map_menu, mMenu);
+        getMenuInflater().inflate(R.menu.map_menu, menu);
+        mMenu = menu;
         return super.onCreateOptionsMenu(mMenu);
     }
     /*
@@ -306,31 +347,51 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.create_route:
+                isRemove = false;
                 isAdd = true;
                 Toast.makeText(getApplicationContext(), "Start setting waypoints!", Toast.LENGTH_SHORT).show();
                 item.setVisible(false);
-                mMenu.findItem(R.id.finnish_route).setVisible(true);
+                mMenu.findItem(R.id.finish_route).setVisible(true);
+                mMenu.findItem(R.id.remove_waypoint).setVisible(false);
                 return true;
-
-            case R.id.finnish_route:
+            case R.id.finish_route:
+                isRemove = false;
                 isAdd = false;
-                totalWPDistance = calcRouteDistance(mWaypointRoute);
-                if (boat!= null){
-                    double dist = FeedbackActivity.distance_on_geoid(boat.latitude,boat.longitude, mWaypointRoute.get(0).latitude, mWaypointRoute.get(0).longitude);
-                    totalWPDistance += dist;
+                if(mWaypointRoute != null){
+                    totalWPDistance = calcRouteDistance(mWaypointRoute)/1000;
+                    if (boat!= null){
+                        double dist = FeedbackActivity.distance_on_geoid(boat.latitude,boat.longitude, mWaypointRoute.get(0).latitude, mWaypointRoute.get(0).longitude);
+                        totalWPDistance += dist/1000;
+                    }
+                    Toast.makeText(getApplicationContext(), "Finished routing! \n Total distance: " +String.format("%.3fkm",totalWPDistance), Toast.LENGTH_SHORT).show();
                 }
-                Toast.makeText(getApplicationContext(), "Finished routing! \n Total distance: " +totalWPDistance +"Km", Toast.LENGTH_SHORT).show();
                 item.setVisible(false);
                 mMenu.findItem(R.id.create_route).setVisible(true);
+                mMenu.findItem(R.id.remove_waypoint).setVisible(true);
                 return true;
             case R.id.remove_waypoint:
-                if (isRemove){
-                    isRemove = false;
-                    Toast.makeText(getApplicationContext(), "No longer removing waypoints!", Toast.LENGTH_SHORT).show();
-                } else {
-                    isRemove = true;
-                    Toast.makeText(getApplicationContext(), "Start removing waypoints!", Toast.LENGTH_SHORT).show();
+                isAdd = false;
+                isRemove = true;
+                Toast.makeText(getApplicationContext(), "Start removing waypoints!", Toast.LENGTH_SHORT).show();
+                mMenu.findItem(R.id.finished_remove_waypoint).setVisible(true);
+                mMenu.findItem(R.id.create_route).setVisible(false);
+                item.setVisible(false);
+                return true;
+            case R.id.finished_remove_waypoint:
+                isAdd = false;
+                isRemove = false;
+                Toast.makeText(getApplicationContext(), "No longer removing waypoints!", Toast.LENGTH_SHORT).show();
+                mMenu.findItem(R.id.remove_waypoint).setVisible(true);
+                mMenu.findItem(R.id.create_route).setVisible(true);
+                item.setVisible(false);
+                return true;
+            case R.id.auto_zoom:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                } else{
+                    item.setChecked(false);
                 }
+                isAutoZoom = item.isChecked();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

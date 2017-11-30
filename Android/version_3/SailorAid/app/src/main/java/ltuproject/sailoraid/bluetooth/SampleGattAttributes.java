@@ -27,6 +27,8 @@ public class SampleGattAttributes {
     public static String IMU_SERVICE =              "917649a0-d98e-11e5-9eec-0002a5d5c51b";
     public static String ENV_SERVICE =              "42821a40-e477-11e2-82d0-0002a5d5c51b";
     public static String ACCELEROMETER_SERVICE =    "02366e80-cf3a-11e1-9ab4-0002a5d5c51b";
+    public static String NUCLEO_GPS_SERVICE = "abcd6e80-cf3a-11e1-9ab4-0002a5d5c51b";
+    public static String NUCLEO_RANGE_SERVICE = "23cd6e80-cf3a-11e1-9ab4-0002a5d5c51b";
 
     public static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
 
@@ -42,12 +44,9 @@ public class SampleGattAttributes {
     public static String IMU_GYRO_MEASUREMENT =     "917649a2-d98e-11e5-9eec-0002a5d5c51b";
     public static String FREE_FALL_MEASUREMENT =    "e23e78a0-cf4a-11e1-8ffc-0002a5d5c51b";
 
-    public static String NUCLEO_GPS_SERVICE = "abcd6e80-cf3a-11e1-9ab4-0002a5d5c51b";
     public static String NUCLEO_GPS_MEASUREMENT = "aabb1b80-cf4b-11e1-ac36-0002a5d5c51b";
 
-    public static String NUCLEO_RANGE_SERVICE = "23cd6e80-cf3a-11e1-9ab4-0002a5d5c51b";
     public static String NUCLEO_RANGE_MEASUREMENT = "23bb1b80-cf4b-11e1-ac36-0002a5d5c51b";
-    public static String GPS_MEASUREMENT =          "00002902-0000-1000-8000-00805f9b34fb";
 
     static {
         // Sample Services.

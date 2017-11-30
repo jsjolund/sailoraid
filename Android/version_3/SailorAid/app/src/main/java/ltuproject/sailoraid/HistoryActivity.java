@@ -51,9 +51,8 @@ public class HistoryActivity extends AppCompatActivity {
     private Button readLogBtn, mapLogBtn, graphLogBtn;
     private TextView maxIncHolder, avgIncHolder, maxDriftHolder, totalDriftHolder, avgSOGHolder, topSOGHolder, maxPressureHolder, avgPressureHolder, totDistanceHolder;
     private SailLog mLogService;
-    private View lastSelView;
-
     private ArrayList<String[]> posDataList;
+    private ArrayList<String[]> estDataList;
     private ArrayList<String[]> imuDataList;
     private ArrayList<String[]> compassDataList;
     private ArrayList<String[]> pressureDataList;
@@ -71,7 +70,7 @@ public class HistoryActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.history_activity);
 
-        myToolbar = (Toolbar) findViewById(R.id.history_toolbar);
+        myToolbar = findViewById(R.id.history_toolbar);
         setSupportActionBar(myToolbar);
 
         myToolbar.setVisibility(View.GONE);
@@ -160,7 +159,7 @@ public class HistoryActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, files);
         LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
         View Viewlayout = inflater.inflate(R.layout.log_list, (ViewGroup) findViewById(R.id.logListLayout));
-        ListView list = (ListView) Viewlayout.findViewById(R.id.logList);
+        ListView list = Viewlayout.findViewById(R.id.logList);
         list.setAdapter(adapter);
         list.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
         list.setSelector(android.R.color.holo_blue_light);
@@ -218,7 +217,7 @@ public class HistoryActivity extends AppCompatActivity {
                             mLogService.initReadData(fileName);
                             mLogService.initLogData();
                             getLogDataToArray();
-                            ImageView iv = (ImageView) findViewById(R.id.sailorView);
+                            ImageView iv = findViewById(R.id.sailorView);
                             iv.setImageDrawable(getDrawable(R.drawable.sailor_sad));
                         } else {
                             Toast.makeText(getApplicationContext(), "Your need to choose a file!", Toast.LENGTH_SHORT).show();
@@ -241,6 +240,17 @@ public class HistoryActivity extends AppCompatActivity {
         return result;
     }
 
+    private void setEstTravelRoute(ArrayList<String[]> estPosList){
+        logEstTravelRoute.clear();
+        for (String[] loc : estPosList){{
+            logEstTravelRoute.add(new LatLng(Float.parseFloat(loc[2]), Float.parseFloat(loc[3])));
+        }}
+    }
+    static private List<LatLng> logEstTravelRoute = new ArrayList<LatLng>();
+    public static void getEstRoute(List<LatLng> output) {
+        output.addAll(logEstTravelRoute);
+    }
+
     private void setTravelRoute(ArrayList<String[]> posList){
         logTravelRoute.clear();
         for (String[] loc : posList){{
@@ -251,7 +261,6 @@ public class HistoryActivity extends AppCompatActivity {
     public static void getRoute(List<LatLng> output) {
         output.addAll(logTravelRoute);
     }
-
     private void setInclineData(){
         ArrayList<String[]> inclineList = new ArrayList<String[]>();
         inclineList = mLogService.getImuDataList();
@@ -294,7 +303,7 @@ public class HistoryActivity extends AppCompatActivity {
         ArrayList<String[]> wavesList = mLogService.getWavesDataList();
         logWavesData.clear();
         for (String[] per : wavesList){{
-            logDriftData.add(per);
+            logWavesData.add(per);
         }}
     }
     static private List<String[]> logInclineData = new ArrayList<String[]>();
@@ -362,16 +371,18 @@ public class HistoryActivity extends AppCompatActivity {
     private void getLogDataToArray(){
         mLogService.readLog();
         posDataList = mLogService.getPosDataList();
+        estDataList = mLogService.getEstDataList();
         setTravelRoute(posDataList);
-        maxIncHolder.setText(String.valueOf(mLogService.getMaxIncline()));
-        avgIncHolder.setText(String.valueOf(mLogService.getAvgIncline()));
-        avgSOGHolder.setText(String.valueOf(mLogService.getAvgSOG()));
-        topSOGHolder.setText(String.valueOf(mLogService.getTopSOG()));
-        maxDriftHolder.setText(String.valueOf(mLogService.getAvgDrift()));
-        totalDriftHolder.setText(String.valueOf(mLogService.getTotalDrift()));
-        avgPressureHolder.setText(String.valueOf(mLogService.getAvgPressure()));
-        maxPressureHolder.setText(String.valueOf(mLogService.getMaxPressure()));
-        totDistanceHolder.setText(String.valueOf(mLogService.getTotDistance()));
+        setEstTravelRoute(estDataList);
+        maxIncHolder.setText(String.format("%.2f\u00B0", (mLogService.getMaxIncline())));
+        avgIncHolder.setText(String.format("%.2f\u00B0", (mLogService.getAvgIncline())));
+        avgSOGHolder.setText(String.format("%.2fkn", (mLogService.getAvgSOG())));
+        topSOGHolder.setText(String.format("%.2fkn", (mLogService.getTopSOG())));
+        maxDriftHolder.setText(String.format("%.2fm", (mLogService.getAvgDrift())));
+        totalDriftHolder.setText(String.format("%.2fm", (mLogService.getTotalDrift())));
+        avgPressureHolder.setText(String.format("%.2fPsi", (mLogService.getAvgPressure())));
+        maxPressureHolder.setText(String.format("%.2fPsi", (mLogService.getMaxPressure())));
+        totDistanceHolder.setText(String.format("%.2fkm", (mLogService.getTotDistance())));
         setInclineData();
         setSOGData();
         setPressureData();
@@ -382,7 +393,7 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void calcSailorScore(){
         float score = (mLogService.getTopSOG()*4+mLogService.getAvgSOG()*2)/2 + (10/ (mLogService.getAvgIncline()+mLogService.getMaxIncline()/4) ) + (10/ (mLogService.getAvgDrift() + mLogService.getTotalDrift()/100) );
-        TextView sScore = (TextView) findViewById(R.id.sailorScoreText);
+        TextView sScore = findViewById(R.id.sailorScoreText);
         sScore.setVisibility(View.VISIBLE);
         sScore.setText("Your Sailor Score was: " +score +"! \n Not so happy then.");
     }

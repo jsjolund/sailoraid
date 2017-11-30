@@ -34,6 +34,7 @@ import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_COMPASS;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_DRIFT;
+import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_ESTPOSITION;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_FREE_FALL;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_HUMIDITY;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_INCLINE;
@@ -66,6 +67,7 @@ public class SailLog extends Service {
     private ArrayList<String[]> humDataList;
     private ArrayList<String[]> driftDataList;
     private ArrayList<String[]> wavesDataList;
+    private ArrayList<String[]> estDataList;
     private float avgIncline, maxIncline;
     private float avgDrift, totalDrift;
     private float avgSOG, topSOG, avgPressure, maxPressure;
@@ -101,6 +103,7 @@ public class SailLog extends Service {
         humDataList = new ArrayList<String[]>();
         driftDataList = new ArrayList<String[]>();
         wavesDataList = new ArrayList<String[]>();
+        estDataList = new ArrayList<String[]>();
     }
 
     public void initLogData(){
@@ -186,6 +189,8 @@ public class SailLog extends Service {
                     driftDataList.add(splitLines);
                 } else if (type.equals(DATA_TYPE_WAVES)){
                     wavesDataList.add(splitLines);
+                } else if (type.equals(DATA_TYPE_ESTPOSITION)){
+                    estDataList.add(splitLines);
                 }
             }
             br.close();
@@ -208,6 +213,9 @@ public class SailLog extends Service {
 
     public ArrayList<String[]> getPosDataList(){
         return posDataList;
+    }
+    public ArrayList<String[]> getEstDataList(){
+        return estDataList;
     }
     public ArrayList<String[]> getImuDataList(){
         return imuDataList;
@@ -317,17 +325,18 @@ public class SailLog extends Service {
         float lat = 0;
         float prevLon = 0;
         float prevLat = 0;
-        float distance = 0;
+        double distance = 0;
         for (String[] data : posDataList){
-            lon = Float.parseFloat(data[2]);
-            lat = Float.parseFloat(data[3]);
-            if (prevLon != 0 && prevLat != 0){
-                distance += FeedbackActivity.distance_on_geoid(lat,lon, prevLat, prevLon);
+            lat = Float.parseFloat(data[2]);
+            lon = Float.parseFloat(data[3]);
+            if (prevLon != 0 && prevLat != 0 && lat != 0 && lon != 0){
+                double dist = FeedbackActivity.distance_on_geoid(lat,lon, prevLat, prevLon);
+                distance += dist;
             }
-            prevLon = lon;
             prevLat = lat;
+            prevLon = lon;
         }
-        totDistance = distance /1000;
+        totDistance = distance/1000;
     }
 
     public double getTotDistance() {return totDistance;}
