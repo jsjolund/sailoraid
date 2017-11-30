@@ -138,4 +138,11 @@ public class RotatableGLView extends GLSurfaceView {
     public void clearRenderer(){
         renderer.removeMesh();
     }
+
+    public Bitmap getmBitmap(){
+        return mBitmap;
+    }
+    public void clearBitmap() {
+        plane.clearBitmap();
+    }
 }

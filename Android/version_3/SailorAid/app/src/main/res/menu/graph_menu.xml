@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="ltuproject.sailoraid.GraphActivity">
+
+    <!-- "Mark Favorite", should appear as action button if possible -->
+
+    <item android:id="@+id/choose_graphs"
+        android:title="Choose graphs --->"
+        android:visible="true"
+        app:showAsAction="always" />
+
+
+    <item android:id="@+id/heel_enable"
+        android:title="Incline"
+        android:visible="true"
+        android:checkable="true"
+        app:showAsAction="withText" />
+
+    <item android:id="@+id/drift_enable"
+        android:title="Drift"
+        android:visible="true"
+        android:checkable="true"
+        app:showAsAction="withText" />
+
+    <item android:id="@+id/sog_enable"
+        android:title="SOG"
+        android:visible="true"
+        android:checkable="true"
+        app:showAsAction="withText" />
+
+    <item android:id="@+id/pressure_enable"
+        android:title="Pressure"
+        android:visible="true"
+        android:checkable="true"
+        app:showAsAction="withText" />
+
+
+    <item android:id="@+id/temp_enable"
+        android:title="Temperature"
+        android:visible="true"
+        android:checkable="true"
+        app:showAsAction="withText" />
+
+
+    <item android:id="@+id/hum_enable"
+        android:title="Humidity"
+        android:visible="true"
+        android:checkable="true"
+        app:showAsAction="withText" />
+
+
+    <item android:id="@+id/airpressure_enable"
+        android:title="Air pressure"
+        android:visible="true"
+        android:checkable="true"
+        app:showAsAction="withText" />
+
+    <item android:id="@+id/wave_enable"
+        android:title="Wave"
+        android:visible="true"
+        android:checkable="true"
+        app:showAsAction="withText" />
+
+    <item android:id="@+id/range_enable"
+        android:title="Range"
+        android:visible="true"
+        android:checkable="true"
+        app:showAsAction="withText" />
+
+</menu>

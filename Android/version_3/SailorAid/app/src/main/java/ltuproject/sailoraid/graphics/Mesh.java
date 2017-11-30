@@ -234,7 +234,12 @@ public class Mesh {
         this.mBitmap = bitmap;
         mShouldLoadTexture = true;
     }
-
+    public void clearBitmap(){
+        if (this.mBitmap != null){
+            this.mBitmap.recycle();
+            this.mBitmap = null;
+        }
+    }
     /**
      * Loads the texture.
      *

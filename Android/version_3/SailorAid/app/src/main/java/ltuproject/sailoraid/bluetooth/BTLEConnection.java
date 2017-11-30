@@ -32,6 +32,7 @@ import java.util.UUID;
 import ltuproject.sailoraid.R;
 
 import static android.bluetooth.BluetoothGatt.GATT_SUCCESS;
+import static android.bluetooth.BluetoothProfile.STATE_DISCONNECTING;
 import static java.lang.Thread.sleep;
 
 /**
@@ -54,6 +55,7 @@ public class BTLEConnection extends Service {
     private BluetoothAdapter btAdapter;
     public static final String DATA_TYPE_INCLINE = "Incline";
     public static final String DATA_TYPE_POSITION = "Position";
+    public static final String DATA_TYPE_ESTPOSITION = "Estimated position";
     public static final String DATA_TYPE_PRESSURE = "Pressure";
     public static final String DATA_TYPE_HUMIDITY = "Humidity";
     public static final String DATA_TYPE_TEMPERATURE = "Temperature";
@@ -136,7 +138,6 @@ public class BTLEConnection extends Service {
         // After using a given device, you should make sure that BluetoothGatt.close() is called
         // such that resources are cleaned up properly.  In this particular example, close() is
         // invoked when the UI is disconnected from the Service.
-        //close();
         close();
         return super.onUnbind(intent);
     }
@@ -244,9 +245,9 @@ public class BTLEConnection extends Service {
             @Override
             public void run() {
 
-                if (device != null) {
-                    mBluetoothGatt = device.connectGatt(getApplicationContext(), false, getGattCallback());
-                }
+            if (device != null) {
+                mBluetoothGatt = device.connectGatt(getApplicationContext(), false, getGattCallback());
+            }
             }
         });
     }
@@ -280,10 +281,14 @@ public class BTLEConnection extends Service {
                     Log.i(TAG, "Attempting to start service discovery:" +
                             mBluetoothGatt.discoverServices());*/
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    if (mConnectionState == STATE_CONNECTING && mBluetoothDevice != null){
+                        connectToLEDevice(mBluetoothDevice);
+                    }
                     intentAction = ACTION_GATT_DISCONNECTED;
                     mConnectionState = STATE_DISCONNECTED;
                     Log.i(TAG, "Disconnected from GATT server.");
                     broadcastUpdate(intentAction);
+                    mBluetoothDevice = null;
                     isDiscovered = false;
                 }
             }

@@ -1,31 +1,34 @@
 package ltuproject.sailoraid;
 
-import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ProgressBar;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
-import com.jjoe64.graphview.helper.StaticLabelsFormatter;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
-import java.text.DateFormat;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static ltuproject.sailoraid.R.drawable.graph;
 
 public class GraphActivity extends AppCompatActivity {
+    List<String[]> inclineList, pressureList, sogList, compassList, humList, tempList, driftList, waveList, rangeList;
+    ProgressBar progress;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,155 +38,71 @@ public class GraphActivity extends AppCompatActivity {
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.graph_activity);
+        Toolbar myToolbar = findViewById(R.id.graph_toolbar);
+        setSupportActionBar(myToolbar);
+        progress = this.findViewById(R.id.progressBar);
 
-
-        List<String[]> inclineList = new ArrayList<String[]>();
+        inclineList = new ArrayList<>();
         HistoryActivity.getInclineData(inclineList);
-        List<String[]> pressureList = new ArrayList<String[]>();
+        pressureList = new ArrayList<>();
         HistoryActivity.getPressureData(pressureList);
-        List<String[]> sogList = new ArrayList<String[]>();
+        sogList = new ArrayList<>();
         HistoryActivity.getSOGData(sogList);
-        List<String[]> compassList = new ArrayList<String[]>();
+        compassList = new ArrayList<>();
         HistoryActivity.getCompassData(compassList);
-        List<String[]> humList = new ArrayList<String[]>();
+        humList = new ArrayList<>();
         HistoryActivity.getHumData(humList);
-        List<String[]> tempList = new ArrayList<String[]>();
+        tempList = new ArrayList<>();
         HistoryActivity.getTempData(tempList);
-        List<String[]> driftList = new ArrayList<String[]>();
+        driftList = new ArrayList<>();
         HistoryActivity.getDriftData(driftList);
-
-        populateGraphs(inclineList, pressureList, sogList, compassList, humList, tempList, driftList);
+        waveList = new ArrayList<>();
+        HistoryActivity.getWavesData(waveList);
+        rangeList = new ArrayList<>();
+        HistoryActivity.getRangeData(rangeList);
     }
 
-    public void populateGraphs(List<String[]> inclineList, List<String[]> pressureList, List<String[]> sogList,
-                               List<String[]> compassList, List<String[]> humList, List<String[]> tempList, List<String[]> driftList){
-        GraphView graphI = (GraphView) findViewById(R.id.graph_incline);
-        GraphView graphP = (GraphView) findViewById(R.id.graph_pressure);
-        GraphView graphS = (GraphView) findViewById(R.id.graph_sog);
-        GraphView graphT= (GraphView) findViewById(R.id.graph_temp);
-        GraphView graphH = (GraphView) findViewById(R.id.graph_hum);
-        GraphView graphC = (GraphView) findViewById(R.id.graph_compass);
-        GraphView graphD = (GraphView) findViewById(R.id.graph_drift);
-        LineGraphSeries<DataPoint> seriesIncline = new LineGraphSeries<>();
-        LineGraphSeries<DataPoint> seriesPressure = new LineGraphSeries<>();
-        LineGraphSeries<DataPoint> seriesSOG = new LineGraphSeries<>();
-        LineGraphSeries<DataPoint> seriesCompass = new LineGraphSeries<>();
-        LineGraphSeries<DataPoint> seriesTemp = new LineGraphSeries<>();
-        LineGraphSeries<DataPoint> seriesHum = new LineGraphSeries<>();
-        LineGraphSeries<DataPoint> seriesDrift = new LineGraphSeries<>();
+    public void populateChosenGraph(List<String[]> dataList, final int view, final String title, final String vLabel, int millis, final int horLabels){
 
-        for (String[] data : inclineList){
+        final LineGraphSeries<DataPoint> dataSeries = new LineGraphSeries<>();
+        for (String[] data : dataList){
             Date date = dateFromString(data[1]);
             DataPoint dp = new DataPoint(date, Float.parseFloat(data[2]));
-            seriesIncline.appendData(dp, true, inclineList.size());
-
+            dataSeries.appendData(dp, true, dataList.size());
         }
-
-        for (String[] data : pressureList){
-            Date date = dateFromString(data[1]);
-            DataPoint dp = new DataPoint(date, Float.parseFloat(data[2]));
-            seriesPressure.appendData(dp, true, pressureList.size());
+        SimpleDateFormat dt = new SimpleDateFormat("hh:mm:ss.S");
+        if (millis == 0){
+            dt = new SimpleDateFormat("hh:mm:ss");
+        } else if (millis == 2){
+            dt = new SimpleDateFormat("hh:mm:ss.SS");
         }
+        final SimpleDateFormat dtfin = dt;
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
 
-        for (String[] data : sogList){
-            Date date = dateFromString(data[1]);
-            DataPoint dp = new DataPoint(date, Float.parseFloat(data[2]));
-            seriesSOG.appendData(dp, true, sogList.size());
-        }
+            @Override
+            public void run() {
+                final GraphView graph = findViewById(view);
+                graph.setVisibility(View.VISIBLE);
 
-        for (String[] data : compassList){
-            Date date = dateFromString(data[1]);
-            DataPoint dp = new DataPoint(date, Float.parseFloat(data[2]));
-            seriesCompass.appendData(dp, true, compassList.size());
-        }
+                graph.addSeries(dataSeries);
+                graph.setTitle(title);
+                graph.getViewport().setScalable(true);
+                graph.getViewport().setScalableY(true);
+                graph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), dtfin));
+                graph.getGridLabelRenderer().setHorizontalAxisTitle("Time");
+                graph.getGridLabelRenderer().setVerticalAxisTitle(vLabel);
+                graph.getGridLabelRenderer().setNumHorizontalLabels(horLabels);
+//stuff that updates ui
 
-        for (String[] data : tempList){
-            Date date = dateFromString(data[1]);
-            DataPoint dp = new DataPoint(date, Float.parseFloat(data[2]));
-            seriesTemp.appendData(dp, true, tempList.size());
-        }
+            }
+        });
 
-        for (String[] data : humList){
-            Date date = dateFromString(data[1]);
-            DataPoint dp = new DataPoint(date, Float.parseFloat(data[2]));
-            seriesHum.appendData(dp, true, humList.size());
-        }
+    }
 
-        for (String[] data : driftList){
-            Date date = dateFromString(data[1]);
-            DataPoint dp = new DataPoint(date, Float.parseFloat(data[2]));
-            seriesDrift.appendData(dp, true, driftList.size());
-        }
-
-        SimpleDateFormat dt = new SimpleDateFormat("hh:mm:ss.SSS");
-
-        graphP.addSeries(seriesPressure);
-        graphP.setTitle("Pressure");
-        graphP.getViewport().setScalable(true);
-        graphP.getViewport().setScalableY(true);
-        graphP.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), dt));
-        graphP.getGridLabelRenderer().setHorizontalAxisTitle("Time");
-        graphP.getGridLabelRenderer().setVerticalAxisTitle("Psi");
-        graphP.getGridLabelRenderer().setNumHorizontalLabels(4); // only 4 because of the space
-
-        graphI.addSeries(seriesIncline);
-        graphI.setTitle("Heel");
-        graphI.getViewport().setScalable(true);
-        graphI.getViewport().setScalableY(true);
-        graphI.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), dt));
-        graphI.getGridLabelRenderer().setHorizontalAxisTitle("Time");
-        graphI.getGridLabelRenderer().setVerticalAxisTitle("Degrees");
-        graphI.getGridLabelRenderer().setNumHorizontalLabels(4); // only 4 because of the space
-
-
-        graphS.addSeries(seriesSOG);
-        graphS.setTitle("Speed over ground");
-        graphS.getViewport().setScalable(true);
-        graphS.getViewport().setScalableY(true);
-        graphS.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), dt));
-        graphS.getGridLabelRenderer().setHorizontalAxisTitle("Time");
-        graphS.getGridLabelRenderer().setVerticalAxisTitle("m/s");
-        graphS.getGridLabelRenderer().setNumHorizontalLabels(4); // only 4 because of the space
-
-        graphT.addSeries(seriesTemp);
-        graphT.setTitle("Temperature");
-        graphT.getViewport().setScalable(true);
-        graphT.getViewport().setScalableY(true);
-        graphT.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), dt));
-        graphT.getGridLabelRenderer().setHorizontalAxisTitle("Time");
-        graphT.getGridLabelRenderer().setVerticalAxisTitle("C");
-        graphT.getGridLabelRenderer().setNumHorizontalLabels(4); // only 4 because of the space
-
-        graphH.addSeries(seriesHum);
-        graphH.setTitle("Humidity");
-        graphH.getViewport().setScalable(true);
-        graphH.getViewport().setScalableY(true);
-        graphH.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), dt));
-        graphH.getGridLabelRenderer().setHorizontalAxisTitle("Time");
-        graphH.getGridLabelRenderer().setVerticalAxisTitle("%");
-        graphH.getGridLabelRenderer().setNumHorizontalLabels(4); // only 4 because of the space
-
-        //Todo better representaiton of bearing
-        graphC.addSeries(seriesCompass);
-        graphC.setTitle("Bearing");
-        graphC.getViewport().setScalable(true);
-        graphC.getViewport().setScalableY(true);
-        //StaticLabelsFormatter staticLabelsFormatter = new StaticLabelsFormatter(graphC);
-        //staticLabelsFormatter.setVerticalLabels(new String[] {"South", "West", "North", "East", "South"});
-        //graphC.getGridLabelRenderer().setLabelFormatter(staticLabelsFormatter);
-        graphC.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), dt));
-        graphC.getGridLabelRenderer().setHorizontalAxisTitle("Time");
-        graphC.getGridLabelRenderer().setVerticalAxisTitle("Degree");
-        graphC.getGridLabelRenderer().setNumHorizontalLabels(4); // only 4 because of the space
-
-        graphD.addSeries(seriesDrift);
-        graphD.setTitle("Drift");
-        graphD.getViewport().setScalable(true);
-        graphD.getViewport().setScalableY(true);
-        graphD.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), dt));
-        graphD.getGridLabelRenderer().setHorizontalAxisTitle("Time");
-        graphD.getGridLabelRenderer().setVerticalAxisTitle("m");
-        graphD.getGridLabelRenderer().setNumHorizontalLabels(4); // only 4 because of the space
+    public void removeChosenGraph(int view){
+        GraphView graph = findViewById(view);
+        graph.setVisibility(View.GONE);
+        graph.removeAllSeries();
     }
 
     /*
@@ -211,4 +130,120 @@ public class GraphActivity extends AppCompatActivity {
         return date;
     }
 
+    /*
+ Handles choices made on the actionbar menu
+  */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.heel_enable:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    new ProgressTask().execute(inclineList, R.id.graph_incline,"Heel", "Degrees", 1, 3);
+                    //populateChosenGraph(inclineList, R.id.graph_incline,"Heel", "Degrees", 1, 3);
+                } else{
+                    item.setChecked(false);
+                    removeChosenGraph(R.id.graph_incline);
+                }
+                return true;
+
+            case R.id.sog_enable:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    new ProgressTask().execute(sogList, R.id.graph_sog,"SOG", "Knots", 0, 3);
+                } else{
+                    item.setChecked(false);
+                    removeChosenGraph(R.id.graph_sog);
+                }
+                return true;
+            case R.id.drift_enable:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    new ProgressTask().execute(driftList, R.id.graph_drift,"Drift", "Degrees", 0, 3);
+                } else{
+                    item.setChecked(false);
+                    removeChosenGraph(R.id.graph_drift);
+                }
+                return true;
+
+            case R.id.pressure_enable:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    new ProgressTask().execute(pressureList, R.id.graph_pressure,"Pressure", "Psi", 1, 3);
+                } else{
+                    item.setChecked(false);
+                    removeChosenGraph(R.id.graph_pressure);
+                }
+                return true;
+            case R.id.wave_enable:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    new ProgressTask().execute(waveList, R.id.graph_wave,"Wave", "Hz", 0, 3);
+                } else{
+                    item.setChecked(false);
+                    removeChosenGraph(R.id.graph_wave);
+                }
+                return true;
+            case R.id.temp_enable:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    new ProgressTask().execute(tempList, R.id.graph_temp,"Temperature", "\u00B0C", 0, 3);
+                } else{
+                    item.setChecked(false);
+                    removeChosenGraph(R.id.graph_temp);
+                }
+                return true;
+            case R.id.hum_enable:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    new ProgressTask().execute(humList, R.id.graph_hum,"Humidity", "%", 0, 3);
+                } else{
+                    item.setChecked(false);
+                    removeChosenGraph(R.id.graph_hum);
+                }
+                return true;
+            case R.id.range_enable:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    new ProgressTask().execute(rangeList, R.id.graph_range,"Range", "cm", 0, 3);
+                } else{
+                    item.setChecked(false);
+                    removeChosenGraph(R.id.graph_hum);
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.graph_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    private class ProgressTask extends AsyncTask<Object,Void,Void> {
+        @Override
+        protected void onPreExecute(){
+            progress.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Object... params) {
+            ArrayList<String[]> dataList = (ArrayList<String[]>) params[0];
+            int view = (int) params[1];
+            String title = (String) params[2];
+            String vLabel = (String) params[3];
+            int millis = (int) params[4];
+            int hLabels = (int) params[5];
+            populateChosenGraph(dataList, view,title, vLabel, millis, hLabels);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            progress.setVisibility(View.GONE);
+        }
+    }
 }
