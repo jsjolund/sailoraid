@@ -6,10 +6,22 @@
  */
 
 #include "i2c.h"
+#include "imu.h"
+#include "range.h"
+
+extern I2C_HandleTypeDef hi2c1;
 
 // https://community.st.com/thread/35884-cant-reset-i2c-in-stm32f407-to-release-i2c-lines
-void I2C_ClearBusyFlagErratum(I2C_Module* i2c)
+void I2C_ClearBusyFlagErratum()
 {
+  I2C_Module _i2c;
+  I2C_Module *i2c = & _i2c;
+  i2c->instance = &hi2c1;
+  i2c->sclPin = I2C_SCL_Pin;
+  i2c->sclPort = I2C_SCL_GPIO_Port;
+  i2c->sdaPin = I2C_SDA_Pin;
+  i2c->sdaPort = I2C_SDA_GPIO_Port;
+
   GPIO_InitTypeDef GPIO_InitStruct;
 
   // 1. Clear PE bit.
@@ -88,5 +100,18 @@ void I2C_ClearBusyFlagErratum(I2C_Module* i2c)
   i2c->instance->Instance->CR1 |= 0x0001;
 
   // Call initialization function.
+  i2c->instance->Init.ClockSpeed = MAIN_I2C_SPEED;
+  i2c->instance->Init.DutyCycle = I2C_DUTYCYCLE_2;
+  i2c->instance->Init.OwnAddress1 = 0;
+  i2c->instance->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  i2c->instance->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  i2c->instance->Init.OwnAddress2 = 0;
+  i2c->instance->Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  i2c->instance->Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
   HAL_I2C_Init(i2c->instance);
+  IMUinit();
+  VL53L0X_Dev_t rangeDev = { .Id = 0, .I2cHandle = &hi2c1, .I2cDevAddr = 0x52 };
+  RangingConfig_e rangingConfig = LONG_RANGE;
+  Range_Sensor_Setup_Single_Shot(&rangeDev, rangingConfig);
+  Range_Sensor_Init(&rangeDev);
 }

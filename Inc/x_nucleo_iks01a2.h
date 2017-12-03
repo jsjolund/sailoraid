@@ -70,6 +70,8 @@ extern "C" {
 #include "temperature.h"
 #include "pressure.h"
 
+#include "main.h"
+
 /** @addtogroup BSP BSP
  * @{
  */
@@ -88,13 +90,13 @@ extern "C" {
 
 #define IKS01A2_HTS221_WHO_AM_I        (uint8_t)0xBC
 #define IKS01A2_LPS22HB_WHO_AM_I       (uint8_t)0xB1
-#define IKS01A2_LSM6DSL_WHO_AM_I       (uint8_t)0x6A
+#define IKS01A2_LSM6DSL_WHO_AM_I       (uint8_t)0x6B
 #define IKS01A2_LSM303AGR_ACC_WHO_AM_I (uint8_t)0x33
 #define IKS01A2_LSM303AGR_MAG_WHO_AM_I (uint8_t)0x40
  
 /* I2C clock speed configuration (in Hz) */
 #if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L1XX_NUCLEO)))
-#define NUCLEO_I2C_EXPBD_SPEED                         400000
+#define NUCLEO_I2C_EXPBD_SPEED                         MAIN_I2C_SPEED
 #endif /* USE_STM32F4XX_NUCLEO or USE_STM32L1XX_NUCLEO */
 
 /* Timing samples for L0 with SYSCLK 32MHz set in SystemClock_Config() */

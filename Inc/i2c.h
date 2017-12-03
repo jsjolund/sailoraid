@@ -19,6 +19,6 @@ typedef struct I2C_Module
   GPIO_TypeDef* sclPort;
 } I2C_Module;
 
-void I2C_ClearBusyFlagErratum(I2C_Module* i2c);
+void I2C_ClearBusyFlagErratum();
 
 #endif /* I2C_H_ */

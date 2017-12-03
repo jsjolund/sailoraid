@@ -40,7 +40,6 @@
 #include "x_nucleo_iks01a2.h"
 #include "i2c.h"
 
-
 /** @addtogroup BSP BSP
  * @{
  */
@@ -58,7 +57,7 @@
  */
 
 static uint32_t I2C_EXPBD_Timeout =
-  NUCLEO_I2C_EXPBD_TIMEOUT_MAX;    /*<! Value of Timeout when I2C communication fails */
+NUCLEO_I2C_EXPBD_TIMEOUT_MAX; /*<! Value of Timeout when I2C communication fails */
 static I2C_HandleTypeDef I2C_EXPBD_Handle;
 
 /**
@@ -66,14 +65,14 @@ static I2C_HandleTypeDef I2C_EXPBD_Handle;
  */
 
 /* Link function for sensor peripheral */
-uint8_t Sensor_IO_Write( void *handle, uint8_t WriteAddr, uint8_t *pBuffer, uint16_t nBytesToWrite );
-uint8_t Sensor_IO_Read( void *handle, uint8_t ReadAddr, uint8_t *pBuffer, uint16_t nBytesToRead );
+uint8_t Sensor_IO_Write(void *handle, uint8_t WriteAddr, uint8_t *pBuffer, uint16_t nBytesToWrite);
+uint8_t Sensor_IO_Read(void *handle, uint8_t ReadAddr, uint8_t *pBuffer, uint16_t nBytesToRead);
 
-static void I2C_EXPBD_MspInit( void );
-static void I2C_EXPBD_Error( uint8_t Addr );
-static uint8_t I2C_EXPBD_ReadData( uint8_t Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size );
-static uint8_t I2C_EXPBD_WriteData( uint8_t Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size );
-static uint8_t I2C_EXPBD_Init( void );
+static void I2C_EXPBD_MspInit(void);
+static void I2C_EXPBD_Error(uint8_t Addr);
+static uint8_t I2C_EXPBD_ReadData(uint8_t Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size);
+static uint8_t I2C_EXPBD_WriteData(uint8_t Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size);
+static uint8_t I2C_EXPBD_Init(void);
 
 /** @addtogroup X_NUCLEO_IKS01A2_IO_Public_Functions Public functions
  * @{
@@ -85,10 +84,10 @@ static uint8_t I2C_EXPBD_Init( void );
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-DrvStatusTypeDef Sensor_IO_Init( void )
+DrvStatusTypeDef Sensor_IO_Init(void)
 {
 
-  if ( I2C_EXPBD_Init() )
+  if (I2C_EXPBD_Init())
   {
     return COMPONENT_ERROR;
   }
@@ -98,21 +97,21 @@ DrvStatusTypeDef Sensor_IO_Init( void )
   }
 }
 
-
 /**
  * @brief  Configures sensor interrupts interface for LSM6DSL sensor.
  * @param  None
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-DrvStatusTypeDef LSM6DSL_Sensor_IO_ITConfig( void )
+DrvStatusTypeDef LSM6DSL_Sensor_IO_ITConfig(void)
 {
 
   /* At the moment this feature is only implemented for LSM6DS3 */
   GPIO_InitTypeDef GPIO_InitStructureInt1;
   GPIO_InitTypeDef GPIO_InitStructureInt2;
   /* Enable LSM6DSL INT1 GPIO clock */
-  LSM6DSL_INT1_O_GPIO_CLK_ENABLE();
+  LSM6DSL_INT1_O_GPIO_CLK_ENABLE()
+  ;
 
   /* Configure GPIO PINs to detect Interrupts */
   GPIO_InitStructureInt1.Pin = LSM6DSL_INT1_O_PIN;
@@ -124,7 +123,7 @@ DrvStatusTypeDef LSM6DSL_Sensor_IO_ITConfig( void )
 #if (defined (USE_STM32L1XX_NUCLEO))
   GPIO_InitStructureInt1.Speed = GPIO_SPEED_MEDIUM;
 #endif
-  GPIO_InitStructureInt1.Pull  = GPIO_NOPULL;
+  GPIO_InitStructureInt1.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(LSM6DSL_INT1_O_GPIO_PORT, &GPIO_InitStructureInt1);
 
   /* Enable and set EXTI Interrupt priority */
@@ -132,7 +131,8 @@ DrvStatusTypeDef LSM6DSL_Sensor_IO_ITConfig( void )
   HAL_NVIC_EnableIRQ(LSM6DSL_INT1_O_EXTI_IRQn);
 
   /* Enable LSM6DSL INT2 GPIO clock */
-  LSM6DSL_INT2_O_GPIO_CLK_ENABLE();
+  LSM6DSL_INT2_O_GPIO_CLK_ENABLE()
+  ;
 
   /* Configure GPIO PINs to detect Interrupts */
   GPIO_InitStructureInt2.Pin = LSM6DSL_INT2_O_PIN;
@@ -144,7 +144,7 @@ DrvStatusTypeDef LSM6DSL_Sensor_IO_ITConfig( void )
 #if (defined (USE_STM32L1XX_NUCLEO))
   GPIO_InitStructureInt2.Speed = GPIO_SPEED_MEDIUM;
 #endif
-  GPIO_InitStructureInt2.Pull  = GPIO_NOPULL;
+  GPIO_InitStructureInt2.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(LSM6DSL_INT2_O_GPIO_PORT, &GPIO_InitStructureInt2);
 
   /* Enable and set EXTI Interrupt priority */
@@ -154,21 +154,20 @@ DrvStatusTypeDef LSM6DSL_Sensor_IO_ITConfig( void )
   return COMPONENT_OK;
 }
 
-
-
 /**
  * @brief  Configures sensor interrupts interface for LPS22HB sensor.
  * @param  None
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-DrvStatusTypeDef LPS22HB_Sensor_IO_ITConfig( void )
+DrvStatusTypeDef LPS22HB_Sensor_IO_ITConfig(void)
 {
 
   /* At the moment this feature is only implemented for LPS22HB */
   GPIO_InitTypeDef GPIO_InitStructureInt1;
   /* Enable INT1 GPIO clock */
-  LPS22H_INT1_O_GPIO_CLK_ENABLE();
+  LPS22H_INT1_O_GPIO_CLK_ENABLE()
+  ;
 
   /* Configure GPIO PINs to detect Interrupts */
   GPIO_InitStructureInt1.Pin = LPS22H_INT1_O_PIN;
@@ -180,7 +179,7 @@ DrvStatusTypeDef LPS22HB_Sensor_IO_ITConfig( void )
 #if (defined (USE_STM32L1XX_NUCLEO))
   GPIO_InitStructureInt1.Speed = GPIO_SPEED_MEDIUM;
 #endif
-  GPIO_InitStructureInt1.Pull  = GPIO_NOPULL;
+  GPIO_InitStructureInt1.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(LPS22H_INT1_O_GPIO_PORT, &GPIO_InitStructureInt1);
 
   /* Enable and set EXTI Interrupt priority */
@@ -194,15 +193,11 @@ DrvStatusTypeDef LPS22HB_Sensor_IO_ITConfig( void )
  * @}
  */
 
-
 /** @addtogroup X_NUCLEO_IKS01A2_IO_Private_Functions Private functions
  * @{
  */
 
-
-
 /******************************* Link functions *******************************/
-
 
 /**
  * @brief  Writes a buffer to the sensor
@@ -213,61 +208,60 @@ DrvStatusTypeDef LPS22HB_Sensor_IO_ITConfig( void )
  * @retval 0 in case of success
  * @retval 1 in case of failure
  */
-uint8_t Sensor_IO_Write( void *handle, uint8_t WriteAddr, uint8_t *pBuffer, uint16_t nBytesToWrite )
+uint8_t Sensor_IO_Write(void *handle, uint8_t WriteAddr, uint8_t *pBuffer, uint16_t nBytesToWrite)
 {
-  DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;
+  DrvContextTypeDef *ctx = (DrvContextTypeDef *) handle;
 
-  switch(ctx->who_am_i)
+  switch (ctx->who_am_i)
   {
-    case IKS01A2_LSM303AGR_ACC_WHO_AM_I:
-    case IKS01A2_LSM303AGR_MAG_WHO_AM_I:
-    case IKS01A2_HTS221_WHO_AM_I:
-    {
-      if ( nBytesToWrite > 1 ) WriteAddr |= 0x80;  /* Enable I2C multi-bytes Write */
+  case IKS01A2_LSM303AGR_ACC_WHO_AM_I :
+  case IKS01A2_LSM303AGR_MAG_WHO_AM_I :
+  case IKS01A2_HTS221_WHO_AM_I :
+  {
+    if (nBytesToWrite > 1)
+      WriteAddr |= 0x80; /* Enable I2C multi-bytes Write */
 
-      /* call I2C_EXPBD Write data bus function */
-      if ( I2C_EXPBD_WriteData( ctx->address, WriteAddr, pBuffer, nBytesToWrite ) )
-      {
-        return 1;
-      }
-      else
-      {
-        return 0;
-      }
+    /* call I2C_EXPBD Write data bus function */
+    if (I2C_EXPBD_WriteData(ctx->address, WriteAddr, pBuffer, nBytesToWrite))
+    {
+      return 1;
     }
-    case IKS01A2_LPS22HB_WHO_AM_I:
+    else
     {
-      /* I2C multi-bytes Write not supported for LPS22HB */
-      int i = 0;
-
-      for (i = 0; i < nBytesToWrite; i++ )
-      {
-        /* call I2C_EXPBD Write data bus function */
-        if ( I2C_EXPBD_WriteData( ctx->address, (WriteAddr + i), &pBuffer[i], 1 ) )
-        {
-          return 1;
-        }
-      }
-
       return 0;
     }
-    case IKS01A2_LSM6DSL_WHO_AM_I:
-    default:
+  }
+  case IKS01A2_LPS22HB_WHO_AM_I :
+  {
+    /* I2C multi-bytes Write not supported for LPS22HB */
+    int i = 0;
+
+    for (i = 0; i < nBytesToWrite; i++)
     {
       /* call I2C_EXPBD Write data bus function */
-      if ( I2C_EXPBD_WriteData( ctx->address, WriteAddr, pBuffer, nBytesToWrite ) )
+      if (I2C_EXPBD_WriteData(ctx->address, (WriteAddr + i), &pBuffer[i], 1))
       {
         return 1;
       }
-      else
-      {
-        return 0;
-      }
+    }
+
+    return 0;
+  }
+  case IKS01A2_LSM6DSL_WHO_AM_I :
+  default:
+  {
+    /* call I2C_EXPBD Write data bus function */
+    if (I2C_EXPBD_WriteData(ctx->address, WriteAddr, pBuffer, nBytesToWrite))
+    {
+      return 1;
+    }
+    else
+    {
+      return 0;
     }
   }
+  }
 }
-
-
 
 /**
  * @brief  Reads a from the sensor to buffer
@@ -278,61 +272,60 @@ uint8_t Sensor_IO_Write( void *handle, uint8_t WriteAddr, uint8_t *pBuffer, uint
  * @retval 0 in case of success
  * @retval 1 in case of failure
  */
-uint8_t Sensor_IO_Read( void *handle, uint8_t ReadAddr, uint8_t *pBuffer, uint16_t nBytesToRead )
+uint8_t Sensor_IO_Read(void *handle, uint8_t ReadAddr, uint8_t *pBuffer, uint16_t nBytesToRead)
 {
-  DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;
+  DrvContextTypeDef *ctx = (DrvContextTypeDef *) handle;
 
-  switch(ctx->who_am_i)
+  switch (ctx->who_am_i)
   {
-    case IKS01A2_LSM303AGR_ACC_WHO_AM_I:
-    case IKS01A2_LSM303AGR_MAG_WHO_AM_I:
-    case IKS01A2_HTS221_WHO_AM_I:
-    {
-      if ( nBytesToRead > 1 ) ReadAddr |= 0x80; /* Enable I2C multi-bytes Read */
+  case IKS01A2_LSM303AGR_ACC_WHO_AM_I :
+  case IKS01A2_LSM303AGR_MAG_WHO_AM_I :
+  case IKS01A2_HTS221_WHO_AM_I :
+  {
+    if (nBytesToRead > 1)
+      ReadAddr |= 0x80; /* Enable I2C multi-bytes Read */
 
-      /* call I2C_EXPBD Read data bus function */
-      if ( I2C_EXPBD_ReadData( ctx->address, ReadAddr, pBuffer, nBytesToRead ) )
-      {
-        return 1;
-      }
-      else
-      {
-        return 0;
-      }
+    /* call I2C_EXPBD Read data bus function */
+    if (I2C_EXPBD_ReadData(ctx->address, ReadAddr, pBuffer, nBytesToRead))
+    {
+      return 1;
     }
-    case IKS01A2_LPS22HB_WHO_AM_I:
+    else
     {
-      /* I2C multi-bytes Read not supported for LPS22HB */
-      int i = 0;
-
-      for (i = 0; i < nBytesToRead; i++ )
-      {
-        /* call I2C_EXPBD Read data bus function */
-        if ( I2C_EXPBD_ReadData( ctx->address, (ReadAddr + i), &pBuffer[i], 1 ) )
-        {
-          return 1;
-        }
-      }
-
       return 0;
     }
-    case IKS01A2_LSM6DSL_WHO_AM_I:
-    default:
+  }
+  case IKS01A2_LPS22HB_WHO_AM_I :
+  {
+    /* I2C multi-bytes Read not supported for LPS22HB */
+    int i = 0;
+
+    for (i = 0; i < nBytesToRead; i++)
     {
       /* call I2C_EXPBD Read data bus function */
-      if ( I2C_EXPBD_ReadData( ctx->address, ReadAddr, pBuffer, nBytesToRead ) )
+      if (I2C_EXPBD_ReadData(ctx->address, (ReadAddr + i), &pBuffer[i], 1))
       {
         return 1;
       }
-      else
-      {
-        return 0;
-      }
+    }
+
+    return 0;
+  }
+  case IKS01A2_LSM6DSL_WHO_AM_I :
+  default:
+  {
+    /* call I2C_EXPBD Read data bus function */
+    if (I2C_EXPBD_ReadData(ctx->address, ReadAddr, pBuffer, nBytesToRead))
+    {
+      return 1;
+    }
+    else
+    {
+      return 0;
     }
   }
+  }
 }
-
-
 
 /******************************* I2C Routines *********************************/
 
@@ -342,9 +335,9 @@ uint8_t Sensor_IO_Read( void *handle, uint8_t ReadAddr, uint8_t *pBuffer, uint16
  * @retval 0 in case of success
  * @retval 1 in case of failure
  */
-static uint8_t I2C_EXPBD_Init( void )
+static uint8_t I2C_EXPBD_Init(void)
 {
-  if(HAL_I2C_GetState( &I2C_EXPBD_Handle) == HAL_I2C_STATE_RESET )
+  if (HAL_I2C_GetState(&I2C_EXPBD_Handle) == HAL_I2C_STATE_RESET)
   {
 
     /* I2C_EXPBD peripheral configuration */
@@ -355,22 +348,22 @@ static uint8_t I2C_EXPBD_Init( void )
 #endif
 
 #if (defined (USE_STM32L0XX_NUCLEO))
-    I2C_EXPBD_Handle.Init.Timing = NUCLEO_I2C_EXPBD_TIMING_400KHZ;    /* 400KHz */
+    I2C_EXPBD_Handle.Init.Timing = NUCLEO_I2C_EXPBD_TIMING_400KHZ; /* 400KHz */
 #endif
 #if (defined (USE_STM32L4XX_NUCLEO))
-    I2C_EXPBD_Handle.Init.Timing = NUCLEO_I2C_EXPBD_TIMING_400KHZ;    /* 400KHz */
+    I2C_EXPBD_Handle.Init.Timing = NUCLEO_I2C_EXPBD_TIMING_400KHZ; /* 400KHz */
 #endif
 
-    I2C_EXPBD_Handle.Init.OwnAddress1    = 0x33;
+    I2C_EXPBD_Handle.Init.OwnAddress1 = 0x33;
     I2C_EXPBD_Handle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-    I2C_EXPBD_Handle.Instance            = NUCLEO_I2C_EXPBD;
+    I2C_EXPBD_Handle.Instance = NUCLEO_I2C_EXPBD;
 
     /* Init the I2C */
     I2C_EXPBD_MspInit();
-    HAL_I2C_Init( &I2C_EXPBD_Handle );
+    HAL_I2C_Init(&I2C_EXPBD_Handle);
   }
 
-  if( HAL_I2C_GetState( &I2C_EXPBD_Handle) == HAL_I2C_STATE_READY )
+  if (HAL_I2C_GetState(&I2C_EXPBD_Handle) == HAL_I2C_STATE_READY)
   {
     return 0;
   }
@@ -379,8 +372,6 @@ static uint8_t I2C_EXPBD_Init( void )
     return 1;
   }
 }
-
-
 
 /**
  * @brief  Write data to the register of the device through BUS
@@ -391,20 +382,19 @@ static uint8_t I2C_EXPBD_Init( void )
  * @retval 0 in case of success
  * @retval 1 in case of failure
  */
-static uint8_t I2C_EXPBD_WriteData( uint8_t Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size )
+static uint8_t I2C_EXPBD_WriteData(uint8_t Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size)
 {
 
   HAL_StatusTypeDef status = HAL_OK;
 
-  status = HAL_I2C_Mem_Write( &I2C_EXPBD_Handle, Addr, ( uint16_t )Reg, I2C_MEMADD_SIZE_8BIT, pBuffer, Size,
-                              I2C_EXPBD_Timeout );
+  status = HAL_I2C_Mem_Write(&I2C_EXPBD_Handle, Addr, (uint16_t) Reg, I2C_MEMADD_SIZE_8BIT, pBuffer, Size, I2C_EXPBD_Timeout);
 
   /* Check the communication status */
-  if( status != HAL_OK )
+  if (status != HAL_OK)
   {
 
     /* Execute user timeout callback */
-    I2C_EXPBD_Error( Addr );
+    I2C_EXPBD_Error(Addr);
     return 1;
   }
   else
@@ -412,8 +402,6 @@ static uint8_t I2C_EXPBD_WriteData( uint8_t Addr, uint8_t Reg, uint8_t* pBuffer,
     return 0;
   }
 }
-
-
 
 /**
  * @brief  Read a register of the device through BUS
@@ -424,20 +412,19 @@ static uint8_t I2C_EXPBD_WriteData( uint8_t Addr, uint8_t Reg, uint8_t* pBuffer,
  * @retval 0 in case of success
  * @retval 1 in case of failure
  */
-static uint8_t I2C_EXPBD_ReadData( uint8_t Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size )
+static uint8_t I2C_EXPBD_ReadData(uint8_t Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size)
 {
 
   HAL_StatusTypeDef status = HAL_OK;
 
-  status = HAL_I2C_Mem_Read( &I2C_EXPBD_Handle, Addr, ( uint16_t )Reg, I2C_MEMADD_SIZE_8BIT, pBuffer, Size,
-                             I2C_EXPBD_Timeout );
+  status = HAL_I2C_Mem_Read(&I2C_EXPBD_Handle, Addr, (uint16_t) Reg, I2C_MEMADD_SIZE_8BIT, pBuffer, Size, I2C_EXPBD_Timeout);
 
   /* Check the communication status */
-  if( status != HAL_OK )
+  if (status != HAL_OK)
   {
 
     /* Execute user timeout callback */
-    I2C_EXPBD_Error( Addr );
+    I2C_EXPBD_Error(Addr);
     return 1;
   }
   else
@@ -446,24 +433,17 @@ static uint8_t I2C_EXPBD_ReadData( uint8_t Addr, uint8_t Reg, uint8_t* pBuffer, 
   }
 }
 
-
-
 /**
  * @brief  Manages error callback by re-initializing I2C
  * @param  Addr I2C Address
  * @retval None
  */
-static void I2C_EXPBD_Error( uint8_t Addr )
+static void I2C_EXPBD_Error(uint8_t Addr)
 {
 
   printf("ERROR CODE %d I2C1\n", (int) I2C_EXPBD_Handle.ErrorCode);
-  I2C_Module i2c;
-  i2c.instance = &I2C_EXPBD_Handle;
-  i2c.sclPin = I2C_SCL_Pin;
-  i2c.sclPort = I2C_SCL_GPIO_Port;
-  i2c.sdaPin = I2C_SDA_Pin;
-  i2c.sdaPort = I2C_SDA_GPIO_Port;
-  I2C_ClearBusyFlagErratum(&i2c);
+  if (I2C_EXPBD_Handle.ErrorCode != 0)
+    I2C_ClearBusyFlagErratum();
 
 //  /* De-initialize the I2C comunication bus */
 //  HAL_I2C_DeInit( &I2C_EXPBD_Handle );
@@ -472,24 +452,23 @@ static void I2C_EXPBD_Error( uint8_t Addr )
 //  I2C_EXPBD_Init();
 }
 
-
-
 /**
  * @brief I2C MSP Initialization
  * @param None
  * @retval None
  */
 
-static void I2C_EXPBD_MspInit( void )
+static void I2C_EXPBD_MspInit(void)
 {
-  GPIO_InitTypeDef  GPIO_InitStruct;
+  GPIO_InitTypeDef GPIO_InitStruct;
 
   /* Enable I2C GPIO clocks */
-  NUCLEO_I2C_EXPBD_SCL_SDA_GPIO_CLK_ENABLE();
+  NUCLEO_I2C_EXPBD_SCL_SDA_GPIO_CLK_ENABLE()
+  ;
 
   /* I2C_EXPBD SCL and SDA pins configuration -------------------------------------*/
-  GPIO_InitStruct.Pin        = NUCLEO_I2C_EXPBD_SCL_PIN | NUCLEO_I2C_EXPBD_SDA_PIN;
-  GPIO_InitStruct.Mode       = GPIO_MODE_AF_OD;
+  GPIO_InitStruct.Pin = NUCLEO_I2C_EXPBD_SCL_PIN | NUCLEO_I2C_EXPBD_SDA_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
 #if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   GPIO_InitStruct.Speed = GPIO_SPEED_FAST;
 #endif
@@ -497,13 +476,14 @@ static void I2C_EXPBD_MspInit( void )
 #if (defined (USE_STM32L1XX_NUCLEO))
   GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
 #endif
-  GPIO_InitStruct.Pull       = GPIO_NOPULL;
-  GPIO_InitStruct.Alternate  = NUCLEO_I2C_EXPBD_SCL_SDA_AF;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Alternate = NUCLEO_I2C_EXPBD_SCL_SDA_AF;
 
-  HAL_GPIO_Init( NUCLEO_I2C_EXPBD_SCL_SDA_GPIO_PORT, &GPIO_InitStruct );
+  HAL_GPIO_Init( NUCLEO_I2C_EXPBD_SCL_SDA_GPIO_PORT, &GPIO_InitStruct);
 
   /* Enable the I2C_EXPBD peripheral clock */
-  NUCLEO_I2C_EXPBD_CLK_ENABLE();
+  NUCLEO_I2C_EXPBD_CLK_ENABLE()
+  ;
 
   /* Force the I2C peripheral clock reset */
   NUCLEO_I2C_EXPBD_FORCE_RESET();

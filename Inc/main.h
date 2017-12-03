@@ -42,6 +42,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
+//#define BOARD_REV2
+
 #include "stm32f411xe.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_def.h"
@@ -53,15 +56,13 @@
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/
+#define MAIN_I2C_SPEED 400000
 
 #define USER_BUTTON_Pin GPIO_PIN_13
 #define USER_BUTTON_GPIO_Port GPIOC
 #define USER_BUTTON_EXTI_IRQn EXTI15_10_IRQn
-#define GPS_NRST_Pin GPIO_PIN_0
+#define GPS_NRST_Pin GPIO_PIN_1
 #define GPS_NRST_GPIO_Port GPIOC
-#define M_INT2_O_Pin GPIO_PIN_1
-#define M_INT2_O_GPIO_Port GPIOC
-#define M_INT2_O_EXTI_IRQn EXTI1_IRQn
 #define BNRG_SPI_IRQ_Pin GPIO_PIN_0
 #define BNRG_SPI_IRQ_GPIO_Port GPIOA
 #define BNRG_SPI_IRQ_EXTI_IRQn EXTI0_IRQn
@@ -84,8 +85,6 @@
 #define LPS22H_INT1_O_Pin GPIO_PIN_10
 #define LPS22H_INT1_O_GPIO_Port GPIOB
 #define LPS22H_INT1_O_EXTI_IRQn EXTI15_10_IRQn
-#define GPS_ON_OFF_Pin GPIO_PIN_7
-#define GPS_ON_OFF_GPIO_Port GPIOC
 #define RANGE_SHDN_Pin GPIO_PIN_9
 #define RANGE_SHDN_GPIO_Port GPIOC
 #define BNRG_SPI_RESET_Pin GPIO_PIN_8
@@ -94,18 +93,20 @@
 #define GPS_USART_TX_GPIO_Port GPIOA
 #define GPS_USART_RX_Pin GPIO_PIN_10
 #define GPS_USART_RX_GPIO_Port GPIOA
+#define GPS_ON_OFF_Pin GPIO_PIN_11
+#define GPS_ON_OFF_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
 #define BNRG_SPI_SCLK_Pin GPIO_PIN_3
 #define BNRG_SPI_SCLK_GPIO_Port GPIOB
-#define LSM6DSL_INT2_O_Pin GPIO_PIN_4
-#define LSM6DSL_INT2_O_GPIO_Port GPIOB
-#define LSM6DSL_INT2_O_EXTI_IRQn EXTI4_IRQn
-#define LSM6DSL_INT1_O_Pin GPIO_PIN_5
+#define LSM6DSL_INT1_O_Pin GPIO_PIN_4
 #define LSM6DSL_INT1_O_GPIO_Port GPIOB
-#define LSM6DSL_INT1_O_EXTI_IRQn EXTI9_5_IRQn
+#define LSM6DSL_INT1_O_EXTI_IRQn EXTI4_IRQn
+#define LSM6DSL_INT2_O_Pin GPIO_PIN_5
+#define LSM6DSL_INT2_O_GPIO_Port GPIOB
+#define LSM6DSL_INT2_O_EXTI_IRQn EXTI9_5_IRQn
 #define I2C_SCL_Pin GPIO_PIN_8
 #define I2C_SCL_GPIO_Port GPIOB
 #define I2C_SDA_Pin GPIO_PIN_9
@@ -119,6 +120,22 @@
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
+#undef GPS_NRST_Pin
+#undef GPS_NRST_GPIO_Port
+#undef GPS_ON_OFF_Pin
+#undef GPS_ON_OFF_GPIO_Port
+#ifdef BOARD_REV2
+#define GPS_NRST_Pin GPIO_PIN_1
+#define GPS_NRST_GPIO_Port GPIOC
+#define GPS_ON_OFF_Pin GPIO_PIN_11
+#define GPS_ON_OFF_GPIO_Port GPIOA
+#else
+#define GPS_NRST_Pin GPIO_PIN_0
+#define GPS_NRST_GPIO_Port GPIOC
+#define GPS_ON_OFF_Pin GPIO_PIN_7
+#define GPS_ON_OFF_GPIO_Port GPIOC
+#endif
+
 #define GPS_USART_IRQn USART1_IRQn
 
 #define RTC_ASYNCH_PREDIV_LSI  0x7F
@@ -174,6 +191,7 @@ void GPSecho(BOOL echo);
 void ENVecho(BOOL echo);
 void MATLABecho(BOOL echo);
 void RangeEcho(BOOL echo);
+void ADCecho(BOOL echo);
 
 /* USER CODE END Private defines */
 

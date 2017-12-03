@@ -9,8 +9,10 @@
 
 void GPSinit(void)
 {
-  HAL_Delay(1000);
   HAL_GPIO_WritePin(GPS_NRST_GPIO_Port, GPS_NRST_Pin, GPIO_PIN_SET); // low
+  HAL_GPIO_WritePin(GPS_ON_OFF_GPIO_Port, GPS_ON_OFF_Pin, GPIO_PIN_RESET);
+  HAL_Delay(1000);
+  HAL_GPIO_WritePin(GPS_NRST_GPIO_Port, GPS_NRST_Pin, GPIO_PIN_RESET); // low
   HAL_Delay(50);
   HAL_GPIO_WritePin(GPS_NRST_GPIO_Port, GPS_NRST_Pin, GPIO_PIN_SET); // hi-Z
   HAL_Delay(50);
@@ -21,6 +23,10 @@ void GPSinit(void)
 
 void GPSparse(char *str, int len, NmeaInfo *info, GPSstate_t *gps)
 {
+//  if (strncmp(str, "$PSRF150,1*3E\r\n", 15) == 0)
+//  {
+//    // Trickle power mode
+//  }
   NmeaParser parser;
   NmeaPosition dpos;
 

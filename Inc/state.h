@@ -40,6 +40,7 @@ typedef struct GPScoordinate
 typedef struct GPSinfo
 {
   int satUse, satView;
+  float battery;
 } GPSinfo_t;
 
 typedef struct GPSstate
@@ -49,10 +50,15 @@ typedef struct GPSstate
   GPSinfo_t info;
 } GPSstate_t;
 
-typedef struct RangeState_t
+typedef struct RangeState
 {
   float range0; // Range in cm
 } RangeState_t;
+
+typedef struct LoadCellState
+{
+  float cell0, cell1;
+} LoadCellState_t;
 
 typedef struct SensorState
 {
@@ -60,6 +66,7 @@ typedef struct SensorState
   EnvState_t env;
   GPSstate_t gps;
   RangeState_t range;
+  LoadCellState_t load;
 } SensorState_t;
 
 #endif /* STATE_H_ */

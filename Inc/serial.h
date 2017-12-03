@@ -21,5 +21,6 @@
 
 void SerialInit(UART_HandleTypeDef *usbHuartHandle, UART_HandleTypeDef *gpsHuartHandle);
 void SerialUsbTransmit(char *ptr, int len);
+void GPSdebugPrint(BOOL onoff);
 
 #endif /* SERIAL_H_ */
