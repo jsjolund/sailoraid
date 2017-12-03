@@ -318,6 +318,17 @@ int main(void)
       Accelero_Sensor_Handler(&ACC_Value);
       Gyro_Sensor_Handler(&GYR_Value);
       Magneto_Sensor_Handler(&MAG_Value);
+#ifdef BOARD_REV2
+      sensor.imu.gx = ((float) GYR_Value.AXIS_X) / 1000;
+      sensor.imu.gy = ((float) GYR_Value.AXIS_Y) / 1000;
+      sensor.imu.gz = ((float) GYR_Value.AXIS_Z) / 1000;
+      sensor.imu.ax = ((float) ACC_Value.AXIS_X) / 1000;
+      sensor.imu.ay = ((float) ACC_Value.AXIS_Y) / 1000;
+      sensor.imu.az = ((float) ACC_Value.AXIS_Z) / 1000;
+      sensor.imu.my = (((float) MAG_Value.AXIS_X) - MAG_X_BIAS) * MAG_X_SCL / 1000;
+      sensor.imu.mx = (((float) MAG_Value.AXIS_Y) - MAG_Y_BIAS) * MAG_Y_SCL / 1000; // LSM6DSL has opposite y-axis compared to LSM303 on IMU board
+      sensor.imu.mz = (((float) MAG_Value.AXIS_Z) - MAG_X_BIAS) * MAG_Z_SCL / 1000;
+#else
       sensor.imu.gx = ((float) GYR_Value.AXIS_X) / 1000;
       sensor.imu.gy = ((float) GYR_Value.AXIS_Y) / 1000;
       sensor.imu.gz = ((float) GYR_Value.AXIS_Z) / 1000;
@@ -327,6 +338,8 @@ int main(void)
       sensor.imu.mx = (((float) MAG_Value.AXIS_X) - MAG_X_BIAS) * MAG_X_SCL / 1000;
       sensor.imu.my = -(((float) MAG_Value.AXIS_Y) - MAG_Y_BIAS) * MAG_Y_SCL / 1000; // LSM6DSL has opposite y-axis compared to LSM303 on IMU board
       sensor.imu.mz = (((float) MAG_Value.AXIS_Z) - MAG_X_BIAS) * MAG_Z_SCL / 1000;
+#endif
+
       MadgwickUpdate(sensor.imu.gx, sensor.imu.gy, sensor.imu.gz, sensor.imu.ax, sensor.imu.ay, sensor.imu.az, sensor.imu.mx, sensor.imu.my, sensor.imu.mz);
       sensor.imu.roll = MadgwickGetRoll();
       sensor.imu.pitch = -MadgwickGetPitch();

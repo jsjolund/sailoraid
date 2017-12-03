@@ -43,7 +43,7 @@
 /* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-//#define BOARD_REV2
+#define BOARD_REV2
 
 #include "stm32f411xe.h"
 #include "stm32f4xx_hal.h"
