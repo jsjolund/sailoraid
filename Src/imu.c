@@ -71,62 +71,62 @@ void Accelero_Sensor_Handler(SensorAxes_t *ACC_Value)
   }
 }
 
-/**
- * @brief  Handles the PRESSURE sensor data getting/sending
- * @param  Msg the PRESSURE part of the stream
- * @retval None
- */
-void Pressure_Sensor_Handler(float *PRESSURE_Value)
-{
-  uint8_t status = 0;
-  uint8_t drdy = 0;
-  if (BSP_PRESSURE_IsInitialized(PRESSURE_handle, &status) == COMPONENT_OK && status == 1)
-  {
-    BSP_PRESSURE_Get_DRDY_Status(PRESSURE_handle, &drdy);
-    if (drdy != 0)
-    {
-      BSP_PRESSURE_Get_Press(PRESSURE_handle, PRESSURE_Value);
-    }
-  }
-}
+///**
+// * @brief  Handles the PRESSURE sensor data getting/sending
+// * @param  Msg the PRESSURE part of the stream
+// * @retval None
+// */
+//void Pressure_Sensor_Handler(float *PRESSURE_Value)
+//{
+//  uint8_t status = 0;
+//  uint8_t drdy = 0;
+//  if (BSP_PRESSURE_IsInitialized(PRESSURE_handle, &status) == COMPONENT_OK && status == 1)
+//  {
+//    BSP_PRESSURE_Get_DRDY_Status(PRESSURE_handle, &drdy);
+//    if (drdy != 0)
+//    {
+//      BSP_PRESSURE_Get_Press(PRESSURE_handle, PRESSURE_Value);
+//    }
+//  }
+//}
 
-/**
- * @brief  Handles the HUMIDITY sensor data getting/sending
- * @param  Msg the HUMIDITY part of the stream
- * @retval None
- */
-void Humidity_Sensor_Handler(float *HUMIDITY_Value)
-{
-  uint8_t status = 0;
-  uint8_t drdy = 0;
-  if (BSP_HUMIDITY_IsInitialized(HUMIDITY_handle, &status) == COMPONENT_OK && status == 1)
-  {
-    BSP_HUMIDITY_Get_DRDY_Status(HUMIDITY_handle, &drdy);
-    if (drdy != 0)
-    {
-      BSP_HUMIDITY_Get_Hum(HUMIDITY_handle, HUMIDITY_Value);
-    }
-  }
-}
+///**
+// * @brief  Handles the HUMIDITY sensor data getting/sending
+// * @param  Msg the HUMIDITY part of the stream
+// * @retval None
+// */
+//void Humidity_Sensor_Handler(float *HUMIDITY_Value)
+//{
+//  uint8_t status = 0;
+//  uint8_t drdy = 0;
+//  if (BSP_HUMIDITY_IsInitialized(HUMIDITY_handle, &status) == COMPONENT_OK && status == 1)
+//  {
+//    BSP_HUMIDITY_Get_DRDY_Status(HUMIDITY_handle, &drdy);
+//    if (drdy != 0)
+//    {
+//      BSP_HUMIDITY_Get_Hum(HUMIDITY_handle, HUMIDITY_Value);
+//    }
+//  }
+//}
 
-/**
- * @brief  Handles the TEMPERATURE sensor data getting/sending
- * @param  Msg the TEMPERATURE part of the stream
- * @retval None
- */
-void Temperature_Sensor_Handler(float *TEMPERATURE_Value)
-{
-  uint8_t status = 0;
-  uint8_t drdy = 0;
-  if (BSP_TEMPERATURE_IsInitialized(TEMPERATURE_handle, &status) == COMPONENT_OK && status == 1)
-  {
-    BSP_TEMPERATURE_Get_DRDY_Status(TEMPERATURE_handle, &drdy);
-    if (drdy != 0)
-    {
-      BSP_TEMPERATURE_Get_Temp(TEMPERATURE_handle, TEMPERATURE_Value);
-    }
-  }
-}
+///**
+// * @brief  Handles the TEMPERATURE sensor data getting/sending
+// * @param  Msg the TEMPERATURE part of the stream
+// * @retval None
+// */
+//void Temperature_Sensor_Handler(float *TEMPERATURE_Value)
+//{
+//  uint8_t status = 0;
+//  uint8_t drdy = 0;
+//  if (BSP_TEMPERATURE_IsInitialized(TEMPERATURE_handle, &status) == COMPONENT_OK && status == 1)
+//  {
+//    BSP_TEMPERATURE_Get_DRDY_Status(TEMPERATURE_handle, &drdy);
+//    if (drdy != 0)
+//    {
+//      BSP_TEMPERATURE_Get_Temp(TEMPERATURE_handle, TEMPERATURE_Value);
+//    }
+//  }
+//}
 
 /**
  * @brief  Initialize all sensors

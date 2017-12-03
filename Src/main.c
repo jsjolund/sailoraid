@@ -75,23 +75,24 @@ DMA_HandleTypeDef hdma_usart2_tx;
 // Lowest rate possible is 1/(0xffffffff/10^6) = 0.0002 Hz
 #define IMU_SAMPLE_RATE 100.0
 #define ENV_SAMPLE_RATE 1.0
-#define ADC_SAMPLE_RATE 1.0
+#define ADC_SAMPLE_RATE 10.0
 #define RANGE_SAMPLE_RATE 10.0
+
 #define USB_ENV_OUTPUT_RATE 0.1
 #define USB_GPS_OUTPUT_RATE 1.0
 #define USB_IMU_OUTPUT_RATE 60.0
 #define USB_RANGE_OUTPUT_RATE 10.0
 #define USB_MATLAB_OUTPUT_RATE 100.0
 #define USB_ADC_OUTPUT_RATE 10.0
-#define BT_ENV_OUTPUT_RATE 1.0
+
+#define BT_ENV_OUTPUT_RATE 5.0
 #define BT_GPS_OUTPUT_RATE 1.0
-#define BT_IMU_OUTPUT_RATE 50.0
-#define BT_RANGE_OUTPUT_RATE 10.0
+#define BT_IMU_OUTPUT_RATE 30.0
+#define BT_RANGE_OUTPUT_RATE 5.0
 
 extern volatile uint8_t set_connectable;
 extern volatile int connected;
 volatile uint8_t adcFinished = 1;
-volatile uint32_t adcValues[] = { 0, 0 };
 SensorState_t sensor;
 
 typedef struct Task_Data
@@ -154,8 +155,8 @@ static void MX_ADC1_Init(void);
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
   // ADC has finished reading and converting the values on the four pins
-  adcValues[0] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-  adcValues[1] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_2);
+  sensor.load.cell0 = ((float) HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)) / 4096.0 * 100;
+  sensor.load.cell1 = ((float) HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_2)) / 4096.0 * 100;
   adcFinished = 1;
 }
 
@@ -234,8 +235,8 @@ int main(void)
   SensorAxes_t GYR_Value; /*!< Gyroscope Value */
   SensorAxes_t MAG_Value; /*!< Magnetometer Value */
   memset(&sensor, 0, sizeof(SensorState_t));
-  memset(&ACC_Value, 0, sizeof(GYR_Value));
-  memset(&MAG_Value, 0, sizeof(MAG_Value));
+  memset(&ACC_Value, 0, sizeof(ACC_Value));
+  memset(&GYR_Value, 0, sizeof(GYR_Value));
   memset(&MAG_Value, 0, sizeof(MAG_Value));
   /* USER CODE END 1 */
 
@@ -333,7 +334,7 @@ int main(void)
     }
 //    if (taskTimeout(&envSampleTask, &htim2))
 //    {
-//      // Update environment sensors
+      // Update environment sensors
 //      Pressure_Sensor_Handler(&sensor.env.pressure);
 //      Humidity_Sensor_Handler(&sensor.env.humidity);
 //      Temperature_Sensor_Handler(&sensor.env.temperature);
@@ -366,18 +367,19 @@ int main(void)
     {
       // To avoid race conditions, disable GPS update while reading
       HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
-      GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation, sensor.gps.pos.speed, sensor.gps.pos.direction);
+      GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation,
+          sensor.gps.pos.speed, sensor.gps.pos.direction, sensor.gps.info.battery);
       HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
     }
-//    if (taskTimeout(&btEnvOutputTask, &htim2))
-//    {
+    if (taskTimeout(&btEnvOutputTask, &htim2))
+    {
 //      Temp_Update(sensor.env.temperature);
 //      Humidity_Update(sensor.env.humidity);
-//      Press_Update(sensor.env.pressure);
-//    }
+      Press_Update(sensor.load.cell0, sensor.load.cell1);
+    }
     if (taskTimeout(&btRangeOutputTask, &htim2))
     {
-      Range_Update(123.123);
+      Range_Update(sensor.range.range0);
     }
     if (usbImuOutputTask.echo && taskTimeout(&usbImuOutputTask, &htim2))
     {
@@ -412,7 +414,8 @@ int main(void)
       SerialUsbTransmit(sync, 4);
     }
     if (usbAdcOutputTask.echo && taskTimeout(&usbAdcOutputTask, &htim2)) {
-      printf("adc %d, %d\r\n", adcValues[0], adcValues[1]);
+      while (!adcFinished) {}
+      printf("adc %3.4f, %3.4f\r\n", sensor.load.cell0, sensor.load.cell1);
     }
   }
   /* USER CODE END 3 */

@@ -101,8 +101,9 @@ do {\
                                    ((buf)[1] =  (uint8_t) (val>>8) ) , \
                                    ((buf)[2] =  (uint8_t) (val>>16) ) , \
                                    ((buf)[3] =  (uint8_t) (val>>24) ) )
-#define GPS_SERVICE_DATA_LEN 20
+#define GPS_SERVICE_DATA_LEN 24
 #define ORIENT_SERVICE_DATA_LEN 12
+#define LOAD_CELL_SERVICE_DATA_LEN 8
 
 /**
  * @}
@@ -164,7 +165,7 @@ tBleStatus Orientation_Update(float x, float y, float z)
   i32_t* zi = (i32_t*) &z;
 
   tBleStatus ret;
-  uint8_t buff[12];
+  uint8_t buff[ORIENT_SERVICE_DATA_LEN];
 
   STORE_LE_32(buff, *xi);
   STORE_LE_32(buff + 4, *yi);
@@ -207,22 +208,24 @@ tBleStatus Add_GPS_Service(void)
 
 }
 
-tBleStatus GPS_Update(float lon, float lat, float elv, float spd, float dir)
+tBleStatus GPS_Update(float lon, float lat, float elv, float spd, float dir, float battery)
 {
   i32_t* loni = (i32_t*) &lon;
   i32_t* lati = (i32_t*) &lat;
   i32_t* elvi = (i32_t*) &elv;
   i32_t* spdi = (i32_t*) &spd;
   i32_t* diri = (i32_t*) &dir;
+  i32_t* bati = (i32_t*) &battery;
 
   tBleStatus ret;
-  uint8_t buff[20];
+  uint8_t buff[GPS_SERVICE_DATA_LEN];
 
   STORE_LE_32(buff, *loni);
   STORE_LE_32(buff + 4, *lati);
   STORE_LE_32(buff + 8, *elvi);
   STORE_LE_32(buff + 12, *spdi);
   STORE_LE_32(buff + 16, *diri);
+  STORE_LE_32(buff + 20, *bati);
 
   ret = aci_gatt_update_char_value(gpsServHandle, gpsCharHandle, 0, GPS_SERVICE_DATA_LEN, buff);
 
@@ -293,29 +296,29 @@ tBleStatus Add_Environmental_Sensor_Service(void)
   if (ret != BLE_STATUS_SUCCESS)
     goto fail;
 
-  /* Temperature Characteristic */
-  COPY_TEMP_CHAR_UUID(uuid);
-  ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
-  CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
-  GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &tempCharHandle);
-  if (ret != BLE_STATUS_SUCCESS)
-    goto fail;
+//  /* Temperature Characteristic */
+//  COPY_TEMP_CHAR_UUID(uuid);
+//  ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
+//  CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
+//  GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &tempCharHandle);
+//  if (ret != BLE_STATUS_SUCCESS)
+//    goto fail;
 
   /* Pressure Characteristic */
   COPY_PRESS_CHAR_UUID(uuid);
-  ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
+  ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 8,
   CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
   GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &pressCharHandle);
   if (ret != BLE_STATUS_SUCCESS)
     goto fail;
 
-  /* Humidity Characteristic */
-  COPY_HUMIDITY_CHAR_UUID(uuid);
-  ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
-  CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
-  GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &humidityCharHandle);
-  if (ret != BLE_STATUS_SUCCESS)
-    goto fail;
+//  /* Humidity Characteristic */
+//  COPY_HUMIDITY_CHAR_UUID(uuid);
+//  ret = aci_gatt_add_char(envSensServHandle, UUID_TYPE_128, uuid, 4,
+//  CHAR_PROP_NOTIFY | CHAR_PROP_READ, ATTR_PERMISSION_NONE,
+//  GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &humidityCharHandle);
+//  if (ret != BLE_STATUS_SUCCESS)
+//    goto fail;
 
   printf("Service ENV_SENS added. Handle 0x%04X, TEMP Charac handle: 0x%04X, PRESS Charac handle: 0x%04X, HUMID Charac handle: 0x%04X\n", envSensServHandle,
       tempCharHandle, pressCharHandle, humidityCharHandle);
@@ -326,38 +329,43 @@ tBleStatus Add_Environmental_Sensor_Service(void)
 
 }
 
-/**
- * @brief  Update temperature characteristic value.
- * @param  Temperature in tenths of degree 
- * @retval Status
- */
-tBleStatus Temp_Update(float temp)
-{
-  i32_t* v = (i32_t*) &temp;
-  tBleStatus ret;
-
-  ret = aci_gatt_update_char_value(envSensServHandle, tempCharHandle, 0, 4, (uint8_t*) v);
-
-  if (ret != BLE_STATUS_SUCCESS)
-  {
-    printf("Error 0x%02x while updating TEMP characteristic.\n", ret);
-    return BLE_STATUS_ERROR;
-  }
-  return BLE_STATUS_SUCCESS;
-
-}
+///**
+// * @brief  Update temperature characteristic value.
+// * @param  Temperature in tenths of degree
+// * @retval Status
+// */
+//tBleStatus Temp_Update(float temp)
+//{
+//  i32_t* v = (i32_t*) &temp;
+//  tBleStatus ret;
+//
+//  ret = aci_gatt_update_char_value(envSensServHandle, tempCharHandle, 0, 4, (uint8_t*) v);
+//
+//  if (ret != BLE_STATUS_SUCCESS)
+//  {
+//    printf("Error 0x%02x while updating TEMP characteristic.\n", ret);
+//    return BLE_STATUS_ERROR;
+//  }
+//  return BLE_STATUS_SUCCESS;
+//
+//}
 
 /**
  * @brief  Update pressure characteristic value.
  * @param  int32_t Pressure in mbar 
  * @retval tBleStatus Status
  */
-tBleStatus Press_Update(float press)
+tBleStatus Press_Update(float p0, float p1)
 {
-  i32_t* v = (i32_t*) &press;
+  i32_t* p0i = (i32_t*) &p0;
+  i32_t* p1i = (i32_t*) &p1;
   tBleStatus ret;
+  uint8_t buff[8];
 
-  ret = aci_gatt_update_char_value(envSensServHandle, pressCharHandle, 0, 4, (uint8_t*) v);
+  STORE_LE_32(buff, *p0i);
+  STORE_LE_32(buff + 4, *p1i);
+
+  ret = aci_gatt_update_char_value(envSensServHandle, pressCharHandle, 0, 8, buff);
 
   if (ret != BLE_STATUS_SUCCESS)
   {
@@ -368,26 +376,26 @@ tBleStatus Press_Update(float press)
 
 }
 
-/**
- * @brief  Update humidity characteristic value.
- * @param  uint16_thumidity RH (Relative Humidity) in tenths of %
- * @retval tBleStatus      Status
- */
-tBleStatus Humidity_Update(float humidity)
-{
-  i32_t* v = (i32_t*) &humidity;
-  tBleStatus ret;
-
-  ret = aci_gatt_update_char_value(envSensServHandle, humidityCharHandle, 0, 4, (uint8_t*) v);
-
-  if (ret != BLE_STATUS_SUCCESS)
-  {
-    printf("Error 0x%02x while updating HUM characteristic.\n", ret);
-    return BLE_STATUS_ERROR;
-  }
-  return BLE_STATUS_SUCCESS;
-
-}
+///**
+// * @brief  Update humidity characteristic value.
+// * @param  uint16_thumidity RH (Relative Humidity) in tenths of %
+// * @retval tBleStatus      Status
+// */
+//tBleStatus Humidity_Update(float humidity)
+//{
+//  i32_t* v = (i32_t*) &humidity;
+//  tBleStatus ret;
+//
+//  ret = aci_gatt_update_char_value(envSensServHandle, humidityCharHandle, 0, 4, (uint8_t*) v);
+//
+//  if (ret != BLE_STATUS_SUCCESS)
+//  {
+//    printf("Error 0x%02x while updating HUM characteristic.\n", ret);
+//    return BLE_STATUS_ERROR;
+//  }
+//  return BLE_STATUS_SUCCESS;
+//
+//}
 
 /**
  * @brief  Puts the device in connectable mode.
@@ -473,20 +481,21 @@ void Read_Request_CB(uint16_t handle)
   }
   else if (handle == gpsCharHandle + 1)
   {
-    GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation, sensor.gps.pos.speed, sensor.gps.pos.direction);
+    GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation,
+        sensor.gps.pos.speed, sensor.gps.pos.direction, sensor.gps.info.battery);
   }
-  else if (handle == tempCharHandle + 1)
-  {
-    Temp_Update(sensor.env.temperature);
-  }
+//  else if (handle == tempCharHandle + 1)
+//  {
+//    Temp_Update(sensor.env.temperature);
+//  }
   else if (handle == pressCharHandle + 1)
   {
-    Press_Update(sensor.env.pressure);
+    Press_Update(sensor.load.cell0, sensor.load.cell1);
   }
-  else if (handle == humidityCharHandle + 1)
-  {
-    Humidity_Update(sensor.env.humidity);
-  }
+//  else if (handle == humidityCharHandle + 1)
+//  {
+//    Humidity_Update(sensor.env.humidity);
+//  }
 
   //EXIT:
   if (connection_handle != 0)
