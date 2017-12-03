@@ -42,6 +42,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
+//#define BOARD_REV2
+
 #include "stm32f411xe.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_def.h"
@@ -117,6 +120,22 @@
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
+#undef GPS_NRST_Pin
+#undef GPS_NRST_GPIO_Port
+#undef GPS_ON_OFF_Pin
+#undef GPS_ON_OFF_GPIO_Port
+#ifdef BOARD_REV2
+#define GPS_NRST_Pin GPIO_PIN_1
+#define GPS_NRST_GPIO_Port GPIOC
+#define GPS_ON_OFF_Pin GPIO_PIN_11
+#define GPS_ON_OFF_GPIO_Port GPIOA
+#else
+#define GPS_NRST_Pin GPIO_PIN_0
+#define GPS_NRST_GPIO_Port GPIOC
+#define GPS_ON_OFF_Pin GPIO_PIN_7
+#define GPS_ON_OFF_GPIO_Port GPIOC
+#endif
+
 #define GPS_USART_IRQn USART1_IRQn
 
 #define RTC_ASYNCH_PREDIV_LSI  0x7F

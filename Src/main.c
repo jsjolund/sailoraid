@@ -726,8 +726,8 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : GPS_NRST_Pin */
   GPIO_InitStruct.Pin = GPS_NRST_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPS_NRST_GPIO_Port, &GPIO_InitStruct);
 
@@ -744,12 +744,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED2_Pin GPS_ON_OFF_Pin */
-  GPIO_InitStruct.Pin = LED2_Pin|GPS_ON_OFF_Pin;
+  /*Configure GPIO pin : LED2_Pin */
+  GPIO_InitStruct.Pin = LED2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(LED2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LPS22H_INT1_O_Pin LSM6DSL_INT1_O_Pin LSM6DSL_INT2_O_Pin */
   GPIO_InitStruct.Pin = LPS22H_INT1_O_Pin|LSM6DSL_INT1_O_Pin|LSM6DSL_INT2_O_Pin;
@@ -763,6 +763,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(RANGE_SHDN_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : GPS_ON_OFF_Pin */
+  GPIO_InitStruct.Pin = GPS_ON_OFF_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPS_ON_OFF_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);

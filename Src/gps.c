@@ -23,6 +23,10 @@ void GPSinit(void)
 
 void GPSparse(char *str, int len, NmeaInfo *info, GPSstate_t *gps)
 {
+//  if (strncmp(str, "$PSRF150,1*3E\r\n", 15) == 0)
+//  {
+//    // Trickle power mode
+//  }
   NmeaParser parser;
   NmeaPosition dpos;
 

@@ -24,7 +24,13 @@ typedef struct SerialHandle
 static SerialHandle usbHandle;
 static SerialHandle gpsHandle;
 static NmeaInfo gpsInfo;
+static BOOL gpsDebug = 0;
 extern SensorState_t sensor;
+
+void GPSdebugPrint(BOOL onoff)
+{
+  gpsDebug = onoff;
+}
 
 static int QueuePut(SerialHandle *h, uint8_t input)
 {
@@ -167,6 +173,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
     RangeEcho(FALSE);
     MATLABecho(FALSE);
     ADCecho(FALSE);
+    GPSdebugPrint(FALSE);
     h = &usbHandle;
   }
   else if (huartHandle == gpsHandle.huart)
@@ -199,7 +206,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huartHandle)
     {
       h->rxString[h->rxIndex++] = '\r';
       h->rxString[h->rxIndex++] = '\n';
-//      SerialUsbTransmit(row, strlen(row));
+      if (gpsDebug)
+        SerialUsbTransmit(row, strlen(row));
       GPSparse(row, strlen(row), &gpsInfo, &sensor.gps);
     }
     else if (h == &usbHandle)

@@ -865,7 +865,8 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 // Todo uncomment
                 this.leftPressure = Float.parseFloat(loadCell[0]);
                 this.rightPressure = Float.parseFloat(loadCell[1]);
-                this.maxPressure = Math.max(leftPressure, rightPressure);
+                this.maxPressure = leftPressure;  // FIXME: Only one sensor connected for now, the other is always 100%
+                //this.maxPressure = Math.max(leftPressure, rightPressure);
 
 
                 setPressureText(this.maxPressure);
