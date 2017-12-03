@@ -902,6 +902,9 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 float elevation = Float.parseFloat(pos[2]);
                 this.speed = Float.parseFloat(pos[3])*KM_TO_KNOTS;
                 this.direction = Float.parseFloat(pos[4]);
+                ////////////////////////////////////////////////////////////////////////////// TODO:
+                float battery = Float.parseFloat(pos[5]);
+                //////////////////////////////////////////////////////////////////////////////
                 if (latitude != 0f && longitude != 0f) {
                     LatLng currPos = new LatLng(latitude, longitude);
                     //double speed_mps = 0;
