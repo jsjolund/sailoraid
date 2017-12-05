@@ -7,87 +7,115 @@
     app:layout_constraintBottom_toBottomOf="parent"
     android:id="@+id/mapFocusView">
 
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.40" />
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineLow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.70" />
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.90" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineLeftVert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.20"  />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineRightVert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.85"  />
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineMidVert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:map="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/mapFragment"
         android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="match_parent"
-        android:layout_height="275dp"
-        tools:context="ltuproject.sailoraid.FeedbackActivity" />
-    <!--><com.google.android.gms.maps.MapView
-        android:id="@+id/mapFragment"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="wrap_content"
-        android:layout_height="275dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/guideline"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"/>
-    <!-->
-    <android.support.constraint.ConstraintLayout
-        android:layout_width="20dp"
-        android:layout_height="wrap_content"
-        android:background="@color/laserblue"
-        app:layout_constraintLeft_toRightOf="@id/mapFragment"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="@id/mapFragment" />
-
-    <android.support.constraint.ConstraintLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/mapFragment"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:id="@+id/compassInclineHolder">
-        <LinearLayout
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:orientation="horizontal"
-            android:layout_margin="20dp"
-            android:layout_marginTop="30dp"
-            android:background="@drawable/gyro2"
-            android:id="@+id/inclineMapFocusViewHolder" />
-        <LinearLayout
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:orientation="horizontal"
-            android:background="@drawable/compass"
-            app:layout_constraintLeft_toRightOf="@id/inclineMapFocusViewHolder"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:id="@+id/compassMapFocusViewHolder" />
+        tools:context="ltuproject.sailoraid.FeedbackActivity" />
 
-    </android.support.constraint.ConstraintLayout>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/compassInclineHolder"
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layout_margin="20dp"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/gyro2"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/guideline"
+        app:layout_constraintBottom_toTopOf="@id/guidelineLow"
+        app:layout_constraintRight_toLeftOf="@id/guidelineMidVert"
+        android:id="@+id/inclineMapFocusViewHolder" />
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:background="@drawable/compass"
+        app:layout_constraintLeft_toRightOf="@id/guidelineMidVert"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/guidelineLow"
+        app:layout_constraintTop_toBottomOf="@id/guideline"
+        android:id="@+id/compassMapFocusViewHolder" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:id="@+id/feedbackMapView"
-        android:gravity="center_horizontal"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/guidelineLow"
+        app:layout_constraintBottom_toTopOf="@id/guidelineBottom"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         />
-    <android.support.constraint.ConstraintLayout
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:background="@drawable/driftbar"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/guidelineBottom"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:id="@+id/driftViewHolder">
         <LinearLayout
             android:id="@+id/leftDriftMapFocus"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            app:layout_constraintLeft_toLeftOf="parent"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="left"
+            android:layout_weight="1"
             android:orientation="horizontal" />
         <LinearLayout
             android:id="@+id/rightDriftMapFocus"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            app:layout_constraintLeft_toRightOf="@+id/leftDriftMapFocus"
-            app:layout_constraintRight_toRightOf="parent"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:layout_weight="1"
             android:orientation="horizontal" />
-    </android.support.constraint.ConstraintLayout>
+    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

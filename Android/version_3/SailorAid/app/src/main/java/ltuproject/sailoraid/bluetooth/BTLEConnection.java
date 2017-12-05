@@ -495,6 +495,7 @@ public class BTLEConnection extends Service {
             intent.putExtra(EXTRA_DATA, String.valueOf(temperature));
 
         } else if (UUID_PRESSURE_MEASUREMENT.equals(characteristic.getUuid())) {
+            //float pressure = bytesToFloats(characteristic.getValue())[0];
             float pressure0 = bytesToFloats(characteristic.getValue())[0];
             float pressure1 = bytesToFloats(characteristic.getValue())[1];
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_PRESSURE);

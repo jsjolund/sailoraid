@@ -56,7 +56,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
 import ltuproject.sailoraid.bluetooth.SampleGattAttributes;
 import ltuproject.sailoraid.datalog.SailLog;
+import ltuproject.sailoraid.feedback.IntervalVibrator;
 import ltuproject.sailoraid.graphics.RotatableGLView;
+import ltuproject.sailoraid.location.Locator;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.acos;
@@ -86,6 +88,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     /*
       Positioning and scale of rotatable images
      */
+
     private static final float BOAT_SCALE_X = 2.8f;
     private static final float BOAT_SCALE_Y = 2.8f;
     private static final float NEEDLE_SCALE_X = 2.8f;
@@ -95,8 +98,9 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     private static final float DRIFT_ARROW_SCALE_X = 1.0f;
     private static final float DRIFT_ARROW_SCALE_Y = 3.0f;
     private static final float NEEDLE_BOTTOM_POS = -1.5f;
-    private static final float DRIFT_ARROW_CENTER = 3.6f;
-    private static final float MAP_DRIFT_ARROW_CENTER = 4.8f;
+    private static final float NEEDLE_X_POS = -0.3f;
+    private static final float DRIFT_ARROW_CENTER = 4.2f;
+    private static final float MAP_DRIFT_ARROW_CENTER = 5.2f;
     private static final float WAVE_SCALE_X = 1.9f;
     private static final float WAVE_SCALE_Y = 1.9f;
     private static final float WAVE_BOAT_SCALE_X = 1.4f;
@@ -117,7 +121,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     private static final float GRAPHIC_SPEED_Y_POS = 0.4f;
     private static final float GRAPHIC_SPEED_X_SCALE = 6.0f;
     private static final float GRAPHIC_SPEED_Y_SCALE = 0.2f;
-    private static final float GRAPHIC_DRIFT_ARROW_CENTER = 6.2f;
+    private static final float GRAPHIC_DRIFT_ARROW_CENTER = 5.8f;
     private ViewStates mCurrentViewState;
 
     public static final float KM_TO_KNOTS = 1/1.852f;
@@ -151,9 +155,9 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     private static int RANGEUPPERLIMIT = 70;
     private static int RANGELOWELIMIT = 10;
     private static int RANGEMIDLIMIT = 40;
-    private static int PRESSUREUPPERLIMIT = 3500;
-    private static int PRESSUREMIDLIMIT = 2000;
-    private static int PRESSURELOWLIMIT = 900;
+    private static int PRESSUREUPPERLIMIT = 80;
+    private static int PRESSUREMIDLIMIT = 50;
+    private static int PRESSURELOWLIMIT = 20;
     private static int DRIFTUPPERLIMIT = 1;
     private static float DRIFTLOWERLIMIT = 0.5f;
 
@@ -557,6 +561,10 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         displayOnView(R.id.compassMapFocusViewHolder, mCompassView);
         displayOnView(R.id.leftDriftMapFocus, mLeftDriftView);
         displayOnView(R.id.rightDriftMapFocus, mRightDriftView);
+        LinearLayout ll = findViewById(R.id.feedbackMapView);
+        feedbackText.setTextSize(34);
+        feedbackText.setGravity(Gravity.CENTER);
+        ll.addView(feedbackText);
         mLeftDriftView.moveGL(MAP_DRIFT_ARROW_CENTER,0);
         mRightDriftView.moveGL(-MAP_DRIFT_ARROW_CENTER,0);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -569,6 +577,8 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         hideFromView(R.id.compassMapFocusViewHolder, mCompassView);
         hideFromView(R.id.leftDriftMapFocus, mLeftDriftView);
         hideFromView(R.id.rightDriftMapFocus, mRightDriftView);
+        LinearLayout ll = findViewById(R.id.simplefeedbackTextLayout);
+        ll.removeView(feedbackText);
         stopRepeatingMapTask();
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapFragment);
@@ -595,7 +605,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         initInclineBoat(R.drawable.boat_alignement, BOAT_SCALE_X, BOAT_SCALE_Y);
         initWave(R.drawable.wave, R.drawable.pico_dyn, WAVE_SCALE_X, WAVE_SCALE_Y, WAVE_BOAT_SCALE_X, WAVE_BOAT_SCALE_Y);
         LinearLayout ll = findViewById(R.id.simplefeedbackTextLayout);
-        feedbackText.setTextSize(38);
+        feedbackText.setTextSize(34);
         feedbackText.setGravity(Gravity.CENTER);
         ll.addView(feedbackText);
         displayOnView(R.id.simpleboatalignmentholder, mInclineBoatView);
@@ -614,7 +624,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         displayOnView(R.id.leftDrift, mLeftDriftView);
         displayOnView(R.id.rightDrift, mRightDriftView);
         displayOnView(R.id.pressureMeter, mPressureNeedleView);
-        mPressureNeedleView.moveGL(0, NEEDLE_BOTTOM_POS);
+        mPressureNeedleView.moveGL(NEEDLE_X_POS, NEEDLE_BOTTOM_POS);
         LinearLayout ll = findViewById(R.id.feedbackTextLayout);
         feedbackText.setTextSize(16);
         feedbackText.setGravity(Gravity.RIGHT);
@@ -789,7 +799,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         });
     }
 
-    /*
+    /**
     Display data received from bluetooth device.
      */
     public void displayData(String data, String dataType) {
@@ -861,13 +871,11 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
             } else if(dataType.equals(DATA_TYPE_PRESSURE)){
                 data = data.replace(',', '.');
                 String[] loadCell = data.split(":");
-               // this.pressure = Float.parseFloat(loadCell[0]);
                 // Todo uncomment
-                this.leftPressure = Float.parseFloat(loadCell[0]);
-                this.rightPressure = Float.parseFloat(loadCell[1]);
-                this.maxPressure = leftPressure;  // FIXME: Only one sensor connected for now, the other is always 100%
-                //this.maxPressure = Math.max(leftPressure, rightPressure);
-
+               // this.leftPressure = Float.parseFloat(loadCell[0]);
+               // this.rightPressure = Float.parseFloat(loadCell[1]);
+               // this.maxPressure = Math.max(leftPressure, rightPressure);
+                this.maxPressure = Float.parseFloat(loadCell[0])-18;
 
                 setPressureText(this.maxPressure);
                 //mNeedleView.setPressure(pressure/1000 - 1.01325f);
@@ -876,10 +884,12 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                     No calibration made
                 */
 
-                if(mCurrentViewState == ViewStates.INCLINE
-                        || mCurrentViewState == ViewStates.GRAPHIC) {
+                if(mCurrentViewState == ViewStates.INCLINE){
+                    mPressureNeedleView.moveGL(NEEDLE_X_POS, this.maxPressure/40 -1.2f);
+                }
+                if (mCurrentViewState == ViewStates.GRAPHIC) {
                     // Todo pressure
-                    mPressureNeedleView.moveGL(0, this.maxPressure/100 -1.2f);
+                    mPressureNeedleView.moveGL(GRAPHIC_PRESSURE_X_POS, this.maxPressure/40 -1.2f);
                     mPressureNeedleView.getGlView().requestRender();
                 }
                 if (mLogService != null){
@@ -903,15 +913,18 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 float elevation = Float.parseFloat(pos[2]);
                 this.speed = Float.parseFloat(pos[3])*KM_TO_KNOTS;
                 this.direction = Float.parseFloat(pos[4]);
-                ////////////////////////////////////////////////////////////////////////////// TODO:
-                float battery = Float.parseFloat(pos[5]);
-                //////////////////////////////////////////////////////////////////////////////
+                this.batteryPower = Float.parseFloat(pos[5]);
+                showBatteryLeft(this.batteryPower);
+                if (mCurrentViewState == ViewStates.INCLINE){
+                    TextView tv = findViewById(R.id.batPer);
+                    tv.setText(String.format("%.0f",batteryPower) +"%");
+                }
                 if (latitude != 0f && longitude != 0f) {
                     LatLng currPos = new LatLng(latitude, longitude);
                     //double speed_mps = 0;
                     if (this.gpsPos.latitude != 0f && this.gpsPos.longitude != 0f){
                         //Calculate distance and speed from last point, possibly could filter moving avg
-                        double dist = distance_on_geoid(currPos.latitude, currPos.longitude, this.gpsPos.latitude, this.gpsPos.longitude);
+                        double dist = Locator.distance_on_geoid(currPos.latitude, currPos.longitude, this.gpsPos.latitude, this.gpsPos.longitude);
 
                         sogData.add(this.speed);
                         if(sogData.size() >= 4){
@@ -927,11 +940,11 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                                     mLogService.writeToLog(DATA_TYPE_ESTPOSITION + ":" + time + ":" + this.nextEstimate.latitude + ":" + this.nextEstimate.longitude + ":" + direction);
                                 }
                             }
-                            this.drift = distance_on_geoid(this.nextEstimate.latitude, this.nextEstimate.longitude, latitude, longitude);
+                            this.drift = Locator.distance_on_geoid(this.nextEstimate.latitude, this.nextEstimate.longitude, latitude, longitude);
                         } else{
                             this.drift = UNINITIALIZED;
                         }
-                        this.nextEstimate = calcNextEstimatePos(new LatLng(latitude,longitude), dist, direction);
+                        this.nextEstimate = Locator.calcNextEstimatePos(new LatLng(latitude,longitude), dist, direction);
                         if (this.nextEstimate.latitude != 0 && this.nextEstimate.longitude != 0){
                             this.estimatedRoute.add(this.nextEstimate);
                         }
@@ -951,7 +964,11 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                         if (mCurrentViewState == ViewStates.MAP) {
                             displayDrift((float) this.drift, MAP_DRIFT_ARROW_CENTER);
                         }
-
+                        if (mCurrentViewState == ViewStates.GRAPHIC) {
+                            displayDrift((float) this.drift, GRAPHIC_DRIFT_ARROW_CENTER);
+                            mSpeedView.moveGL(GRAPHIC_SPEED_X_POS+(this.speed/7), GRAPHIC_SPEED_Y_POS);
+                            mSpeedView.getGlView().requestRender();
+                        }
                     }
                     this.gpsPos = currPos;
                     this.estimatedRoute.add(this.gpsPos);
@@ -966,19 +983,6 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                         }
                     }
                 }
-            } else if (dataType.equals(DATA_TYPE_BATTERY)){
-                data = data.replace(',', '.');
-                String[] stat = data.split(":");
-                this.batteryPower = Float.parseFloat(stat[0]);
-                float batLeft = Float.parseFloat(stat[1]);
-                // Rotates Boat bearing with Yaw
-                showBatteryLeft(this.batteryPower);
-                if (mCurrentViewState == ViewStates.INCLINE){
-                    TextView tv = findViewById(R.id.batPer);
-                    tv.setText(String.format("%.0f",batteryPower) +"%");
-                    tv = findViewById(R.id.batLeft);
-                    tv.setText(String.format("%.1f",batLeft));
-                }
             } else if (dataType.equals(DATA_TYPE_RANGE)){
                 data = data.replace(',', '.');
                 this.range = Float.parseFloat(data);
@@ -989,13 +993,10 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 if (mCurrentViewState == ViewStates.GRAPHIC){
                     if (this.range < 80){
                         mDaggerView.moveGL(GRAPHIC_DAGGER_X_POS, GRAPHIC_DAGGER_Y_POS +(this.range/35));
-                        mSpeedView.moveGL(GRAPHIC_SPEED_X_POS+(this.range/14), GRAPHIC_SPEED_Y_POS);
                     } else{
                         mDaggerView.moveGL(GRAPHIC_DAGGER_X_POS, GRAPHIC_DAGGER_Y_POS +(RANGEMAXLIMIT/35));
-                        mSpeedView.moveGL(GRAPHIC_SPEED_X_POS+(RANGEMAXLIMIT/14), GRAPHIC_SPEED_Y_POS);
                     }
                     mDaggerView.getGlView().requestRender();
-                    mSpeedView.getGlView().requestRender();
                 }
                 if(mLogService != null) {
                     if (mLogService.isLogging()){
@@ -1005,6 +1006,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
             }
         }
     }
+
     Runnable mWaveRunner = new Runnable() {
 
         @Override
@@ -1078,11 +1080,11 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                         mFeedbackState = FeedbackStates.LRSPEED;
                     } else if (abs(inclineX) > HEELINCLINELOWERLIMIT && maxPressure > PRESSUREUPPERLIMIT){
                         mFeedbackState = FeedbackStates.REEFING;
-                    } else if (abs(inclineX) > HEELINCLINELOWERLIMIT && maxPressure > PRESSUREMIDLIMIT){
+                    } else if (abs(inclineX) > HEELINCLINELOWERLIMIT && maxPressure > PRESSUREMIDLIMIT && maxPressure < PRESSUREUPPERLIMIT){
                         mFeedbackState = FeedbackStates.HIKE;
                     } else if (abs(inclineX) > HEELINCLINEMIDLIMIT && range > RANGELOWELIMIT){
                         mFeedbackState = FeedbackStates.KEELHAUL;
-                    } else if (abs(inclineX) < HEELINCLINELOWERLIMIT && range < RANGEMIDLIMIT && pressure < PRESSURELOWLIMIT && drift < DRIFTLOWERLIMIT){
+                    } else if (abs(inclineX) > HEELINCLINELOWERLIMIT && range < RANGEMIDLIMIT && pressure < PRESSURELOWLIMIT && drift < DRIFTLOWERLIMIT){
                         mFeedbackState = FeedbackStates.RUNNINGLOW;
                     } else if (abs(inclineX) < HEELINCLINELOWERLIMIT && range > RANGEMIDLIMIT && pressure < PRESSURELOWLIMIT && drift < DRIFTLOWERLIMIT){
                         mFeedbackState = FeedbackStates.RUNNINGHIGH;
@@ -1122,80 +1124,92 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
     private void talkFeedback(){
-        IntervalVibrator mVibrator =  new IntervalVibrator(0, 0, 0);
+        IntervalVibrator mVibrator =  new IntervalVibrator(this,0, 0, 0);
         String txt = "";
         switch (mFeedbackState) {
             case HEEL:
                 txt = "All hands! \n Abandon ship!";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.red));
-                mVibrator = new IntervalVibrator(1, 1000, 500);
+                feedbackText.setBackground(getDrawable(R.color.black));
+                mVibrator = new IntervalVibrator(this, 1, 1000, 500);
                 break;
             case WRSPEED:
                 txt = "Yargh matey! \n New world record speed!";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.green));
-                mVibrator = new IntervalVibrator(10, 1000, 300);
+                feedbackText.setBackground(getDrawable(R.color.darkblue));
+                mVibrator = new IntervalVibrator(this, 10, 1000, 300);
                 break;
             case LRSPEED:
                 txt = "Ahoy land crab! \n New laser record speed!";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.darkgreen));
-                mVibrator = new IntervalVibrator(5, 200, 400);
+                feedbackText.setBackground(getDrawable(R.color.laserblue));
+                mVibrator = new IntervalVibrator(this, 5, 200, 400);
                 break;
             case REEFING:
                 txt = "Furl the jib \n Lower the mainsail";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.orange));
-                mVibrator = new IntervalVibrator(3, 200, 700);
+                feedbackText.setBackground(getDrawable(R.color.blue));
+                mVibrator = new IntervalVibrator(this, 3, 200, 700);
                 break;
             case HIKE:
                 txt = "Hike more! \n You can do it!";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.darkblue));
-                mVibrator = new IntervalVibrator(3, 200, 700);
+                feedbackText.setBackground(getDrawable(R.color.green));
+                mVibrator = new IntervalVibrator(this, 3, 200, 700);
                 break;
             case KEELHAUL:
                 txt = "Lower the centerboard";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.darkblue));
-                mVibrator = new IntervalVibrator(3, 200, 700);
+                feedbackText.setBackground(getDrawable(R.color.darkgreen));
+                mVibrator = new IntervalVibrator(this, 3, 200, 700);
                 break;
             case HAULING:
                 txt = "Ahoy! \n Lift Centerboard";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.blue));
-                mVibrator = new IntervalVibrator(2, 1200, 800);
+                feedbackText.setBackground(getDrawable(R.color.yellow));
+                mVibrator = new IntervalVibrator(this, 2, 1200, 800);
                 break;
             case RUNNINGLOW:
                 txt = "Lower the centerboard! \n Death roll imminent!";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.red));
-                mVibrator = new IntervalVibrator(2, 200, 600);
+                feedbackText.setBackground(getDrawable(R.color.blue));
+                mVibrator = new IntervalVibrator(this, 2, 200, 600);
                 break;
             case RUNNINGHIGH:
                 txt = "Dead ahead! \n Full speed!";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.red));
-                mVibrator = new IntervalVibrator(2, 200, 600);
+                feedbackText.setBackground(getDrawable(R.color.green));
+                mVibrator = new IntervalVibrator(this, 2, 200, 600);
                 break;
             case DRIFT:
                 txt = "Ship Adrift! \n Lower Centerboard more!";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.orange));
-                mVibrator = new IntervalVibrator(2, 100, 500);
+                feedbackText.setBackground(getDrawable(R.color.black));
+                mVibrator = new IntervalVibrator(this, 2, 100, 500);
                 break;
             case CLEAR:
                 txt = "Your an able seaman \n Congrats!";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.darkgreen));
-                mVibrator = new IntervalVibrator(3, 200, 500);
+                feedbackText.setBackground(getDrawable(R.color.orange));
+                mVibrator = new IntervalVibrator(this, 3, 200, 500);
                 break;
             case LANDCRAB:
                 txt = "Speed up land crab!";
                 feedbackText.setText(txt);
                 feedbackText.setTextColor(getColor(R.color.darkgreen));
-                mVibrator = new IntervalVibrator(3, 200, 500);
+                feedbackText.setBackground(getDrawable(R.color.orange));
+                mVibrator = new IntervalVibrator(this, 3, 200, 500);
                 break;
             default:
 
@@ -1211,32 +1225,6 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
-    private class IntervalVibrator implements Runnable{
-        private Vibrator vibrateFeedback;
-        private int times, interval;
-        private long length;
-        private int start;
-        IntervalVibrator(int times, long length, int interval){
-            this.vibrateFeedback = (Vibrator) getSystemService(getApplicationContext().VIBRATOR_SERVICE);
-            this.times = times;
-            this.length = length;
-            this.interval = interval;
-            this.start = 1;
-        }
-        @Override
-        public void run() {
-            try {
-                this.vibrateFeedback.vibrate(length);
-            } finally {
-                // 100% guarantee that this always happens, even if
-                // your update method throws an exception
-                if (start <times){
-                    mVibratorHandler.postDelayed(this, interval);
-                    start++;
-                }
-            }
-        }
-    }
 
     private void startRepeatingTask() {
         mStateChecker.run();
@@ -1262,76 +1250,6 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     }
 
 
-    /*
-    Calculate distance in meters based on two points in longitude latitude
-     */
-    public static double distance_on_geoid(double lat1, double lon1, double lat2, double lon2) {
-
-        // Convert degrees to radians
-        lat1 = lat1 * Math.PI / 180.0;
-        lon1 = lon1 * Math.PI / 180.0;
-
-        lat2 = lat2 * Math.PI / 180.0;
-        lon2 = lon2 * Math.PI / 180.0;
-
-        // radius of earth in metres
-        double r = 6378100;
-
-        // P
-        double rho1 = r * cos(lat1);
-        double z1 = r * sin(lat1);
-        double x1 = rho1 * cos(lon1);
-        double y1 = rho1 * sin(lon1);
-
-        // Q
-        double rho2 = r * cos(lat2);
-        double z2 = r * sin(lat2);
-        double x2 = rho2 * cos(lon2);
-        double y2 = rho2 * sin(lon2);
-
-        // Dot product
-        double dot = (x1 * x2 + y1 * y2 + z1 * z2);
-        double cos_theta = dot / (r * r);
-        if (cos_theta > 1){
-            cos_theta = 1;
-        }
-        double theta = acos(cos_theta);
-
-        // Distance in Metres
-        return r * theta;
-    }
-
-    /*
-    Estimate where next position should be using bearing and distance traveled between last two points.
-     */
-    static LatLng calcNextEstimatePos(LatLng pos, double distance, double radialBearing){
-        int R = 6378100; // Earth Radius in m
-
-        /*double lat2 = Math.asin(Math.sin(Math.PI / 180 * pos.latitude) * Math.cos(distance / R) + Math.cos(Math.PI / 180 * pos.latitude) * Math.sin(distance / R) * Math.cos(Math.PI / 180 * radialBearing));
-        double lon2 = Math.PI / 180 * pos.longitude + Math.atan2(Math.sin( Math.PI / 180 * radialBearing) * Math.sin(distance / R) * Math.cos( Math.PI / 180 * pos.longitude ), Math.cos(distance / R) - Math.sin( Math.PI / 180 * pos.longitude) * Math.sin(lat2));
-
-        return new LatLng(180 / Math.PI * lat2 , 180 / Math.PI * lon2);
-        */
-        //Rhumb
-        double rBearing = radialBearing * Math.PI /180;
-
-        double lat1 = pos.latitude * Math.PI / 180.0;
-        double lon1 = pos.longitude * Math.PI / 180.0;
-
-        double angDistance = distance/R;
-        double deltaLat = angDistance * Math.cos(rBearing);
-        double lat2 = lat1 + deltaLat;
-
-        double projLatDiff = Math.log(Math.tan(lat2/2+Math.PI/4)/Math.tan(lat1/2+Math.PI/4));
-        double q = Math.abs(projLatDiff) > 10e-12 ? deltaLat / projLatDiff : Math.cos(lat1); // E-W course becomes ill-conditioned with 0/0
-
-        double deltaLon = angDistance*Math.sin(rBearing)/q;
-        double lon2 = lon1 + deltaLon;
-
-        lat2 = lat2 * 180.0 / Math.PI;
-        lon2 = lon2  * 180.0 / Math.PI;
-        return new LatLng(lat2,lon2);
-    }
 
 
     @Override
@@ -1371,7 +1289,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                         newWaypointRoute.add(boat, mMarkers.get(keys[index]).getPosition());
                         newWaypointRoute.color(getColor(R.color.green));
                         wayPointPolyline = mMap.addPolyline(newWaypointRoute);
-                        double dist = FeedbackActivity.distance_on_geoid(boat.latitude,boat.longitude, mMarkers.get(keys[index]).getPosition().latitude, mMarkers.get(keys[index]).getPosition().longitude);
+                        double dist = Locator.distance_on_geoid(boat.latitude,boat.longitude, mMarkers.get(keys[index]).getPosition().latitude, mMarkers.get(keys[index]).getPosition().longitude);
                         MenuItem distItem = mMenu.findItem(R.id.dist_to_waypoint);
                         //Check i close to wp and remove to redraw
                         if (dist < 10){

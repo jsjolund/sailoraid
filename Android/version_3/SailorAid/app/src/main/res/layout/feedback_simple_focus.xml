@@ -9,33 +9,76 @@
     tools:showIn="@layout/feedback_activity"
     android:background="@color/background">
 
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.45" />
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineLow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.60" />
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.90" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineLeftVert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.20"  />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineRightVert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.85"  />
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineMidVert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
     <LinearLayout
-        android:layout_width="368dp"
-        android:layout_height="250dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:id="@+id/simpleboatalignmentholder"
         android:orientation="horizontal"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/guideline"
         android:gravity="bottom"
         android:background="@drawable/gyro2"
         android:baselineAligned="false"/>
 
+
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="100dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:id="@+id/simplefeedbackTextLayout"
-        app:layout_constraintTop_toBottomOf="@+id/simpleboatalignmentholder"
+        app:layout_constraintTop_toBottomOf="@+id/guideline"
+        app:layout_constraintBottom_toTopOf="@id/guidelineLow"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+        android:gravity="center"
         android:baselineAligned="false"
         android:orientation="horizontal" />
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="250dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:background="@drawable/waves_back"
         android:id="@+id/simplewaveholder"
-        app:layout_constraintTop_toBottomOf="@+id/simplefeedbackTextLayout"
+        app:layout_constraintTop_toBottomOf="@+id/guidelineLow"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

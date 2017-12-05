@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import ltuproject.sailoraid.datalog.SailLog;
+import ltuproject.sailoraid.location.Locator;
 
 /**
  * Created by Henrik on 2017-09-06.
@@ -204,7 +205,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 double lon1 = routeList.get(i-1).longitude;
                 double lon2 = routeList.get(i).longitude;
-                routeDistance += FeedbackActivity.distance_on_geoid(lat1, lon1, lat2, lon2);
+                routeDistance += Locator.distance_on_geoid(lat1, lon1, lat2, lon2);
             }
         }
         return routeDistance;
@@ -270,7 +271,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         newWaypointRoute.add(boat, mMarkers.get(keys[index]).getPosition());
                         newWaypointRoute.color(getColor(R.color.green));
                         wayPointPolyline = mMap.addPolyline(newWaypointRoute);
-                        double dist = FeedbackActivity.distance_on_geoid(boat.latitude,boat.longitude, mMarkers.get(keys[index]).getPosition().latitude, mMarkers.get(keys[index]).getPosition().longitude);
+                        double dist = Locator.distance_on_geoid(boat.latitude,boat.longitude, mMarkers.get(keys[index]).getPosition().latitude, mMarkers.get(keys[index]).getPosition().longitude);
 
                         //Check if close to wp and remove to redraw
                         if (dist < 10){
@@ -360,7 +361,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if(mWaypointRoute != null){
                     totalWPDistance = calcRouteDistance(mWaypointRoute)/1000;
                     if (boat!= null){
-                        double dist = FeedbackActivity.distance_on_geoid(boat.latitude,boat.longitude, mWaypointRoute.get(0).latitude, mWaypointRoute.get(0).longitude);
+                        double dist = Locator.distance_on_geoid(boat.latitude,boat.longitude, mWaypointRoute.get(0).latitude, mWaypointRoute.get(0).longitude);
                         totalWPDistance += dist/1000;
                     }
                     Toast.makeText(getApplicationContext(), "Finished routing! \n Total distance: " +String.format("%.3fkm",totalWPDistance), Toast.LENGTH_SHORT).show();

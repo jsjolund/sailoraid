@@ -13,6 +13,7 @@
     <color name="pico">#084B8A</color>
     <color name="purple">#9933ff</color>
     <color name="yellow">#ffff00</color>
+    <color name="black">#000000</color>
     <color name="background">#EFF2FB</color>
     <color name="transparent">#00000000</color>
 </resources>

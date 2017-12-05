@@ -29,6 +29,7 @@ import java.util.zip.Inflater;
 
 import ltuproject.sailoraid.FeedbackActivity;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
+import ltuproject.sailoraid.location.Locator;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
@@ -338,7 +339,7 @@ public class SailLog extends Service {
             lat = Float.parseFloat(data[2]);
             lon = Float.parseFloat(data[3]);
             if (prevLon != 0 && prevLat != 0 && lat != 0 && lon != 0){
-                double dist = FeedbackActivity.distance_on_geoid(lat,lon, prevLat, prevLon);
+                double dist = Locator.distance_on_geoid(lat,lon, prevLat, prevLon);
                 distance += dist;
             }
             prevLat = lat;

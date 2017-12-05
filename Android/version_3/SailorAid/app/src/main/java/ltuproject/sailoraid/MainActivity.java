@@ -50,19 +50,14 @@ import java.util.List;
 import ltuproject.sailoraid.bluetooth.BTHandler;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
 import ltuproject.sailoraid.datalog.SailLog;
+import ltuproject.sailoraid.location.Locator;
 
-import static java.lang.Math.abs;
 import static ltuproject.sailoraid.FeedbackActivity.KM_TO_KNOTS;
-import static ltuproject.sailoraid.FeedbackActivity.calcNextEstimatePos;
-import static ltuproject.sailoraid.FeedbackActivity.calculateInSampleSize;
 import static ltuproject.sailoraid.FeedbackActivity.calculateWaveFrequency;
-import static ltuproject.sailoraid.FeedbackActivity.distance_on_geoid;
-import static ltuproject.sailoraid.FeedbackActivity.getWaveData;
 import static ltuproject.sailoraid.FeedbackActivity.movingAverageFilter;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_COMPASS;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_DRIFT;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_ESTPOSITION;
-import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_FREE_FALL;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_HUMIDITY;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_INCLINE;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_POSITION;
@@ -317,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
             tv.setText(R.string.connected);
             ivCon.setBackground(getDrawable(R.drawable.main_pico_connected));
 
-        } else {
+        } else if (connected == STATE_DISCONNECTED){
             btnCon.setVisibility(View.VISIBLE);
             btnDis.setVisibility(View.GONE);
             tv.setText(R.string.disconnected);
@@ -410,53 +405,60 @@ public class MainActivity extends AppCompatActivity {
     private void logData(String data, String dataType) {
         if (data != null) {
             String time = new SimpleDateFormat("HHmmssSSS").format(new Date());
-            if(dataType.equals(DATA_TYPE_INCLINE)){
+            if (dataType.equals(DATA_TYPE_INCLINE)) {
                 // Get Roll, pitch and yaw
                 String[] accelerometer = data.split(":");
-
-                this.inclineX = Float.parseFloat(accelerometer[0]);
-                this.inclineY = Float.parseFloat(accelerometer[1]);
+                this.inclineY = Float.parseFloat(accelerometer[0]);
+                this.inclineX = Float.parseFloat(accelerometer[1]);
                 this.bearingZ = Float.parseFloat(accelerometer[2]);
 
-                float wavePeriod = 0;
-                //getWaveData(waveData);
                 waveData.add(inclineY);
-                if(waveData.size() > 500){
-                    wavePeriod = calculateWaveFrequency(waveData);
-                    for (int i = 0; i<25; i++){
+                if (waveData.size() > 500) {
+                    float wavePeriod = calculateWaveFrequency(waveData);
+                    for (int i = 0; i < 25; i++) {
                         waveData.remove(0);
                     }
-                    if (mLogService != null){
+                    if (mLogService != null) {
                         if (mLogService.isLogging()) {
                             mLogService.writeToLog(DATA_TYPE_WAVES + ":" + time + ":" + wavePeriod);
                         }
                     }
                 }
-                if(mLogService != null){
-                    if (mLogService.isLogging()){
-                        mLogService.writeToLog(DATA_TYPE_INCLINE +":" +time  +":" +this.inclineX);
-                        mLogService.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +this.bearingZ);
 
+                //float positionBoat = this.x / 100;
+                //mInclineBoatView.moveGL(positionBoat, positionBoat);
+                // Rotates compass with pitch
+                if (mLogService != null) {
+                    if (mLogService.isLogging()) {
+                        mLogService.writeToLog(DATA_TYPE_INCLINE + ":" + time + ":" + this.inclineX);
+                        //mLogService.writeToLog(DATA_TYPE_COMPASS +":" +time +":" +this.bearingZ);
                     }
                 }
-            } else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
+            } else if (dataType.equals(DATA_TYPE_TEMPERATURE)) {
                 data = data.replace(',', '.');
-                if (mLogService != null){
-                    if (mLogService.isLogging()){
-                        mLogService.writeToLog(DATA_TYPE_TEMPERATURE +":" +time +":" +data);
+                if (mLogService != null) {
+                    if (mLogService.isLogging()) {
+                        mLogService.writeToLog(DATA_TYPE_TEMPERATURE + ":" + time + ":" + data);
                     }
                 }
-            } else if(dataType.equals(DATA_TYPE_PRESSURE)){
+            } else if (dataType.equals(DATA_TYPE_PRESSURE)) {
                 data = data.replace(',', '.');
-                if (mLogService != null){
-                    if (mLogService.isLogging()){
-                        mLogService.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" + data);
+                String[] loadCell = data.split(":");
+                // Todo uncomment
+                // this.leftPressure = Float.parseFloat(loadCell[0]);
+                // this.rightPressure = Float.parseFloat(loadCell[1]);
+                // this.maxPressure = Math.max(leftPressure, rightPressure);
+                float maxPressure = Float.parseFloat(loadCell[0]) - 18;
+
+                if (mLogService != null) {
+                    if (mLogService.isLogging()) {
+                        mLogService.writeToLog(DATA_TYPE_PRESSURE + ":" + time + ":" + maxPressure);
                     }
                 }
-            } else if(dataType.equals(DATA_TYPE_HUMIDITY)){
+            } else if (dataType.equals(DATA_TYPE_HUMIDITY)) {
                 data = data.replace(',', '.');
-                if(mLogService != null) {
-                    if (mLogService.isLogging()){
+                if (mLogService != null) {
+                    if (mLogService.isLogging()) {
                         mLogService.writeToLog(DATA_TYPE_HUMIDITY + ":" + time + ":" + data);
                     }
                 }
@@ -466,53 +468,53 @@ public class MainActivity extends AppCompatActivity {
                 float latitude = Float.parseFloat(pos[0]);
                 float longitude = Float.parseFloat(pos[1]);
                 float elevation = Float.parseFloat(pos[2]);
-                this.speed = Float.parseFloat(pos[3])*KM_TO_KNOTS;
+                this.speed = Float.parseFloat(pos[3]) * KM_TO_KNOTS;
                 this.direction = Float.parseFloat(pos[4]);
+                float batteryPower = Float.parseFloat(pos[5]);
+
                 if (latitude != 0f && longitude != 0f) {
                     LatLng currPos = new LatLng(latitude, longitude);
                     //double speed_mps = 0;
-                    if (this.gpsPos.latitude != 0f && this.gpsPos.longitude!= 0f){
+                    if (this.gpsPos.latitude != 0f && this.gpsPos.longitude != 0f) {
                         //Calculate distance and speed from last point, possibly could filter moving avg
-                        double dist = distance_on_geoid(currPos.latitude, currPos.longitude, this.gpsPos.latitude, this.gpsPos.longitude);
+                        double dist = Locator.distance_on_geoid(currPos.latitude, currPos.longitude, this.gpsPos.latitude, this.gpsPos.longitude);
 
                         sogData.add(this.speed);
-                        if(sogData.size() >= 4){
+                        if (sogData.size() >= 4) {
                             this.speed = movingAverageFilter(sogData, 3);
                             sogData.remove(0);
-                            sogData.remove(sogData.size()-1);
+                            sogData.remove(sogData.size() - 1);
                             sogData.add(this.speed);
                         }
                         // Calculate perpendicular drift from the ship navigational bearing will update from previously calculated value to compare with the new values.
-                        if (this.nextEstimate.latitude != 0f && this.nextEstimate.longitude != 0f){
-                            if(mLogService != null) {
+                        if (this.nextEstimate.latitude != 0f && this.nextEstimate.longitude != 0f) {
+                            if (mLogService != null) {
                                 if (mLogService.isLogging()) {
                                     mLogService.writeToLog(DATA_TYPE_ESTPOSITION + ":" + time + ":" + this.nextEstimate.latitude + ":" + this.nextEstimate.longitude + ":" + direction);
                                 }
                             }
-                            this.drift = distance_on_geoid(this.nextEstimate.latitude, this.nextEstimate.longitude, latitude, longitude);
-                        } else{
+                            this.drift = Locator.distance_on_geoid(this.nextEstimate.latitude, this.nextEstimate.longitude, latitude, longitude);
+                        } else {
                             this.drift = UNINITIALIZED;
                         }
-                        this.nextEstimate = calcNextEstimatePos(new LatLng(latitude,longitude), dist, this.bearingZ);
-
+                        this.nextEstimate = Locator.calcNextEstimatePos(new LatLng(latitude, longitude), dist, direction);
                     }
                     this.gpsPos = currPos;
-                    if(mLogService != null) {
-                        if (mLogService.isLogging()){
-                            mLogService.writeToLog(DATA_TYPE_POSITION + ":" + time + ":" + latitude + ":" + longitude + ":" +abs(direction));
-                            mLogService.writeToLog(DATA_TYPE_SOG + ":" +time +":" +this.speed);
-                            mLogService.writeToLog(DATA_TYPE_DRIFT + ":" +time +":" +this.drift);
-                            mLogService.writeToLog(DATA_TYPE_COMPASS + ":" + time + ":" +this.bearingZ);
+                    if (mLogService != null) {
+                        if (mLogService.isLogging()) {
+                            mLogService.writeToLog(DATA_TYPE_POSITION + ":" + time + ":" + latitude + ":" + longitude + ":" + direction);
+                            mLogService.writeToLog(DATA_TYPE_SOG + ":" + time + ":" + this.speed);
+                            mLogService.writeToLog(DATA_TYPE_DRIFT + ":" + time + ":" + this.drift);
+                            mLogService.writeToLog(DATA_TYPE_COMPASS + ":" + time + ":" + direction);
                         }
                     }
                 }
-            } else if (dataType.equals(DATA_TYPE_RANGE)){
+            } else if (dataType.equals(DATA_TYPE_RANGE)) {
                 data = data.replace(',', '.');
                 this.range = Float.parseFloat(data);
-
-                if(mLogService != null) {
-                    if (mLogService.isLogging()){
-                        mLogService.writeToLog(DATA_TYPE_RANGE + ":" + time + ":" + data);
+                if (mLogService != null) {
+                    if (mLogService.isLogging()) {
+                        mLogService.writeToLog(DATA_TYPE_RANGE + ":" + time + ":" + this.range);
                     }
                 }
             }
