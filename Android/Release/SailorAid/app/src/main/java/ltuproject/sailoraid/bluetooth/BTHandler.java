@@ -1,0 +1,211 @@
+package ltuproject.sailoraid.bluetooth;
+
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.content.Context;
+import android.os.Handler;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
+
+import static android.bluetooth.BluetoothDevice.BOND_BONDED;
+
+/**
+ * Created by Henrik on 2017-09-13.
+ */
+
+public class BTHandler {
+
+    private static final String PAIRED_LIST = "Paired devices";
+    private static final String DISCOVERED_LIST = "Discovered devices";
+    private static final String LE_LIST = "LE devices";
+
+
+
+
+    private static final int REQUEST_ENABLE_BT = 1;
+    private static final int REQUEST_COARSE_LOCATION = 999;
+    private static final long SCAN_PERIOD = 10000;
+
+    private BluetoothAdapter btAdapter;
+    private Set<BluetoothDevice> pairedDevices;
+    private ArrayList<BluetoothDevice> newDeviceList;
+    private ArrayList<BluetoothDevice> leDeviceList;
+    private BluetoothDevice newDevice;
+    private BluetoothGatt mBluetoothGatt;
+    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics;
+    private BluetoothGattCharacteristic characteristic;
+    private BluetoothGattCharacteristic mNotifyCharacteristic;
+    private BTLEConnection btLEConnection;
+    private BluetoothGattService mGattService;
+    private ArrayList<BluetoothGattService> mServiceList;
+    private List<BluetoothGattCharacteristic> mCharacteristicList;
+    private int listIterator = 0;
+    private int serviceIterator = 0;
+    private boolean mScanning;
+    private Handler mHandler;
+
+    private Context contx;
+
+    public BTHandler(Context contx){
+        this.btAdapter = BluetoothAdapter.getDefaultAdapter();
+        newDeviceList = new ArrayList<BluetoothDevice>();
+        leDeviceList = new ArrayList<BluetoothDevice>();
+        mHandler = new Handler();
+        mServiceList = new ArrayList<BluetoothGattService>();
+        this.contx = contx;
+    }
+
+    public BluetoothDevice getDevice(String name, String address){
+        BluetoothDevice tmp = null;
+        if (newDeviceList != null){
+            for (int i=0;i<newDeviceList.size();i++){
+                tmp = newDeviceList.get(i);
+                if (tmp.getAddress().equals(address)){
+                    break;
+                }
+            }
+        }
+        if (pairedDevices != null){
+            for(BluetoothDevice device : pairedDevices){
+                tmp = device;
+                if (tmp.getAddress().equals(address)){
+                    break;
+                }
+            }
+        }
+        if (leDeviceList != null){
+            for (int i=0;i<leDeviceList.size();i++){
+                tmp = leDeviceList.get(i);
+                if (tmp.getAddress().equals(address)){
+                    break;
+                }
+            }
+        }
+        return tmp;
+    }
+
+    public void setPairedList(){
+        pairedDevices = btAdapter.getBondedDevices();
+    }
+    public void createBond(BluetoothDevice bd){
+        if (bd !=null) {
+            boolean isPaired = (bd.getBondState() == BOND_BONDED);
+            if (!isPaired) {
+                bd.createBond();
+            }
+        }
+    }
+
+    public void startNewBTLEConnection(){
+        btLEConnection = new BTLEConnection();
+    }
+    public void connectToLEDevice(final BluetoothDevice device) {
+        Handler handler = new Handler(contx.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+
+                if (device != null) {
+                    mBluetoothGatt = device.connectGatt(contx, false, btLEConnection.getGattCallback());
+                }
+            }
+        });
+    }
+
+    public void setmGattCharacteristics(ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics){
+        this.mGattCharacteristics = mGattCharacteristics;
+    }
+
+    public void setmGattService(BluetoothGattService service){
+        mGattService = service;
+        mServiceList.add(mGattService);
+    }
+
+    public boolean deviceExists(ArrayList<BluetoothDevice> list, BluetoothDevice device){
+        boolean exists = false;
+        for (int i=0;i<list.size();i++){
+            if (list.get(i).equals(device)){
+                exists = true;
+                break;
+            }
+        }
+        return exists;
+    }
+
+    public void closeGatt() {
+        if (mBluetoothGatt == null) {
+            return;
+        }
+        mBluetoothGatt.close();
+        mBluetoothGatt = null;
+    }
+
+    /*
+    Scan for Bluetooth LE devices and sends result to a Scancallback
+     */
+    public void scanLeDevice(final ScanCallback mLeScanCallback, final boolean enable) {
+
+        final BluetoothLeScanner bluetoothLeScanner = btAdapter.getBluetoothLeScanner();
+
+        if (enable) {
+            // Stops scanning after a pre-defined scan period.
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mScanning = false;
+
+                    bluetoothLeScanner.stopScan(mLeScanCallback);
+                }
+            }, SCAN_PERIOD);
+
+            mScanning = true;
+            bluetoothLeScanner.startScan(mLeScanCallback);
+        } else {
+            mScanning = false;
+            bluetoothLeScanner.stopScan(mLeScanCallback);
+        }
+    }
+
+    public void addToDevices(BluetoothDevice device){
+        newDeviceList.add(device);
+    }
+
+    public void addLeDeviceList(BluetoothDevice device){
+        leDeviceList.add(device);
+    }
+
+    public BluetoothAdapter getBtAdapter(){
+        return btAdapter;
+    }
+
+    public ArrayList<BluetoothDevice> getNewDeviceList(){
+        return newDeviceList;
+    }
+
+    public ArrayList<BluetoothDevice> getLeDeviceList(){
+        return  leDeviceList;
+    }
+
+    public BTLEConnection getBtLEConnection(){
+        return btLEConnection;
+    }
+    public void clearLeList(){
+        leDeviceList.clear();
+    }
+
+    public void clearNewDevieList(){
+        newDeviceList.clear();
+    }
+    public Set<BluetoothDevice> getPairedDevices(){
+        return pairedDevices;
+    }
+}

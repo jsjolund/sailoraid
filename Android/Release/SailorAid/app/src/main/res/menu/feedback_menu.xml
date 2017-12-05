@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="ltuproject.sailoraid.FeedbackActivity">
+
+    <!-- "Mark Favorite", should appear as action button if possible -->
+    <item
+        android:id="@+id/battery"
+        android:title="Battery"
+        android:icon="@drawable/high_bat"
+        android:visible="true"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/start_log"
+        android:icon="@drawable/log"
+        android:title="Log"
+        android:visible="false"
+        app:showAsAction="always"/>
+
+    <!-- Settings, should always be in the overflow -->
+    <item android:id="@+id/stop_log"
+        android:title="Stop log"
+        android:icon="@drawable/stoplog"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item android:id="@+id/boat_connection"
+        android:title="Connected"
+        android:icon="@drawable/pico_disconnected"
+        android:visible="true"
+        app:showAsAction="always" />
+
+    <item android:id="@+id/voice_enable"
+        android:title="Enable voice"
+        android:visible="true"
+        android:checkable="true"
+        app:showAsAction="withText" />
+
+    <item android:id="@+id/vibration_enable"
+        android:title="Enable vibration"
+        android:visible="true"
+        android:checkable="true"
+        app:showAsAction="withText" />
+</menu>

@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/inclineFocusView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+    tools:showIn="@layout/feedback_activity">
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.40" />
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineLow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.80" />
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.90" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineLeftVert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="120dp"  />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineRightVert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.85"  />
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineMidVert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+    <LinearLayout
+        android:id="@+id/boatalignmentholder"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/gyro2"
+        android:baselineAligned="false"
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/guideline"/>
+
+
+    <TableLayout
+        android:id="@+id/tableLeftFeedback1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:background="@color/darkblue"
+        android:gravity="bottom"
+        android:padding="3dp"
+        app:layout_constraintTop_toBottomOf="@id/guideline"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/guidelineLeftVert"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Tilt: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/tiltText"
+                android:layout_width="wrap_content"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="SOG: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/speedText"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="TEMP: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/tempText"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="HUM: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/humText"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Range: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/rangeText"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Tilt: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/tiltYText"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Drift: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/driftText"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Z: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/zText"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Bat: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/batPer"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Bat: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/batLeft"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <Button
+            android:id="@+id/mapviewbtn"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:layout_margin="1dp"
+            android:background="@color/laserblue"
+            android:text="View map"
+            android:textColor="@color/darkblue"
+            android:textSize="8pt" />
+
+    </TableLayout>
+
+    <LinearLayout
+        android:id="@+id/feedbackTextLayout"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginRight="10dp"
+        app:layout_constraintTop_toBottomOf="@id/guideline"
+        app:layout_constraintLeft_toRightOf="@id/guidelineLeftVert"
+        app:layout_constraintRight_toRightOf="parent"
+        android:baselineAligned="false"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+    </LinearLayout>
+
+
+
+    <LinearLayout
+        android:id="@+id/driftImg"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="5dp"
+        app:layout_constraintTop_toBottomOf="@id/feedbackTextLayout"
+        app:layout_constraintLeft_toRightOf="@id/guidelineLeftVert"
+        app:layout_constraintRight_toLeftOf="@id/guidelineRightVert"
+        app:layout_constraintBottom_toTopOf="@id/guidelineLow"
+        android:background="@drawable/compass"
+        android:orientation="horizontal" />
+
+    <LinearLayout
+        android:id="@+id/driftBar"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
+        android:layout_margin="5dp"
+        app:layout_constraintTop_toBottomOf="@id/guidelineBottom"
+        app:layout_constraintLeft_toRightOf="@id/guidelineLeftVert"
+        app:layout_constraintRight_toLeftOf="@id/guidelineRightVert"
+        android:background="@drawable/driftbar"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/leftDrift"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="left"
+            android:layout_weight="1"
+            android:orientation="horizontal" />
+
+        <LinearLayout
+            android:id="@+id/rightDrift"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="horizontal" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/driftBar"
+        app:layout_constraintLeft_toRightOf="@id/guidelineLeftVert"
+        app:layout_constraintRight_toLeftOf="@id/guidelineRightVert"
+        android:background="@color/background"
+        android:text="Drift"
+        android:textAlignment="center" />
+
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/feedbackTextLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/guidelineRightVert"
+        android:orientation="vertical"
+        android:background="@color/darkblue"
+        android:padding="0dp">
+
+        <LinearLayout
+            android:id="@+id/pressureTableRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:baselineAligned="false"
+            android:background="@color/background">
+
+            <LinearLayout
+                android:id="@+id/pressureMeter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/pressure_bar"
+                android:orientation="horizontal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pressureTextRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:id="@+id/pressureText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="8pt" />
+        </LinearLayout>
+    </LinearLayout>
+</android.support.constraint.ConstraintLayout>
