@@ -12,6 +12,7 @@ import static java.lang.Math.sin;
 
 public class Locator {
 
+
     /*
 Calculate distance in meters based on two points in longitude latitude
  */

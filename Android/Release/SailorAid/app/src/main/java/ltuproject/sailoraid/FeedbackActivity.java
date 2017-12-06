@@ -135,19 +135,13 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     private Menu mMenu;
     private Bundle mSavedInstaceStare;
     private int lastView = 0;
-    static private List<Float> waveData = new ArrayList<Float>();
-    public static synchronized void getWaveData(List<Float> output) {
-        output.addAll(waveData);
-    }
-    private List<Float> filteredData = new ArrayList<Float>();
-    private List<Float> sogData = new ArrayList<>();
-    private float wavePeriod;
+
     private boolean isWaving = false;
     private float wavePos = 0;
     /*
     Sensor variables
      */
-    private float direction, speed;
+    private float direction;
     private float batteryPower;
     private LatLng nextEstimate = new LatLng(0,0);
     private LatLng gpsPos = new LatLng(0,0);
@@ -355,6 +349,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
 
     @Override
     protected void onPause() {
+        stopRepeatingTask();
         super.onPause();
     }
 
@@ -509,8 +504,8 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
             if(dataType.equals(DATA_TYPE_INCLINE)){
                 // Get Roll, pitch and yaw
                 String[] accelerometer = data.split(":");
-                mFeedbackStateChecker.setInclineX(Float.parseFloat(accelerometer[0]));
-                mFeedbackStateChecker.setInclineY(Float.parseFloat(accelerometer[1]));
+                mFeedbackStateChecker.setInclineX(Float.parseFloat(accelerometer[1]));
+                mFeedbackStateChecker.setInclineY(Float.parseFloat(accelerometer[0]));
                 mFeedbackStateChecker.setBearingZ(Float.parseFloat(accelerometer[2]));
                 if (mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.INCLINE){
                     TextView tv = findViewById(R.id.tiltText);
@@ -519,7 +514,6 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                     tv.setText(String.format("%.1f\u00B0", mFeedbackStateChecker.getInclineY()));
                     tv = findViewById(R.id.zText);
                     tv.setText(String.format("%.2f", mFeedbackStateChecker.getWavePeriod())+"Hz");
-
                 }
                 if (mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.INCLINE
                         || mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.MAP
@@ -535,19 +529,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                         mWaveRunner.run();
                     }
                 }
-                waveData.add(mFeedbackStateChecker.getInclineY());
-                if(waveData.size() > 500){
-                    wavePeriod = calculateWaveFrequency(waveData);
-                    mFeedbackStateChecker.setWavePeriod(wavePeriod);
-                    for (int i = 0; i<25; i++){
-                        waveData.remove(0);
-                    }
-                    if (mLogService != null){
-                        if(mLogService.isLogging()){
-                            mLogService.writeToLog(DATA_TYPE_WAVES +":" +time +":" +mFeedbackStateChecker.getWavePeriod());
-                        }
-                    }
-                }
+                mFeedbackStateChecker.setWavePeriod(mFeedbackStateChecker.getInclineY());
                 if (mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.INCLINE
                         || mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.MAP
                         || mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.GRAPHIC){
@@ -572,10 +554,9 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 data = data.replace(',', '.');
                 String[] loadCell = data.split(":");
                 // Todo uncomment
-               // this.leftPressure = Float.parseFloat(loadCell[0]);
-               // this.rightPressure = Float.parseFloat(loadCell[1]);
-               // this.maxPressure = Math.max(leftPressure, rightPressure);
-                //this.maxPressure = Float.parseFloat(loadCell[0])-18;
+                // this.maxPressure = Math.max(Float.parseFloat(loadCell[0]), Float.parseFloat(loadCell[1]));
+                //float maxPressure = Float.parseFloat(loadCell[0])-18;
+                // mFeedbackStateChecker.setMaxPressure(maxPressure-18);
                 mFeedbackStateChecker.setMaxPressure(Float.parseFloat(loadCell[0])-18);
                 TextView tv = findViewById(R.id.pressureText);
                 tv.setText(String.format("%.1f Psi", mFeedbackStateChecker.getMaxPressure()));
@@ -607,7 +588,6 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 float latitude = Float.parseFloat(pos[0]);
                 float longitude = Float.parseFloat(pos[1]);
                 float elevation = Float.parseFloat(pos[2]);
-                float speed = Float.parseFloat(pos[3])*KM_TO_KNOTS;
                 mFeedbackStateChecker.setSpeed(Float.parseFloat(pos[3])*KM_TO_KNOTS);
                 this.direction = Float.parseFloat(pos[4]);
                // this.batteryPower = Float.parseFloat(pos[5]);
@@ -621,15 +601,6 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                     if (this.gpsPos.latitude != 0f && this.gpsPos.longitude != 0f){
                         //Calculate distance and speed from last point, possibly could filter moving avg
                         double dist = Locator.distance_on_geoid(currPos.latitude, currPos.longitude, this.gpsPos.latitude, this.gpsPos.longitude);
-
-                        sogData.add(mFeedbackStateChecker.getSpeed());
-                        if(sogData.size() >= 4){
-
-                            mFeedbackStateChecker.setSpeed(movingAverageFilter(sogData, 3));
-                            sogData.remove(0);
-                            sogData.remove(sogData.size()-1);
-                            sogData.add(mFeedbackStateChecker.getSpeed());
-                        }
                         // Calculate perpendicular drift from the ship navigational bearing will update from previously calculated value to compare with the new values.
                         if (this.nextEstimate.latitude != 0f && this.nextEstimate.longitude != 0f){
                             if(mLogService != null) {
@@ -673,6 +644,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                             mLogService.writeToLog(DATA_TYPE_COMPASS + ":" +time +":" +direction);
                             mLogService.writeToLog(DATA_TYPE_SOG + ":" +time +":" +mFeedbackStateChecker.getSpeed());
                             mLogService.writeToLog(DATA_TYPE_DRIFT + ":" +time +":" +mFeedbackStateChecker.getDrift());
+                            mLogService.writeToLog(DATA_TYPE_WAVES +":" +time +":" +mFeedbackStateChecker.getWavePeriod());
                           }
                     }
                 }
@@ -728,34 +700,6 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
             }
         }
     };
-    public static float calculateWaveFrequency(List<Float> data) {
-        float period;
-        float incPos = 0;
-        boolean posFlag = false;
-        float incNeg = 0;
-        boolean negFlag = false;
-        for (Float measurement: data){
-            if (measurement > 0.00f && !posFlag){
-                negFlag = false;
-                incPos += 1 ;
-                posFlag = true;
-            } else if (measurement < 0.00f && !negFlag){
-                posFlag = false;
-                incNeg += 1 ;
-                negFlag = true;
-            }
-        }
-        period = (incPos + incNeg) / 2.00f;
-        return period/10.00f;
-    }
-
-    public static float movingAverageFilter(List<Float> data, int filterLength){
-      float sum = 0;
-        for (Float value : data){
-            sum+=value;
-        }
-        return sum/data.size();
-    }
 
     /*
     Change icon in toolbar menu to display current battery level

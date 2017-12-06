@@ -5,10 +5,11 @@ import android.content.Context;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
-import android.view.View;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 
 import ltuproject.sailoraid.R;
@@ -50,6 +51,8 @@ public class StateChecker implements Runnable{
     private float wavePeriod;
     private boolean isWaving = false;
     private float wavePos = 0;
+    private List<Float> sogData = new ArrayList<>();
+    private List<Float> waveData = new ArrayList<Float>();
 
     HashMap<String, String> map = new HashMap<String, String>();
 
@@ -64,11 +67,15 @@ public class StateChecker implements Runnable{
     private boolean enableVibration = false;
 
     TextView feedbackText;
+    public StateChecker(Context contx) {
+        this.contx = contx;
+    }
+
     public StateChecker(Context contx, TextView fbt){
         this.contx = contx;
         mFeedbackHandler = new Handler();
         feedbackText = fbt;
-        txtToSpeech=new TextToSpeech(contx, new TextToSpeech.OnInitListener() {
+        txtToSpeech=new TextToSpeech(this.contx, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 txtToSpeech.setLanguage(Locale.UK);
@@ -245,7 +252,51 @@ public class StateChecker implements Runnable{
     }
     public void stop(){
         mFeedbackHandler.removeCallbacks(this);
+        if(txtToSpeech != null) {
+            txtToSpeech.stop();
+            txtToSpeech.shutdown();
+        }
     }
+
+    private void filterSpeed(float speed){
+        sogData.add(speed);
+        if(sogData.size() >= 4){
+            this.speed = movingAverageFilter(sogData, 3);
+            sogData.remove(0);
+            sogData.remove(sogData.size()-1);
+            sogData.add(speed);
+        }
+    }
+
+    public float calculateWaveFrequency(List<Float> data) {
+        float period;
+        float incPos = 0;
+        boolean posFlag = false;
+        float incNeg = 0;
+        boolean negFlag = false;
+        for (Float measurement: data){
+            if (measurement > 0.00f && !posFlag){
+                negFlag = false;
+                incPos += 1 ;
+                posFlag = true;
+            } else if (measurement < 0.00f && !negFlag){
+                posFlag = false;
+                incNeg += 1 ;
+                negFlag = true;
+            }
+        }
+        period = (incPos + incNeg) / 2.00f;
+        return period/10.00f;
+    }
+
+    public float movingAverageFilter(List<Float> data, int filterLength){
+        float sum = 0;
+        for (Float value : data){
+            sum+=value;
+        }
+        return sum/data.size();
+    }
+
     public void setBatteryPower(float batteryPower) {
         this.batteryPower = batteryPower;
     }
@@ -287,7 +338,7 @@ public class StateChecker implements Runnable{
     }
 
     public void setSpeed(float speed) {
-        this.speed = speed;
+        filterSpeed(speed);
     }
 
     public void setFeedbackText(TextView feedbackText) {
@@ -295,7 +346,14 @@ public class StateChecker implements Runnable{
     }
 
     public void setWavePeriod(float wavePeriod) {
-        this.wavePeriod = wavePeriod;
+        waveData.add(wavePeriod);
+        if (waveData.size() > 500) {
+            this.wavePeriod = calculateWaveFrequency(waveData);
+            for (int i = 0; i < 25; i++) {
+                waveData.remove(0);
+            }
+            this.wavePeriod = calculateWaveFrequency(waveData);
+        }
     }
 
     public void setWaving(boolean waving) {

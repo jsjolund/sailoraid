@@ -41,9 +41,6 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import org.w3c.dom.Text;
-
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -52,11 +49,10 @@ import java.util.List;
 import ltuproject.sailoraid.bluetooth.BTHandler;
 import ltuproject.sailoraid.bluetooth.BTLEConnection;
 import ltuproject.sailoraid.datalog.SailLog;
+import ltuproject.sailoraid.feedback.StateChecker;
 import ltuproject.sailoraid.location.Locator;
 
 import static ltuproject.sailoraid.FeedbackActivity.KM_TO_KNOTS;
-import static ltuproject.sailoraid.FeedbackActivity.calculateWaveFrequency;
-import static ltuproject.sailoraid.FeedbackActivity.movingAverageFilter;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_COMPASS;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_DRIFT;
 import static ltuproject.sailoraid.bluetooth.BTLEConnection.DATA_TYPE_ESTPOSITION;
@@ -86,17 +82,14 @@ public class MainActivity extends AppCompatActivity {
     private BTHandler myBTHandler;
     private BluetoothDevice chosenDevice;
     private boolean hasPermission;
-    private BluetoothGatt mBluetoothGatt;
     private BTLEConnection mBluetoothLeService;
     private IntentFilter filter;
     private SailLog mLogService;
-    private List<Float> waveData = new ArrayList<Float>();
-    private List<Float> sogData = new ArrayList<>();
-    private float inclineX, inclineY, bearingZ, speed, direction, range;
-    private double drift;
+    private float direction;
     private ArrayList<LatLng> wpRoute = new ArrayList<LatLng>();
     private LatLng nextEstimate = new LatLng(0,0);
     private LatLng gpsPos = new LatLng(0,0);
+    private StateChecker mMainStateChecker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,13 +104,13 @@ public class MainActivity extends AppCompatActivity {
         Button bluetoothdiscbtn = findViewById(R.id.btdisconbtn);
         Button historybtn = findViewById(R.id.historyviewbtn);
 
+        mMainStateChecker = new StateChecker(this);
         // Button to access the feedback view
         assert feedbackviewbtn != null;
         feedbackviewbtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 // feedback button function
-                //mBluetoothLeService.disconnect();
                 Intent intent = new Intent(MainActivity.this, FeedbackActivity.class);
                 Bundle args = new Bundle();
                 args.putSerializable("ARRAYLIST", wpRoute);
@@ -439,55 +432,45 @@ public class MainActivity extends AppCompatActivity {
     private void logData(String data, String dataType) {
         if (data != null) {
             String time = new SimpleDateFormat("HHmmssSSS").format(new Date());
-            if (dataType.equals(DATA_TYPE_INCLINE)) {
+            if(dataType.equals(DATA_TYPE_INCLINE)){
                 // Get Roll, pitch and yaw
                 String[] accelerometer = data.split(":");
-                this.inclineY = Float.parseFloat(accelerometer[0]);
-                this.inclineX = Float.parseFloat(accelerometer[1]);
-                this.bearingZ = Float.parseFloat(accelerometer[2]);
+                mMainStateChecker.setInclineX(Float.parseFloat(accelerometer[1]));
+                mMainStateChecker.setInclineY(Float.parseFloat(accelerometer[0]));
+                mMainStateChecker.setBearingZ(Float.parseFloat(accelerometer[2]));
+                mMainStateChecker.setWavePeriod(mMainStateChecker.getInclineY());
 
-                waveData.add(inclineY);
-                if (waveData.size() > 500) {
-                    float wavePeriod = calculateWaveFrequency(waveData);
-                    for (int i = 0; i < 25; i++) {
-                        waveData.remove(0);
-                    }
-                    if (mLogService != null) {
-                        if (mLogService.isLogging()) {
-                            mLogService.writeToLog(DATA_TYPE_WAVES + ":" + time + ":" + wavePeriod);
-                        }
+                if(mLogService != null){
+                    if (mLogService.isLogging()){
+                        mLogService.writeToLog(DATA_TYPE_INCLINE +":" +time  +":" +mMainStateChecker.getInclineX());
                     }
                 }
-                if (mLogService != null) {
-                    if (mLogService.isLogging()) {
-                        mLogService.writeToLog(DATA_TYPE_INCLINE + ":" + time + ":" + this.inclineX);
-                    }
-                }
-            } else if (dataType.equals(DATA_TYPE_TEMPERATURE)) {
+            } else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
                 data = data.replace(',', '.');
-                if (mLogService != null) {
-                    if (mLogService.isLogging()) {
-                        mLogService.writeToLog(DATA_TYPE_TEMPERATURE + ":" + time + ":" + data);
+                if (mLogService != null){
+                    if (mLogService.isLogging()){
+                        mLogService.writeToLog(DATA_TYPE_TEMPERATURE +":" +time +":" +data);
                     }
                 }
-            } else if (dataType.equals(DATA_TYPE_PRESSURE)) {
+            } else if(dataType.equals(DATA_TYPE_PRESSURE)){
                 data = data.replace(',', '.');
                 String[] loadCell = data.split(":");
                 // Todo uncomment
-                // this.leftPressure = Float.parseFloat(loadCell[0]);
-                // this.rightPressure = Float.parseFloat(loadCell[1]);
-                // this.maxPressure = Math.max(leftPressure, rightPressure);
-                float maxPressure = Float.parseFloat(loadCell[0]) - 18;
-
-                if (mLogService != null) {
-                    if (mLogService.isLogging()) {
-                        mLogService.writeToLog(DATA_TYPE_PRESSURE + ":" + time + ":" + maxPressure);
+                // this.maxPressure = Math.max(Float.parseFloat(loadCell[0]), Float.parseFloat(loadCell[1]));
+                //float maxPressure = Float.parseFloat(loadCell[0])-18;
+                // mMainStateChecker.setMaxPressure(maxPressure-18);
+                mMainStateChecker.setMaxPressure(Float.parseFloat(loadCell[0])-18);
+                if (mLogService != null){
+                    if (mLogService.isLogging()){
+                        mLogService.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" +mMainStateChecker.getMaxPressure());
                     }
                 }
-            } else if (dataType.equals(DATA_TYPE_HUMIDITY)) {
+            } else if(dataType.equals(DATA_TYPE_HUMIDITY)){
                 data = data.replace(',', '.');
-                if (mLogService != null) {
-                    if (mLogService.isLogging()) {
+                TextView tv = findViewById(R.id.humText);
+                tv.setText(String.format("%.1f%%", data));
+                if(mLogService != null) {
+                    if (mLogService.isLogging()){
                         mLogService.writeToLog(DATA_TYPE_HUMIDITY + ":" + time + ":" + data);
                     }
                 }
@@ -497,52 +480,43 @@ public class MainActivity extends AppCompatActivity {
                 float latitude = Float.parseFloat(pos[0]);
                 float longitude = Float.parseFloat(pos[1]);
                 float elevation = Float.parseFloat(pos[2]);
-                this.speed = Float.parseFloat(pos[3]) * KM_TO_KNOTS;
+                // float speed = Float.parseFloat(pos[3])*KM_TO_KNOTS;
+                mMainStateChecker.setSpeed(Float.parseFloat(pos[3])*KM_TO_KNOTS);
                 this.direction = Float.parseFloat(pos[4]);
-                float batteryPower = Float.parseFloat(pos[5]);
-
                 if (latitude != 0f && longitude != 0f) {
                     LatLng currPos = new LatLng(latitude, longitude);
-                    //double speed_mps = 0;
-                    if (this.gpsPos.latitude != 0f && this.gpsPos.longitude != 0f) {
+                    if (this.gpsPos.latitude != 0f && this.gpsPos.longitude != 0f){
                         //Calculate distance and speed from last point, possibly could filter moving avg
                         double dist = Locator.distance_on_geoid(currPos.latitude, currPos.longitude, this.gpsPos.latitude, this.gpsPos.longitude);
-                        sogData.add(this.speed);
-                        if (sogData.size() >= 4) {
-                            this.speed = movingAverageFilter(sogData, 3);
-                            sogData.remove(0);
-                            sogData.remove(sogData.size() - 1);
-                            sogData.add(this.speed);
-                        }
+
                         // Calculate perpendicular drift from the ship navigational bearing will update from previously calculated value to compare with the new values.
-                        if (this.nextEstimate.latitude != 0f && this.nextEstimate.longitude != 0f) {
-                            if (mLogService != null) {
+                        if (this.nextEstimate.latitude != 0f && this.nextEstimate.longitude != 0f){
+                            if(mLogService != null) {
                                 if (mLogService.isLogging()) {
                                     mLogService.writeToLog(DATA_TYPE_ESTPOSITION + ":" + time + ":" + this.nextEstimate.latitude + ":" + this.nextEstimate.longitude + ":" + direction);
                                 }
                             }
-                            this.drift = Locator.distance_on_geoid(this.nextEstimate.latitude, this.nextEstimate.longitude, latitude, longitude);
-                        } else {
-                            this.drift = UNINITIALIZED;
+                            mMainStateChecker.setDrift(Locator.distance_on_geoid(this.nextEstimate.latitude, this.nextEstimate.longitude, latitude, longitude));
                         }
-                        this.nextEstimate = Locator.calcNextEstimatePos(new LatLng(latitude, longitude), dist, direction);
+                        this.nextEstimate = Locator.calcNextEstimatePos(new LatLng(latitude,longitude), dist, direction);
                     }
                     this.gpsPos = currPos;
-                    if (mLogService != null) {
-                        if (mLogService.isLogging()) {
-                            mLogService.writeToLog(DATA_TYPE_POSITION + ":" + time + ":" + latitude + ":" + longitude + ":" + direction);
-                            mLogService.writeToLog(DATA_TYPE_SOG + ":" + time + ":" + this.speed);
-                            mLogService.writeToLog(DATA_TYPE_DRIFT + ":" + time + ":" + this.drift);
-                            mLogService.writeToLog(DATA_TYPE_COMPASS + ":" + time + ":" + direction);
+                    if(mLogService != null) {
+                        if (mLogService.isLogging()){
+                            mLogService.writeToLog(DATA_TYPE_POSITION + ":" + time + ":" + latitude + ":" + longitude + ":" +direction);
+                            mLogService.writeToLog(DATA_TYPE_COMPASS + ":" +time +":" +direction);
+                            mLogService.writeToLog(DATA_TYPE_SOG + ":" +time +":" +mMainStateChecker.getSpeed());
+                            mLogService.writeToLog(DATA_TYPE_DRIFT + ":" +time +":" +mMainStateChecker.getDrift());
+                            mLogService.writeToLog(DATA_TYPE_WAVES +":" +time +":" +mMainStateChecker.getWavePeriod());
                         }
                     }
                 }
-            } else if (dataType.equals(DATA_TYPE_RANGE)) {
+            } else if (dataType.equals(DATA_TYPE_RANGE)){
                 data = data.replace(',', '.');
-                this.range = Float.parseFloat(data);
-                if (mLogService != null) {
-                    if (mLogService.isLogging()) {
-                        mLogService.writeToLog(DATA_TYPE_RANGE + ":" + time + ":" + this.range);
+                mMainStateChecker.setRange(Float.parseFloat(data));
+                if(mLogService != null) {
+                    if (mLogService.isLogging()){
+                        mLogService.writeToLog(DATA_TYPE_RANGE + ":" + time + ":" + mMainStateChecker.getRange());
                     }
                 }
             }
