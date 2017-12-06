@@ -2,7 +2,30 @@
 \chapterauthor{Theolin, Henrik (no one)}
 The main reason for this project is to give a sailor qualitative feedback and help in clearing the mind of the techniques required to achieve a smooth sailing experience so that the sailor can focus on the joy of sailing. A crucial part was that the data was displayed in a manner that was easy to interpret and provide the help that was called for. To further increase the flexibility of the design it was decided to implement several different user layouts that the user could switch between while running the application. This was determined to be a good way of increasing the chances that the user would find a preferable layout. It was also determined that not only visual representaion would be the best way to go since the sailor needed to be in constant motion to counteract the forces applied on the ship by the wind and current. This would make watching a screen to retreive information somewhat difficult. Other ways of representing data was implemented using text-to-speech where the sailor would get important information by sound aswell as text. Vibration was also used with different vibration sequences depending on different states of the ship.
 
+\subsubsection{Software design}
+A \textit{UML}\cite{uml} model of the system was developed for an overview of the system implementation and is seen in figure \ref{android-uml}. 
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{Figures/uml.png}
+\caption{UML model}
+\label{android-uml}
+\end{figure}
 
+For deeper understanding about how the android acivities\cite{activity} worked figure \ref{android-activity} could be examined. What should be understood was that the application started in a main activity. Switching to another activity was done by sending an intent that spawned as a child activity. While the application was in the child activity the main activity was paused but the state was stored and when switching back from the child all data could be accessed. When the user returns from the child activity that one is destroyed and all data is erased. Sending data between activities is done using intents, to send intent to a child activity could be done by adding a bundle with a data object along with the intent use to spawn the child activity. Sending data back the child activity was done by calling the method startActivityForResult, this allowed the child to send intents back to the parent containing the data. 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{Figures/activity_lifecycle.png}
+\caption{Activity lifecycle}
+\label{android-activity}
+\end{figure}
+Another tool used was that the bluetooth connection and data logging class was implemented as services. A service\cite{service} could be started by an activity and continue running until it was explicitly called to stop. This allowed for several activities to share resources and perform long-running operations in the background. The lifecycle of a service was seen in figure \ref{android-service}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{Figures/service_lifecycle.png}
+\caption{Activity lifecycle}
+\label{android-service}
+\end{figure}
 \subsubsection{Feedback}
 For the feedback states used in the application there were some approximations and simplifications made for easier implementation. As explained in the Physics of sailing chapter there are certain parameters that could be evaluated into different states of the dinghy. A big approximation was made that there is no water movement for all our implementions. The states implemented were
 \begin{labeling}{alligator}
@@ -84,6 +107,14 @@ It was determined that the visual feedback given to the sailor was to include ve
 \label{feedback-text}
 \end{figure}
 The figures were chosen at a development stage and improvements can easily be made by adding different \textit{PNG}\cite{png} files in android studio.
+Using theese figures four different layouts were developed to give multiple choises for the user and was seen in figure \ref{feedback-layouts}. Switching between theese layouts a swipeTouchListener was implemented which allowed the user to swipe across the screen to change layout.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{Figures/layouts.png}
+\caption{Different layouts}
+\label{feedback-layouts}
+\end{figure}
 
 \subsubsection{Audio feedback}
 Based on values from the sensors different states were implemented and for each state a text was read out to the sailor. A priority for each state to prevent less important events from interrupting the more important ones. The feedback was implemented such that the audio feedback would continue even if the device was put in sleep mode.
@@ -112,7 +143,7 @@ The ability to analyse the sailtrip was determined an important feature for the 
 A list of all devices in the nearby area was displayed when the user decided to connect to the system, this added flexibility to the user and allowed connection between multiple systems with different MAC-adressess. The application uses bluetooth low energy technology to match the systems implementation. This allowed for the device to recieve notifications when the data is altered on the system and updates would occur in different frequencies for different types of data. To ensure a stable connection between the system and the device the connection class was implemented as an android service\cite{android-service}. This allowed the device to keep the connection alive between different views and even when the device was put to sleep mode.
 
 \subsubsection{Map}
-For the sailor to get more information about location a map was implemented. The sailor then had the ability to see a path over the trip and the total distance traveled. Waypoint could be placed if the sailor wanted to decide in advance a certain trip. The distance of all the waypoints was displayed and the distance currently traveled to give the sailor information on how long the trip was and how much of the trip was left to be sailed. A path to the nearest waypoint was showed to the sailor to help navigating, when the sailor way close to the waypoint the path to the next waypoint was shown.
+For the sailor to get more information about location a map was implemented. The sailor then had the ability to see a path over the trip and the total distance traveled. Waypoint could be placed if the sailor wanted to decide in advance a certain trip. The distance of all the waypoints was displayed and the distance currently traveled to give the sailor information on how long the trip was and how much of the trip was left to be sailed. A path to the nearest waypoint was showed to the sailor to help navigating, when the sailor way close to the waypoint the path to the next waypoint was shown. The waypoint could also be viewed in the map of the feedback layout.
 
 \subsubsection{Drift}
 Calculation of leeward drift was done by inspection of both pressure produced on the centerboard and by calculating the distance from an estimated destination point with the position received from the \textit{GPS}. By using the \textit{GPS} position and the ships bearing from the systems magnetometer a \textit{rhumb line}\cite{rhumb-line} was derived and the new estimated position was calculed with
