@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">SailorAid</string>
+    <string name="connected">Connected!</string>
+    <string name="disconnected">You are disconnected, bye!</string>
+    <string name="unknown_service">Don\'t know this kind of service</string>
+    <string name="unknown_characteristic">These characteristics are unknown to me</string>
+</resources>

@@ -1,5 +1,4 @@
 
-\section{Introduction}
 \subsection*{Sensor theory}
 Sensor fusion can be observed everywhere e.g., living animals uses all of its senses to survive daily, an animal cannot hunt using its eyes only, it has to combine its sense of smell, eyes, and hearing to hunt the pray\cite{animal}. Sensor fusion theory is not only found in the living species it is found in cars, planes, computers and so on and this to enhance performance and accuracy \cite{animal}. In this project a sensor fusion will be designed to enhance the accuracy of the dinghy's position and velocity. The fusion will be between a global positioning system, GPS and an Inertial Navigation System, INS. The INS contains on a low priced, Inertial Measurement Unit, IMU.\\ 
 The GPS's accuracy is not uniform since there might be building reflections, atmospherics delays or clock bias errors \cite{boken}. Using the only information provided by an SINS is not sufficient either since the IMU sensor will drift after time, but using the information provided by the INS for short time intervals will give more accurate results.  
@@ -242,7 +241,7 @@ v_D
 \end{bmatrix}
 \label{Eq.v_n}
 \end{align}
-Where $\dot{.}$ symbolizes the first derivative with respect to time. Thus, $\dot{\varphi}$, $\dot{\lambda}$ and $\dot{h}$ can be derived by rewriting Eq. \eqref{Eq.v_n} as
+Where $\dot{-}$ symbolizes the first derivative with respect to time. Thus, $\dot{\varphi}$, $\dot{\lambda}$ and $\dot{h}$ can be derived by rewriting Eq. \eqref{Eq.v_n} as
 
 \begin{align}
 \begin{bmatrix}
@@ -497,7 +496,7 @@ Implementing a continuous Kalman Filter using integration between Inertial Navig
 \end{align}
 Where $F$ is describing the dynamics of the system, $\bar{x}$ is the state vector, $G$ is the design matrix, $\bar{u}$ is the input matrix, i.e. forces acting on the dinghy recorded by the IMU and $\hat{\bar{x}}$ is the estimated state vector. \\
 
-Where $F$ is a $9\times 9$ matrix and contain Eq. \eqref{Eq.Frr}, \eqref{Eq.Frv}, \eqref{Eq.Fvr}, \eqref{Eq.Fvv}, \eqref{Eq.Fer}, \eqref{Eq.Fev}$, \eqref{Eq.omega_in} \bar{x}$ is a $9 \times 1$ is given by
+Where $F$ is a $9\times 9$ matrix and contain Eq. \eqref{Eq.Frr}, \eqref{Eq.Frv}, \eqref{Eq.Fvr}, \eqref{Eq.Fvv}, \eqref{Eq.Fer}, \eqref{Eq.Fev}, \eqref{Eq.omega_in}, and $\bar{x}$ is a $9 \times 1$ is given by
 \begin{align}
 F=
 \begin{bmatrix}
@@ -616,9 +615,9 @@ z_k =
 \lambda_{INS} - \lambda_{GPS} \\
 \varphi_{INS} - \varphi_{GPS} \\
 h_{INS} - h_{GPS} \\
-v_{nINS} - v_{nGPS} \\
-v_{eINS} - v_{eGPS} \\
-v_{hINS} - v_{hGPS}
+v_{N_{INS}} - v_{N_{GPS}} \\
+v_{E_{INS}} - v_{E_{GPS}} \\
+v_{d_{INS}} - v_{d_{GPS}}
 \end{bmatrix}.
 \end{align}
 The measurement matrix $H_k$ is defined such
@@ -630,11 +629,11 @@ I_{3\times 3} && 0_{3 \times 3} && 0_{3 \times 3} \\
 \end{bmatrix}
 \end{align}
 
-The measurement noise matrix $R_k$ is defined such as 
+Where $I_{3\times3}$ is the identity matrix of size $3\times 3$. The measurement noise matrix $R_k$ is defined such as 
 \begin{equation}
-R_k = diag(\sigma_{r_n}^2 \quad \sigma_{r_e}^2 \quad \sigma_{r_d}^2 \quad \sigma_{v_n}^2 \quad \sigma_{v_e}^2 \quad \sigma_{v_d}^2)
+R_k = diag(\sigma_{r_N}^2 \quad \sigma_{r_E}^2 \quad \sigma_{r_d}^2 \quad \sigma_{v_N}^2 \quad \sigma_{v_E}^2 \quad \sigma_{v_d}^2)
 \end{equation}
-where $\sigma_{r}^2$ and $\sigma_{v}^2$ is the variance of the position and velocity in all direction, respectively.\\
+where $\sigma_{r_{(N,E,d)}}^2$ and $\sigma_{v_{(N,E,d)}}^2$ is the variance of the position and velocity in all direction, respectively.\\
 
 The Kalman Filter is invoked every time the GPS is updated, i.e. $1Hz$, but since the IMU and the GPS updates at different frequencies a problem arises. The problem is such that at $t_{GPS}(k)$ there won't be a value to read from the IMU, since discrete time domain. To solve this problem a linear interpolation is done between $t_{imu}(k)$ and $t_{imu}(k+1)$, where $t_{imu}(k)$ $\leq$ $t_{GPS}(k)$ $\leq$  $t_{imu}(k+1)$. See Fig. \ref{Fig.different_update}.
 \begin{figure}[H]
@@ -656,7 +655,7 @@ v_n(t_k(GPS) = v_n(t_{imu}(k)) + \frac{v_n(t_{imu}(k+1))-v_n(t_{imu}(k))}{t_{imu
 The data provided by the Inertial Navigation System is working better than just using the raw GPS data, in some occasions. If the goal is to estimate the position, then it's better to use the INS connected to a Kalman Filter, this can be seen in Fig. \ref{Fig:result_kalman}. As seen, the Filtered data is inaccurate in the beginning but after some time converges to the true value, true value as in the case of wanted value, and at some points even catches the wanted value. In comparison to the raw GPS data, the INS is a better estimator for the user's position.
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{Figures/result.eps}
+\includegraphics[width=0.5\textwidth]{result.eps}
 \caption{True VS. Filtered and raw GPS data.}
 \label{Fig:result_kalman}
 \end{figure}
@@ -664,7 +663,7 @@ The data provided by the Inertial Navigation System is working better than just 
 Inspecting the Mean Squared Error, MSE for the position in $XY$ pane in Fig \ref{Fig:mse} for both INS and raw GPS data we can see that the error is lower for the INS data. 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{Figures/mse.eps}
+\includegraphics[width=0.5\textwidth]{mse.eps}
 \caption{Mean Squared Error}
 \label{Fig:mse}
 \end{figure}
@@ -672,7 +671,7 @@ Inspecting the Mean Squared Error, MSE for the position in $XY$ pane in Fig \ref
 When estimating the height, i.e. $Z$-direction the result is poor for the INS, the estimated value from the INS is diverging from the true value, this can be seen in Fig. \ref{Fig:Height}. In this case, the GPS data is more accurate. 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{Figures/Height.eps}
+\includegraphics[width=0.5\textwidth]{Height.eps}
 \caption{Height. True VS. Filtered and raw GPS data.}
 \label{Fig:Height}
 \end{figure}
@@ -680,7 +679,7 @@ The velocities in the $XY$ plane does not represent the true system in a good ma
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{Figures/velocity.eps}
+\includegraphics[width=0.5\textwidth]{velocity.eps}
 \caption{The velocities in $XY$ plane.}
 \label{Fig:velocity}
 \end{figure}
@@ -707,14 +706,11 @@ The purpose of these more advanced calibration technique is to determine the fol
 \item null bias error
 \item axis alignment error, (might not be perfectly perpendicular)
 \end{itemize}
-Also, the dinghy's body may flex due to rough sea conditions, to solve this implement one master INS and one slave INS, consider literature as Strap Down Inertial Navigation Technology, D.H. Titterton and J.L. Weston as a starting point for these different calibration methods. \newline 
+Also, the dinghy's body may flex due to rough sea conditions, to solve this, implement one master INS and one slave INS, consider literature as Strap Down Inertial Navigation Technology, D.H. Titterton and J.L. Weston as a starting point for these different calibration methods. \newline 
 
 A more advanced interpolation technique between IMU data and GPS data, here referencing to literature like Fundamentals of Scientific Computing, Bertil Gustafsson. E.g. Lagrange polynomial can be used to capture the true value better then using a linear interpolation.\newline
 
 
 One should also try different types of control methods to see if one can achieve more accurate results or not, e.g. feed-forward method.\\
 Weighted parameters if one believes the INS more than the GPS or vice-versa, this question arises when e.g. the GPS is connected to many/few satellites or if the user is having a large/small velocity or sensor anomalies. \\ \\
-
-
-
 

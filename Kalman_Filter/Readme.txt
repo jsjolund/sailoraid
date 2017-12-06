@@ -1,3 +1,5 @@
+This was program was used for a dinghy (small boat), to achieve more accurate position and velocity. 
+
 This is a program that uses an Inertial Navigation System (INS) and takes the difference between the INS and GPS data and feeds that to a Kalman filter. The error is then sent back to the INS to correct the next output. 
 
 You can just run the code, using sim_script. But you have to link the folder "data", this since the data provided by the IMU and GPS is in that folder.
@@ -10,6 +12,6 @@ results which should be stored in calibration_res.mat.
  
 Things that should be changed according to the hardware that the user uses. is the standard deviation in kalman_gps_ins.m file
  
-Have fun!
+
   
 
