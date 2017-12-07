@@ -3,22 +3,20 @@
 The main reason for this project is to give a sailor qualitative feedback and help in clearing the mind of the techniques required to achieve a smooth sailing experience so that the sailor can focus on the joy of sailing. A crucial part was that the data was displayed in a manner that was easy to interpret and provide the help that was called for. To further increase the flexibility of the design it was decided to implement several different user layouts that the user could switch between while running the application. This was determined to be a good way of increasing the chances that the user would find a preferable layout. It was also determined that not only visual representaion would be the best way to go since the sailor needed to be in constant motion to counteract the forces applied on the ship by the wind and current. This would make watching a screen to retreive information somewhat difficult. Other ways of representing data was implemented using text-to-speech where the sailor would get important information by sound aswell as text. Vibration was also used with different vibration sequences depending on different states of the ship.
 
 \subsubsection{Software design}
-A \textit{UML}\cite{uml} model of the system was developed for an overview of the system implementation and is seen in figure \ref{android-uml}. 
+A \textit{UML}\cite{uml} model of the system (figure \ref{android-uml}) was developed for an overview of the system implementation. The android system uses activities\cite{activity} to display content to the device screen. These activities have a life-cycle (figure \ref{activity-activity}) that determined how data was accessed and displayed. What should be understood was that the application started in a main activity and switching to another activity was done by sending an intent that spawned as a child activity. While the application was in the child activity the main activity was paused but the state was stored and when switching back from the child all data from the previous state could be accessed. When the user returns from the child activity that one is destroyed and all data is erased. Sending data between activities is done using intents, to send intent to a child activity could be done by adding a bundle with a data object along with the intent use to spawn the child activity. Sending data back to the child activity was done by calling the method startActivityForResult, this allowed the child to send a data packet as a result back to the parent. 
 \begin{figure}[H]
 \centering
 \includegraphics[width=1\textwidth]{Figures/uml.png}
 \caption{UML model}
 \label{android-uml}
 \end{figure}
-
-For deeper understanding about how the android acivities\cite{activity} worked figure \ref{android-activity} could be examined. What should be understood was that the application started in a main activity. Switching to another activity was done by sending an intent that spawned as a child activity. While the application was in the child activity the main activity was paused but the state was stored and when switching back from the child all data could be accessed. When the user returns from the child activity that one is destroyed and all data is erased. Sending data between activities is done using intents, to send intent to a child activity could be done by adding a bundle with a data object along with the intent use to spawn the child activity. Sending data back the child activity was done by calling the method startActivityForResult, this allowed the child to send intents back to the parent containing the data. 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{Figures/activity_lifecycle.png}
 \caption{Activity lifecycle}
 \label{android-activity}
 \end{figure}
-Another tool used was that the bluetooth connection and data logging class was implemented as services. A service\cite{service} could be started by an activity and continue running until it was explicitly called to stop. This allowed for several activities to share resources and perform long-running operations in the background. The lifecycle of a service was seen in figure \ref{android-service}
+The bluetooth connection and data logging class was implemented as services\cite{android-service}. A service could be started by an activity and continue running until it was explicitly called to stop. This allowed for several activities to share resources and perform long-running operations in the background. The lifecycle of a service was seen in figure \ref{android-service}.
 
 \begin{figure}[H]
 \centering
@@ -29,17 +27,22 @@ Another tool used was that the bluetooth connection and data logging class was i
 \subsubsection{Feedback}
 For the feedback states used in the application there were some approximations and simplifications made for easier implementation. As explained in the Physics of sailing chapter there are certain parameters that could be evaluated into different states of the dinghy. A big approximation was made that there is no water movement for all our implementions. The states implemented were
 \begin{labeling}{alligator}
-\item [Clear] - The dinghy holds good velocity and not heeling or drifting
-\item [Drifting] - The dinghy is drifting perpendicular to the bearing
-\item [Heeling] - The dinghy is heeling exceededly
-\item [Reefing] - The dinghy is heeling and drifting
-\item [Adrift] - The dinghy is navigating to course far from set waypoint
-\item [Running] - The dinghy is sailing directly windwards.
+\item [Clear] - The dinghy holds good velocity and not heeling or drifting and with a good amount of pressure on the ceneterboard
+\item [Drift] - The dinghy is drifting perpendicular to the bearing while the centerboard is in an upper position
+\item [Heel] - The dinghy has high heel angle
+\item [Reefing] - The dinghy has high heel angle and the pressure on the centerboard is high
+\item [Wrspeed] - The dinghys speed is above $65.45$kn
+\item [Lrspeed] - The dinghys speed is above $16.8$kn
+\item [Hike] - The dinghy has more then moderate heel angle and the pressure on the centerboard is between medium and high
+\item [Keelhaul] - The dinghy has an above moderate heel angle and the centerboard is not in the lowest position
+\item [Runninghigh] - The dinghy is sailing directly windwards with centerboard high and low heel angle.
+\item [Runninglow] - The dinghy is sailing directly windwards with centerboard high and mid heel angle.
+\item [Landcrab] - The dinghys speed is low.
 \end{labeling}
-Given these states appropriate feedback was given to the user.
+Given these states appropriate feedback was given to the user. For handling states a class call StateChecker was implemented. This would store sensor values and check against limits defined at an interval that was also defined in the class. Depending on these states this class would also determine what feedback should be given.
 
 \subsubsection{Visual Feedback}
-It was determined that the visual feedback given to the sailor was to include very little text information and would consist mainly of images that changes position based on sensor data to give a good representation of what was going on with the ship. Because of different personal preferences the ability to switch between different layouts was implemented. To switch between different layouts a simple swipe on the screen toggled the view to the next layout. All layouts consisted of a subset of views from the complete set including
+It was determined that the visual feedback given to the sailor was to include very little text information and would consist mainly of figures that changed position based on sensor data to give a good representation of what was going on with the ship. Because of different personal preferences the ability to switch between different layouts was implemented. This was done by a simple swipe on the screen to toggle the view to the next layout. All layouts consisted of a subset of views from the complete set including
 \begin{labeling}{alligator}
 \item [\ref{feedback-incline} \textbf{Incline}]  displayed a ships relative incline against and artificial horizont.
 \item [\ref{feedback-pressure} \textbf{Pressure}] moved a pin along a colored bar to represent high of low pressure applied on the centerboard.
@@ -106,8 +109,7 @@ It was determined that the visual feedback given to the sailor was to include ve
 \caption{Text feedback view}
 \label{feedback-text}
 \end{figure}
-The figures were chosen at a development stage and improvements can easily be made by adding different \textit{PNG}\cite{png} files in android studio.
-Using theese figures four different layouts were developed to give multiple choises for the user and was seen in figure \ref{feedback-layouts}. Switching between theese layouts a swipeTouchListener was implemented which allowed the user to swipe across the screen to change layout.
+The figures were chosen at a development stage and improvements can easily be made by adding different \textit{PNG}\cite{png} files in android studio. They were implemented as GLSurfaceView\cite{gl} so that updating the figure could be done by calling a requestRender function, this improved the performance of the application when only updates to the figures were done when new sensor readings were received. To make the figure fit the application the GLSurfaceView was extented into a RotatableGLView that had the wanted features for rotation and positioning. Using theese figures four different layouts were developed to give multiple choices for the user and was seen in figure \ref{feedback-layouts}. Switching between theese layouts a swipeTouchListener was implemented which allowed the user to swipe across the screen to change layout. Changing view the figures needed to be redrawn onto a new view matching the current layout, this was handled in the ViewDisplayer class that contained all RotatableGLViews.
 
 \begin{figure}[H]
 \centering
@@ -117,21 +119,19 @@ Using theese figures four different layouts were developed to give multiple choi
 \end{figure}
 
 \subsubsection{Audio feedback}
-Based on values from the sensors different states were implemented and for each state a text was read out to the sailor. A priority for each state to prevent less important events from interrupting the more important ones. The feedback was implemented such that the audio feedback would continue even if the device was put in sleep mode.
+Based on values from the sensors, different states were implemented and for each state a text was read out to the sailor. The feedback was implemented such that the audio feedback would continue even if the device was put in sleep mode. Handling the text to speach feature a TextToSpeech\ref{texttospeech} class was implemented as an inner class in StateChecker. To prevent the speech to be interrupted preemptively an UtteranceProgressListener\cite{utter} was used. 
 
 \subsubsection{Haptic feedback}
-Based on the same states as the audio feedback vibration was also implemented. The frequency and length of the vibrations were implemented in such a way the each state had a unique signature that could be recognised by the sailor after some practise with the system.
+Based on the same states as the audio feedback vibration was also implemented. The frequency and length of the vibrations were implemented in such a way the each state had a unique signature that could be recognised by the sailor after some practise with the system. Handling the interval a IntervalVibrator was implemented and run by the StateChecker.
 
 \subsubsection{Log}
-The ability to analyse the sailtrip was determined an important feature for the user so a log was implemented and stored on the device internal storage. These files could then be read or deleted at a later date. Storing a log was implemented such that the sailor would need to start a logging session after bluetooth connection had been established to the ship. After the log was started it would create a file on the device internal storage and write sensor data to the file at the same frequency as the data was transmitted by the system. While logging was active the device would continue to store information even if the screen was put in sleep mode so that the sailor could choose to only log data and not view the information displayed on the screen. After the sailtrip was finished the sailor could read the saved log file and receive a summary of the trip \ref{log-summary}. More information from the log could be analysed by reading graphs \ref{log-graph} where the sensor data was shown with respect to time.
-
+The ability to analyse the sailtrip was determined an important feature for the user so a logging function was implemented and data was stored on the device internal storage. This was handled by the SailLog class and these files could be read or deleted at a later date. Storing a log was implemented such that the sailor would need to start a logging session after bluetooth connection had been established to the ship. After the log was started it would create a file on the device internal storage and write sensor data to the file at the same frequency as the data was transmitted by the system. While logging was active the device would continue to store information even if the screen was put in sleep mode so that the sailor could choose to only log data and not view the information displayed on the screen. After the sailtrip was finished the sailor could read the saved log file and receive a summary of the trip (figure \ref{log-summary}). More information from the log could be analysed by reading graphs (figure \ref{log-graph}) where the sensor data was shown with respect to time. These graphs were implemented such that the user was able to choose what graphs to be displayed on the device for improved comparability.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.4\textwidth]{Figures/log_data.png}
 \caption{Log data summary}
 \label{log-summary}
 \end{figure}
-
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.7\textwidth]{Figures/log_graph.png}
@@ -140,13 +140,13 @@ The ability to analyse the sailtrip was determined an important feature for the 
 \end{figure}
 
 \subsubsection{Bluethooth connection}
-A list of all devices in the nearby area was displayed when the user decided to connect to the system, this added flexibility to the user and allowed connection between multiple systems with different MAC-adressess. The application uses bluetooth low energy technology to match the systems implementation. This allowed for the device to recieve notifications when the data is altered on the system and updates would occur in different frequencies for different types of data. To ensure a stable connection between the system and the device the connection class was implemented as an android service\cite{android-service}. This allowed the device to keep the connection alive between different views and even when the device was put to sleep mode.
+A list of all devices in the nearby area was displayed when the user decided to connect to the system, this added flexibility to the user and allowed connection between multiple systems with different MAC-adressess. Scanning for nearby devices was done in the MainAcivity and handled by the BTHandler class. The application uses bluetooth low energy technology to match the systems implementation. This allowed for the device to recieve notifications when the data is altered on the system and updates would occur in different frequencies for different types of data. To ensure a stable connection between the system and the device the connection class was implemented as an android service\cite{android-service}. This allowed the device to keep the connection alive between different views and even when the device was put to sleep mode. All functionallity regarding connecting and receivign data was implemented in the BTLEConnection class and know characteristics and the determined unique Gatt service identifiers was stored in the SampleGattAttributes class.
 
 \subsubsection{Map}
-For the sailor to get more information about location a map was implemented. The sailor then had the ability to see a path over the trip and the total distance traveled. Waypoint could be placed if the sailor wanted to decide in advance a certain trip. The distance of all the waypoints was displayed and the distance currently traveled to give the sailor information on how long the trip was and how much of the trip was left to be sailed. A path to the nearest waypoint was showed to the sailor to help navigating, when the sailor way close to the waypoint the path to the next waypoint was shown. The waypoint could also be viewed in the map of the feedback layout.
+For the sailor to get more information about location two maps were implemented, one that was embedded into a layout in the FeedbackActivity and the functionallity of this was handled in the MapRunner class, another was implemented in MapsActivity. This could be improved by using the same class for both maps to achive better readability and modifyability of the code. Both these implementations utilized the Google maps API\cite{gmaps}, which could be used freely and the map service is highly accurate and suited our system well. Interaction with the maps could also be made quite easily which helped making development faster. The sailor had the ability to see a path over the trip and the total distance traveled. Waypoint could be placed if the sailor wanted to decide in advance a certain trip. The distance of all the waypoints was displayed and the distance currently traveled to give the sailor information on how long the trip was and how much of the trip was left to be sailed. A path to the nearest waypoint was shown to help navigation, when the sailor was close to the first waypoint the path to the next waypoint was shown. The waypoint route could also be viewed in the map of the FeedbackActivity layout.
 
 \subsubsection{Drift}
-Calculation of leeward drift was done by inspection of both pressure produced on the centerboard and by calculating the distance from an estimated destination point with the position received from the \textit{GPS}. By using the \textit{GPS} position and the ships bearing from the systems magnetometer a \textit{rhumb line}\cite{rhumb-line} was derived and the new estimated position was calculed with
+Calculation of leeward drift was done by inspection the distance from an estimated destination point and the position received from the \textit{GPS}. By using the \textit{GPS} position and the ships bearing from the systems magnetometer a \textit{rhumb line}\cite{rhumb-line} was derived and the new estimated position was calculed with
 %δ = d/R	(angular distance)
 %φ2 = φ1 + δ ⋅ cos θ	
 %Δψ = ln( tan(π/4 + φ2/2) / tan(π/4 + φ1/2) )	(‘projected’ latitude difference)
@@ -173,7 +173,7 @@ Calculation of leeward drift was done by inspection of both pressure produced on
   \lambda_2 = \Delta\lambda_1 + \Delta\lambda
   \end{aligned}\\
 \end{align*}
-where $R$ is the earths radius, $d$ is the distance traveled, $\theta$ is ships bearing, $\lambda_1$ and $\varphi_1$ is the point of origin in longitude and latitude. This new estimated position $\lambda_2$ and $\varphi_2$ was then compared to the next positional data from the \textit{GPS} and the distance between these points was caluculated using \textit{Equirectangular projection}\cite{equitriangular}
+where $R$ is the earths radius, $d$ is the distance traveled, $\theta$ is ships bearing, $\lambda_1$ and $\varphi_1$ is the point of origin in longitude and latitude. This new estimated position $\lambda_2$ and $\varphi_2$ was then compared to the next positional data from the \textit{GPS} and the distance between these points was caluculated using \textit{Equirectangular projection}\cite{equirectangular}
 %x = Δλ ⋅ cos φm
 %y = Δφ
 %d = R ⋅ √x² + y²
@@ -188,7 +188,7 @@ where $R$ is the earths radius, $d$ is the distance traveled, $\theta$ is ships 
   d = R\cdot\sqrt{x^2+y^2}
   \end{aligned}\\
 \end{align*}
-where $\Delta\lambda$ and $\Delta\varphi$ are the differences in longitude and latitude for two location points. This function had high performace gain but was less accurate over large distances then for example the \textit{Haversine formula}\cite{haversine}. Since for this function only small changes in distance were calculated the accuracy was more then adequate. A problem with this way of calculating leeward drift is the accuracy of the \textit{GPS} readings and to get a good bearing the idea was to make use of the magnetometer though the accuracy of that is also far from perfect and a small deviation of a couple of degrees resulted in a large drift. The solution was to use the directional data sent from the gps module which calculates direction based on last positional data. This solution would work good for movement forward and when fast sideways motion is detected the estimated position would be along the same vecor as the previous direction. However for constant drift sideways this approach would display that no drift were taking place.
+where $\Delta\lambda$ and $\Delta\varphi$ are the differences in longitude and latitude for two location points. This function had high performace gain but was less accurate over large distances then for example the \textit{Haversine formula}\cite{haversine}. Since for this function only small changes in distance were calculated the accuracy was more then adequate. A problem with this way of calculating leeward drift is the accuracy of the \textit{GPS} readings and to get a good bearing the idea was to make use of the magnetometer though the accuracy of that is also far from perfect and a small deviation of a couple of degrees resulted in a large drift. The solution was to use the directional data sent from the gps module which calculates direction based on last positional data. This solution would work good for movement forward and when fast sideways motion is detected the estimated position would be along the same vecor as the previous direction. However for constant drift sideways this approach would display that no drift were taking place. This calculation was handled by the Locator class.
 
 
 
