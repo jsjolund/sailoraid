@@ -3,10 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/constraintFeedbackView"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     android:theme="@style/Theme.AppCompat.Light.NoActionBar"
     tools:context="ltuproject.sailoraid.FeedbackActivity"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintLeft_toLeftOf="parent"
+    app:layout_constraintRight_toRightOf="parent"
     android:background="@color/background">
     <android.support.v7.widget.Toolbar
         android:id="@+id/feedback_toolbar"
@@ -22,10 +26,10 @@
 
     <ViewFlipper
         android:id="@+id/myFeedbackViewFlipper"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/feedback_toolbar">

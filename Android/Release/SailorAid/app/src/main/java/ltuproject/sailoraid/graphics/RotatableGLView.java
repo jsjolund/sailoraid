@@ -27,7 +27,7 @@ import javax.microedition.khronos.opengles.GL10;
 import ltuproject.sailoraid.R;
 
 /**
- * Class that draws a boat that can change alignment depending on values received
+ * Class that draws a figure that can change alignment depending on values received
  */
 public class RotatableGLView extends GLSurfaceView {
     // private final Bitmap mBitmap;

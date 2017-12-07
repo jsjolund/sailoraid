@@ -120,7 +120,7 @@ public class StateChecker implements Runnable{
                     mFeedbackState = FeedbackStates.HIKE;
                 } else if (abs(inclineX) > HEELINCLINEMIDLIMIT && range > RANGELOWELIMIT){
                     mFeedbackState = FeedbackStates.KEELHAUL;
-                } else if (abs(inclineX) > HEELINCLINELOWERLIMIT && range < RANGEMIDLIMIT && pressure < PRESSURELOWLIMIT && drift < DRIFTLOWERLIMIT){
+                } else if (abs(inclineX) > HEELINCLINELOWERLIMIT && range > RANGEMIDLIMIT && pressure < PRESSURELOWLIMIT && drift < DRIFTLOWERLIMIT){
                     mFeedbackState = FeedbackStates.RUNNINGLOW;
                 } else if (abs(inclineX) < HEELINCLINELOWERLIMIT && range > RANGEMIDLIMIT && pressure < PRESSURELOWLIMIT && drift < DRIFTLOWERLIMIT){
                     mFeedbackState = FeedbackStates.RUNNINGHIGH;

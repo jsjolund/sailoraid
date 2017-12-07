@@ -197,10 +197,12 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         switch(requestCode) {
             case (WP_REQUEST) : {
-                if (resultCode == Activity.RESULT_OK) {
-                    Bundle args = data.getBundleExtra("bundle");
-                    if (args != null){
-                        wpRoute = (ArrayList<LatLng>) args.getSerializable("ARRAYLIST");
+                if (data != null){
+                    if (resultCode == Activity.RESULT_OK) {
+                        Bundle args = data.getBundleExtra("bundle");
+                        if (args != null){
+                            wpRoute = (ArrayList<LatLng>) args.getSerializable("ARRAYLIST");
+                        }
                     }
                 }
                 break;
@@ -394,7 +396,6 @@ public class MainActivity extends AppCompatActivity {
                     BTArrayAdapter.add(bd.getName() + "\n" + bd.getAddress());
                     BTArrayAdapter.notifyDataSetChanged();
                 }
-
             } else {
                 BTArrayAdapter.notifyDataSetChanged();
             }
