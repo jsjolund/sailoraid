@@ -270,8 +270,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (estRoutePolyline != null){
                     estRoutePolyline.remove();
                 }
-                if (travelRoutePolyline != null)
+                if (travelRoutePolyline != null) {
                     travelRoutePolyline.remove();
+                }
                 estRoutePolyline = mMap.addPolyline(newEstTravelRoute);
                 travelRoutePolyline = mMap.addPolyline(newTravelRoute);
                 if (newPoints.size() > 0) {
@@ -313,7 +314,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             totDistItem.setVisible(false);
                             totDistItem = mMenu.findItem(R.id.dist_left);
                             totDistItem.setVisible(true);
-                            totDistItem.setTitle(String.format("%.0f % sailed", (totalDistance/totalWPDistance *100)));
                         }
                     } else{
                       //  MenuItem totDistItem = mMenu.findItem(R.id.dist_left);

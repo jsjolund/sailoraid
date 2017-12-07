@@ -40,7 +40,6 @@ public class MapRunner implements Runnable {
     private LatLng boat;
     private final Map<Integer, Marker> mMarkers = new ConcurrentHashMap<Integer, Marker>();
     private ArrayList<LatLng> wpRoute = new ArrayList<LatLng>();
-    static private List<LatLng> estimatedRoute = new ArrayList<LatLng>();
     private Context contx;
     private Handler mHandler;
     private int mInterval = 1000;
@@ -50,35 +49,34 @@ public class MapRunner implements Runnable {
         this.contx = contx;
         mHandler = new Handler();
         this.wpRoute = wpRoute;
+        if (!wpRoute.isEmpty()){
+            for (LatLng point:wpRoute){
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(point);
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                Marker marker = mMap.addMarker(markerOptions);
+                mMarkers.put(mMarkers.size(), marker);
+            }
+            calcNewWPRoute();
+        }
     }
 
-    static private List<LatLng> travelRoute = new ArrayList<LatLng>();
     @Override
     public void run() {
         try {
-            if (!wpRoute.isEmpty()){
-                for (LatLng point:wpRoute){
-                    MarkerOptions markerOptions = new MarkerOptions();
-                    markerOptions.position(point);
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-                    Marker marker = mMap.addMarker(markerOptions);
-                    mMarkers.put(mMarkers.size(), marker);
-                }
-                calcNewWPRoute();
-            }
+            List<LatLng> newPoints = new ArrayList<LatLng>();
+            FeedbackActivity.getRoute(newPoints);
             // Update travel route on timer update
             PolylineOptions newTravelRoute = new PolylineOptions();
-            newTravelRoute.addAll(travelRoute);
-            if (travelRoutePolyline != null)
+            newTravelRoute.addAll(newPoints);
+            if (travelRoutePolyline != null) {
                 travelRoutePolyline.remove();
+            }
             travelRoutePolyline = mMap.addPolyline(newTravelRoute);
-
-            PolylineOptions newWaypointRoute = new PolylineOptions();
-            if (travelRoute.size() > 0) {
-                if (hereMarker != null) {
+           if (newPoints.size() > 0) {
+                if (hereMarker != null)
                     hereMarker.remove();
-                }
-                boat = travelRoute.get(travelRoute.size() - 1);
+                boat = newPoints.get(newPoints.size() - 1);
                 if(!mMarkers.isEmpty()){
                     if (wayPointPolyline != null){
                         wayPointPolyline.remove();
@@ -89,16 +87,25 @@ public class MapRunner implements Runnable {
                     for (int i = 0; i< keySet.size(); i++){
                         if (mMarkers.get(keys[i]).isVisible()){
                             index = i;
+                            break;
                         }
                     }
+                    PolylineOptions newWaypointRoute = new PolylineOptions();
                     newWaypointRoute.add(boat, mMarkers.get(keys[index]).getPosition());
                     newWaypointRoute.color(contx.getColor(R.color.green));
                     wayPointPolyline = mMap.addPolyline(newWaypointRoute);
                     double dist = Locator.distance_on_geoid(boat.latitude,boat.longitude, mMarkers.get(keys[index]).getPosition().latitude, mMarkers.get(keys[index]).getPosition().longitude);
-                      //Check i close to wp and remove to redraw
+
+                    //Check if close to wp and remove to redraw
                     if (dist < 10){
                         Marker closeMarker = mMarkers.get(keys[index]);
                         removeMarker(closeMarker);
+                    }
+                } else{
+                    //  MenuItem totDistItem = mMenu.findItem(R.id.dist_left);
+                    //  totDistItem.setVisible(false);
+                    if (wayPointPolyline != null){
+                        wayPointPolyline.remove();
                     }
                 }
                 hereMarker = mMap.addMarker(new MarkerOptions().position(boat).title("You are here"));
@@ -109,6 +116,7 @@ public class MapRunner implements Runnable {
                         .tilt(5)
                         .build();
                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
             }
         } finally {
             // 100% guarantee that this always happens, even if

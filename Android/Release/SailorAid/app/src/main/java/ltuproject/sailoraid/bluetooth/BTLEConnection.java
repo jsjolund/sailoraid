@@ -556,9 +556,10 @@ Creates a handler for a thread that registers found Gatt characteristics from co
             float elev = coords[2];
             float speed = coords[3];
             float direction = coords[4];
-            float battery = coords[5];
+            //float battery = coords[5];
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_POSITION);
-            intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f:%f:%f:%f", lat, lon, elev, speed, direction, battery));
+//            intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f:%f:%f:%f", lat, lon, elev, speed, direction, battery));
+            intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f:%f:%f", lat, lon, elev, speed, direction));
         } else if (UUID_COMPASS_MEASUREMENT.equals(characteristic.getUuid())){
             // Yaw might still be used as it is but should be added compass values to this
             float[] euler = bytesToFloats(characteristic.getValue());

@@ -220,6 +220,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
         });
     }
 
+
     private void changeView(int viewId){
         if (lastView == 0){
             mViewDisplayer.hideInclineFocus();
