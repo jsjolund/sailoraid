@@ -8,14 +8,14 @@ In navigation there exist different techniques on how to navigate using an IMU, 
 The concepts of inertial navigation are to determine the position and velocity of the dinghy from a known starting point, using only measurements from the IMU. The IMU, in this case, consists of a three-axis gyroscope, a three-axis accelerometer, and a three-axis magnetometer. \\
 Measurement from the gyroscope is to determine the angular motion of the dinghy, from that its heading relative to a reference frame can be derived.
 By measuring specific forces acting on the dinghy using the accelerometer, then resolve the specific force measurements into the reference frame using the knowledge derived from the information provided by the gyroscope. 
-Integrate the resolved specific force measurements to obtain its velocity and position. \cite{non-linear} 
+The resolved specific force measurements are integrated to obtain its velocity and position. \cite{non-linear} 
 
 
 \subsection{Sensor fusion}
 A popular filter to use when applying sensor fusion is to use a Kalman filter, (KF). The Kalman Filter is a recursive filtering method for discrete data, the algorithm was developed by a Hungarian mathematician Rudolf (Rudi) Emil Kalman in 1960 \cite{boken}. It's popular to use due to its efficiency when calculating predictions. \cite{kf eff}
 
 \subsection{Navigation Frames}
-Navigation algorithm involves various coordinate frames and therefore transformation between frame is a must. In this case, four different frames will be used.\\
+Navigation algorithm involves various coordinate frames and therefore transformation between frames is a must. In this case, four different frames will be used.\\
 
 The Inertial frame denoted $i$-frame for future notation is defined such that its origin is at the center of Earth and its axes $X_i$, $Y_i$ and $Z_i$ is non-rotating with respect to the stars. $Z_i$ is coincident with the Earth's polar axis, i.e. North.\\
 
@@ -39,9 +39,9 @@ The Body frame denoted $b$-frame is the sensitive axes of the IMU's sensors, whi
 \label{Fig:body_frame}
 \end{figure}
 \begin{itemize}
-\item Yaw $(\psi)$: Is an imaginary line running vertically through the ship and through its center of gravity. A yaw motion is a side-to side movement of the bow and stern of the dinghy \cite{SNAME}.
-\item Pitch $(\theta)$: Is an imaginary line running horizontally across the ship and through the centre of gravity. A pitch motion is an up-or-down movement of the bow and stern of the dinghy \cite{SNAME}.
-\item Roll $(\phi)$: Is an imaginary line running horizontally through the length of the ship, through its centre of gravity, and parallel to the waterline. A roll motion is a side-to-side or port-starboard tilting motion of the superstructure around this axis \cite{SNAME}.
+\item Yaw $(\psi)$: Is an imaginary line running vertically through the ship and through its center of gravity. A yaw motion is a side-to-side movement of the bow and stern of the dinghy \cite{SNAME}.
+\item Pitch $(\theta)$: Is an imaginary line running horizontally across the ship and through the center of gravity. A pitch motion is an up-or-down movement of the bow and stern of the dinghy \cite{SNAME}.
+\item Roll $(\phi)$: Is an imaginary line running horizontally through the length of the ship, through its center of gravity, and parallel to the waterline. A roll motion is a side-to-side or port-starboard tilting motion of the superstructure around this axis \cite{SNAME}.
 \end{itemize}
 
 \subsection{Transformation Between Frames}
@@ -152,7 +152,7 @@ c_{31} && c_{32} && c_{33}
 \label{Eq.C_b_n_compact}
 \end{align}
 The Euler angles is a transformation from one coordinate frame to another and are defined by three successive rotations about the different axis. Its possible to see the three angles as a set of mechanical gimbals. 
-The problem with Euler angles is that when rotating about each axis, its possible to drive two of the three gimbals so they appear parallel to each other this implies that a degree of freedom is lost, this is called a gimbal-lock \cite{nonlinear}. To resolve this issue its possible to use quaternion attitude representation instead, as Euler angels the representation allows transformation between one coordinate frame to another, but the difference is that the transformation s done in a single rotation, instead of three	 about a vector defined in the reference frame. The DCM using quaternion is defined such that\cite{nonlinear}.
+The problem with Euler angles is that when rotating about each axis, its possible to drive two of the three gimbals so they appear parallel to each other this implies that a degree of freedom is lost, this is called a gimbal-lock \cite{nonlinear}. To resolve this issue its possible to use quaternion attitude representation instead, as Euler angels the representation allows transformation between one coordinate frame to another, but the difference is that the transformation is done in a single rotation, instead of three about a vector defined in the reference frame. The DCM using quaternion is defined such that\cite{nonlinear}.
 \begin{align}
 C_b^n & =
 \begin{bmatrix}
@@ -195,7 +195,7 @@ $\bar{\omega}_{en}^n$ represents the turn rate of the $n$-frame with respect to 
 \end{bmatrix}^T.
 \label{omega_en}
 \end{align}
-Where $\dot{\lambda}=v_e/(R_N+h)cos(\varphi)$ and $\dot{\varphi}=v_n/(R_E+h)$ \cite{nonlinear}, here we assume the Earth to be an ellipsoid and that there is no variation in Earth's gravitation depending on where the user is on the ellipsoid. $R_N$ is the meridian radius of curvature and defined as $R_N=R_0(1-e^2)/(1-e^2sin^2\varphi)^{3/2}$ \cite{nonlinear}. $R_E$ is the transverse radius of curvature and defined as $R_E=R_0/(1-e^2sin^2\varphi)^{1/2}$. Where $R_0$ is the length of the semi-major axis and has a constant value of $6356752.3142$ m, $e$ is the major eccentricity of the ellipsoid and has a constant value of $0.081819$, $\varphi$ is the current latitude in radians, $v_N$ and $v_E$ is the velocity in north and east direction, respectively and $h$ is the height above the surface of the Earth. Then Rewriting Eq. \eqref{omega_en} with the new expressions.
+Where $\dot{\lambda}=v_e/(R_N+h)cos(\varphi)$ and $\dot{\varphi}=v_n/(R_E+h)$ \cite{nonlinear}, here we assume the Earth to be an ellipsoid and that there are no variations in Earth's gravitation depending on where the user is on the ellipsoid. $R_N$ is the meridian radius of curvature and defined as $R_N=R_0(1-e^2)/(1-e^2sin^2\varphi)^{3/2}$ \cite{nonlinear}. $R_E$ is the transverse radius of curvature and defined as $R_E=R_0/(1-e^2sin^2\varphi)^{1/2}$. Where $R_0$ is the length of the semi-major axis and has a constant value of $6356752.3142$ m, $e$ is the major eccentricity of the ellipsoid and has a constant value of $0.081819$, $\varphi$ is the current latitude in radians, $v_N$ and $v_E$ is the velocity in north and east direction, respectively and $h$ is the height above the surface of the Earth. Then Rewriting Eq. \eqref{omega_en} with the new expressions.
 \begin{align}
 \bar{\omega}_{en}^n=
 \begin{bmatrix}
@@ -221,7 +221,7 @@ Describing the position of the dinghy in the $n$-frame is done by \cite{nonlinea
 \varphi & \lambda & h
 \end{bmatrix}^T.
 \end{align}
-Since velocity is described as the rate of change of its position with respect to a frame of reference and is a function of time, the velocities in north, east and down can be expressed as.
+Since velocity is described as the rate of change of its position with respect to a frame of reference and is a function of time, the velocities in the north, east and down can be expressed as.
 \begin{align}
 \begin{bmatrix}
 v_N \\
@@ -274,7 +274,7 @@ v_D
 \label{Eq.C_b_n_t}
 \end{align}
 Where $\bar{f}^b$ is the specific force vector defined as the difference between the true acceleration in
-space and the acceleration due to gravity and $\bar{g}^n$ is the gravity vector. Where $\Omega$ is the skew matrix of $\omega$, more precise $\Omega_{ib}^b$ the skew-matrix of the outputs of the strapdown gyroscopes and $\Omega_{in}^n$ is the skew-matrix of Eg. \eqref{Eq.omega_in}. Skew-matrix is defined as cross product between the vectors.
+space and the acceleration due to gravity and $\bar{g}^n$ is the gravity vector. Where $\Omega$ is the skew matrix of $\omega$, more precise $\Omega_{ib}^b$ the skew-matrix of the outputs of the strapdown gyroscopes and $\Omega_{in}^n$ is the skew-matrix of Eq. \eqref{Eq.omega_in}. Skew-matrix is defined as the cross product between the vectors.
 
 
 \subsection{INS mechanization}
@@ -437,7 +437,7 @@ Expressing $\dot{E}^n$ by is self in left-hand side, the equation above can be e
 \end{equation}
 or in vector form
 \begin{equation}
-\dot\bar{{e}}^n = -C_b^n(\delta\omega_{ib}^b-\delta\omega_{in}^b).
+\dot{\bar{e}}^n = -C_b^n(\delta\omega_{ib}^b-\delta\omega_{in}^b).
 \label{Eq.error_vec}
 \end{equation}
 
@@ -541,7 +541,7 @@ Since a computer does not use continuous time domain the equation has to be tran
 \hat{\bar{x}}_{k+1} = \Phi_k \bar{x}_k +  \bar{w}_k	
 \label{Eq.discrete}
 \end{equation}
-Here $\Phi_k$ is the state transition matrix in discrete time domain, in order to  obtain a discrete state transition matrix the inverse Laplace transform is performed on the continuous state transition matrix, i.e.
+Here $\Phi_k$ is the state transition matrix in discrete time domain, in order to obtain a discrete state transition matrix the inverse Laplace transform is performed on the continuous state transition matrix, i.e.
 \begin{equation}
 \Phi_k = \mathcal{L}^{-1}\big[(SI-F)^{-1}\big]
 \label{Eq.Phik}
@@ -561,7 +561,7 @@ From Eq. \eqref{Eq.discrete}, $\hat{w}_k$ is the driven response $t_{k+1}$ due t
 \end{cases}
 \end{align}
 
-and $Q_k$ can then be approximated using first order of the discrete transition matrix \cite{Discrete_kalman}
+and $Q_k$ can then be approximated using a first order of the discrete transition matrix \cite{Discrete_kalman}
 \begin{equation}
 Q_k\approx \Phi_k GQG^T \Phi_k^T.
 \label{Eq.Q_k}
@@ -571,7 +571,7 @@ If Eq. \eqref{Eq.Q} is analyzed, by increase the norm of $Q_k$ the Kalman Filter
 
 
 
-The Kalman filter is a linear quadratic estimator which is recursive and the estimator is unbiased and has minimum variance. the algorithm starts with a random process model, i.e. Eq. \eqref{Eq.discrete} and the following observation matrices \cite{Discrete_kalman}.
+The Kalman filter is a linear quadratic estimator which is recursive and the estimator is unbiased and has minimum variance. The algorithm starts with a random process model, i.e. Eq. \eqref{Eq.discrete} and the following observation matrices \cite{Discrete_kalman}.
 
 \begin{equation}
 z_k = H_k\bar{x}_k + \bar{e}_k
@@ -652,7 +652,7 @@ r_n(t_k(GPS) = r_n(t_{imu}(k)) + \frac{r_n(t_{imu}(k+1))-r_n(t_{imu}(k))}{t_{imu
 v_n(t_k(GPS) = v_n(t_{imu}(k)) + \frac{v_n(t_{imu}(k+1))-v_n(t_{imu}(k))}{t_{imu}(k+1)-t_{imu}(k)}(t_{GPS}(k)-t_{GPS}(k)).
 \end{equation}
 \subsection{Result}
-The data provided by the Inertial Navigation System is working better than just using the raw GPS data, in some occasions. If the goal is to estimate the position, then it's better to use the INS connected to a Kalman Filter, this can be seen in Fig. \ref{Fig:result_kalman}. As seen, the Filtered data is inaccurate in the beginning but after some time converges to the true value, true value as in the case of wanted value, and at some points even catches the wanted value. In comparison to the raw GPS data, the INS is a better estimator for the user's position.
+The data provided by the Inertial Navigation System is working better than just using the raw GPS data, on some occasions. If the goal is to estimate the position, then it's better to use the INS connected to a Kalman Filter, this can be seen in Fig. \ref{Fig:result_kalman}. As seen, the Filtered data is inaccurate in the beginning but after some time converges to the true value, true value as in the case of wanted value, and at some points even catches the wanted value. In comparison to the raw GPS data, the INS is a better estimator for the user's position.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{result.eps}
@@ -687,11 +687,11 @@ The velocities in the $XY$ plane does not represent the true system in a good ma
 Depending on what the user wants to measure, e.q. position in 2 dimensions, height or velocity, different sensors should be used. In the case of the first, the INS should be used in the case of the two latter the GPS should be used. \\
 
 The Matlab code that exists, as right now, can read from the Nucleo Board using a serial read (assuming that the Nucleo Board uses the same firmware that was used by us), use stored data, (data created by our group) and also generate data, with the IMU and GPS wanted characteristics. \\
-Also there is a static calibration program for the accelerometer. To see how the program works there exists a readme.txt file in the Matlab folder.\\
+Also, there is a static calibration program for the accelerometer. To see how the program works there exists a readme.txt file in the Matlab folder.\\
 
 Implement a working real-time system for the sensor fusion between the GPS and INS, there exits C-code for this already, but there is some serious bug/bugs which makes the error stored in $\hat{X}$ converge exponentially. A serious attempt finding the problem was conducted and is narrowed down to a problem when calculating the Kalman Gain, $K_k$. Also, figure out why the height position diverges from the wanted value.\\
 
-Improvements on the INS/Kalman Filter implementation can be done as well, here are some thoughts that might be seen as guidelines/starting points to improve the system. \\
+Improvements in the INS/Kalman Filter implementation can be done as well, here are some thoughts that might be seen as guidelines/starting points to improve the system. \\
 To obtain much more accurate information from the INS one should consider more advanced techniques for calibrating the IMU. In this case, a static calibration technique was studied. This is done by keeping the IMU in a fixed position to observe the effect of gravity.
 Consider implementing a more advanced technique, e.g. using this three-stage process.
 \begin{itemize}
@@ -699,7 +699,7 @@ Consider implementing a more advanced technique, e.g. using this three-stage pro
 \item Static testing and studying the effects of natural phenomenon on the IMU.
 \item Dynamic testing where the IMU is subjected to motions that should resemble the conditions out on the sea, e.g. constant waves hitting the sides of the boat. 
 \end{itemize}
-The purpose of these more advanced calibration technique is to determine the following parameters \cite{non-linear}
+The purpose of this more advanced calibration technique is to determine the following parameters \cite{non-linear}
 \begin{itemize}
 \item scale factors
 \item scale factor linearity
@@ -708,7 +708,7 @@ The purpose of these more advanced calibration technique is to determine the fol
 \end{itemize}
 Also, the dinghy's body may flex due to rough sea conditions, to solve this, implement one master INS and one slave INS, consider literature as Strap Down Inertial Navigation Technology, D.H. Titterton and J.L. Weston as a starting point for these different calibration methods. \newline 
 
-A more advanced interpolation technique between IMU data and GPS data, here referencing to literature like Fundamentals of Scientific Computing, Bertil Gustafsson. E.g. Lagrange polynomial can be used to capture the true value better then using a linear interpolation.\newline
+A more advanced interpolation technique between IMU data and GPS data, here referencing to literature like Fundamentals of Scientific Computing, Bertil Gustafsson. E.g. Lagrange polynomial can be used to capture the true value better than using a linear interpolation.\newline
 
 
 One should also try different types of control methods to see if one can achieve more accurate results or not, e.g. feed-forward method.\\
