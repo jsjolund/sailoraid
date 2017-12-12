@@ -13,7 +13,7 @@ For rapid prototyping and firmware development purposes, the NUCLEO-F411RE devel
 
 In order to speed up firmware development, the STM32CubeMX \cite{stm32cubemx} initialization code generator was used to set up a basic working system. This application, developed by ST, can generate C language code for setting up MCU clocks, peripherals, interrupts and similar. It is controlled by a graphical interface for setting MCU options and controlling the previously mentioned code generation.
 
-The main challenge in working with this type of code generation is integrating it with external software libraries directly not built for it. If the library interferes with generated code by overriding settings and register values, the software may enter an undefined state and stop working. Care therefor had to be taken to only use the parts of the libraries which did not interfere. Frequent testing of any newly added functionality had to be done in order to find interfering parts.
+The main challenge in working with this type of code generation is integrating it with external software libraries directly not built for it. If the library interferes with generated code by overriding settings and register values, the software may enter an undefined state and stop working. Care therefore had to be taken to only use the parts of the libraries which did not interfere. Frequent testing of any newly added functionality had to be done in order to find interfering parts.
 
 Three libraries produced by ST were used, one for the Bluetooth module, the IMU chips and the range sensor.
 
@@ -115,3 +115,45 @@ Several NMEA parsing libraries are freely available on the web. The one chosen f
 In order to communicate with the VL53L0X range finder sensor, another software library called X-CUBE-53L0A1 \cite{x-cube-53l0a} developed by ST was used. This software was written for another Nucleo expansion board called X-NUCLEO-53L0A1 which integrated three range sensor units to perform gesture recognition. It was however possible to modify the code to work with the single sensor used in this project. The library implemented a leaky integrator algorithm (basically a low-pass filter) to reduce measurement noise and improve accuracy.
 
 Since the sensor measures the time-of-flight of a laser beam, it was obvious that having the firmware code block while waiting for measurement data was not a realistic option. Instead, the code repeatedly alternated between instructing the sensor to initiate a measurement, and reading back the data from the last measurement. Since the module was meant only to measure the height of the dinghy center board a low measurement frequency of 1 Hz was used.
+
+
+\subsubsection{Firmware design pattern}
+In order to meet the design requirements, information such as dinghy orientation, position, velocity and center board height had to be measured continually in order to be useful. It followed that the most important task of the firmware was to measure these sensor data through external peripherals, perform parsing and calculations on them, then report them to the Android app over Bluetooth in a timely fashion. 
+
+Certain measurements were required to be performed more frequently than others. For example, the Madgwick AHRS algorithm required frequent measurements at a fixed time interval of the acceleration, angular velocity and magnetic strength in order to work as intended.
+
+The center board height required regular but not very frequent measurements, as did the load cells through ADC, while the GPS unit passively reported the position and velocity of the receiver automatically after being initialized.
+
+In order to save battery power, it was decided that not all sensor data needed to be reported through Bluetooth at the same rate they were measured. Similarly, the USB debug output was rate limited.
+
+%#define IMU_SAMPLE_RATE 100.0
+%#define ENV_SAMPLE_RATE 1.0
+%#define ADC_SAMPLE_RATE 10.0
+%#define RANGE_SAMPLE_RATE 10.0
+
+%#define USB_ENV_OUTPUT_RATE 0.1
+%#define USB_GPS_OUTPUT_RATE 1.0
+%#define USB_IMU_OUTPUT_RATE 60.0
+%#define USB_RANGE_OUTPUT_RATE 10.0
+%#define USB_MATLAB_OUTPUT_RATE 100.0
+%#define USB_ADC_OUTPUT_RATE 10.0
+
+%#define BT_ENV_OUTPUT_RATE 5.0
+%#define BT_GPS_OUTPUT_RATE 1.0
+%#define BT_IMU_OUTPUT_RATE 30.0
+%#define BT_RANGE_OUTPUT_RATE 5.0
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l | l }
+  Type & Hz \\
+  \hline
+  IMU sample rate & 100 \\
+  Load cell sample rate & 10 \\
+  Range sensor sample rate & 10 \\
+  GPS reporting rate & ~1 \\
+  Bluetooth IMU output rate 60 \\
+\end{tabular}
+\caption{System input/output rates.}
+\end{table}
