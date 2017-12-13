@@ -88,7 +88,7 @@ Since this project involved analyzing sensor data for developing sensor fusion a
 
 At a relatively low baud rate of 115200 bps, it was determined that send and receive should both be interrupt based using DMA transfers to minimize the impact on system resources. Reception of data like key presses from a computer was handled one character at a time. The characters were appended as a string until the enter key was detected. At this point the string was matched against a list of valid commands, and the appropriate task performed -- such as sending current sensor values. Sending was implemented as a simple circular buffer which could be transferred to the UART peripheral registers using DMA.
 
-In order to log sensor values for later analysis a simple MATLAB script was developed for listening to sensor data over the UART serial port. By inputting a serial command, the embedded system starts sending live sensor data at at constant rate. The script listens to this and logs it to a table.
+In order to log sensor values for later analysis a simple MATLAB script was developed for listening to sensor data over the UART serial port. By inputting a serial command, the embedded system starts sending live sensor data at at constant rate. The MATLAB script listens to this and logs it to a table structure which can be used for analysis of sensor data.
 
 
 \subsubsection{GPS}
@@ -124,36 +124,19 @@ Certain measurements were required to be performed more frequently than others. 
 
 The center board height required regular but not very frequent measurements, as did the load cells through ADC, while the GPS unit passively reported the position and velocity of the receiver automatically after being initialized.
 
-In order to save battery power, it was decided that not all sensor data needed to be reported through Bluetooth at the same rate they were measured. Similarly, the USB debug output was rate limited.
-
-%#define IMU_SAMPLE_RATE 100.0
-%#define ENV_SAMPLE_RATE 1.0
-%#define ADC_SAMPLE_RATE 10.0
-%#define RANGE_SAMPLE_RATE 10.0
-
-%#define USB_ENV_OUTPUT_RATE 0.1
-%#define USB_GPS_OUTPUT_RATE 1.0
-%#define USB_IMU_OUTPUT_RATE 60.0
-%#define USB_RANGE_OUTPUT_RATE 10.0
-%#define USB_MATLAB_OUTPUT_RATE 100.0
-%#define USB_ADC_OUTPUT_RATE 10.0
-
-%#define BT_ENV_OUTPUT_RATE 5.0
-%#define BT_GPS_OUTPUT_RATE 1.0
-%#define BT_IMU_OUTPUT_RATE 30.0
-%#define BT_RANGE_OUTPUT_RATE 5.0
-
+In order to save battery power, it was decided that not all sensor data needed to be reported through Bluetooth at the same rate they were measured. Similarly, the USB debug output was rate limited. Table \ref{table:systemrates} shows the system sample and output rates of the sensor data from different peripheral devices. The main firmware program loop keeps track of the timing for these tasks and performs device polling and interrupt based requests based on these rates.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l | l }
-  Type & Hz \\
+\begin{tabular}{ l | l | l | l }
+  Device & Sample rate & BT output rate & USB output rate\\
   \hline
-  IMU sample rate & 100 \\
-  Load cell sample rate & 10 \\
-  Range sensor sample rate & 10 \\
-  GPS reporting rate & ~1 \\
-  Bluetooth IMU output rate 60 \\
+  IMU & 100 & 30 & 60\\
+  Load cell & 10 & 5 & 10\\
+  Range sensor & 10 & 5 & 10\\
+  GPS & $\approx 1$ & $\approx 1$ & $\approx 1$\\
 \end{tabular}
-\caption{System input/output rates.}
+\caption{System input/output rates in Hz. BT stands for Bluetooth and refers to the rates at which GATT transactions are pushed to the Android app. USB refers to the rate at which serial UART values are output to the terminal.}
+\label{table:systemrates}
 \end{table}
+
