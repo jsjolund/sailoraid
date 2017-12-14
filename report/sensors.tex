@@ -4,15 +4,24 @@ Since all kinds of sailboats main feature is to move completely analogue without
 To get any kind of measurements of the dinghy, sensors are needed. As of now there are sensors measuring a wide array of items. This section will talk about these sensors; what they measure, where they were purchased, the requirements on the sensor, their features, drawbacks and also how they were implemented.
 
 \subsection{Force sensors}
-The goal is to have a system that can measure the forces from the water pushing on the centerboard. 
-%The implementation:
+The function of the daggerboard is to compensate for the force that the wind is pushing on the sail. The goal is to have a system that can measure the forces that pushes on the daggerboard by the water it goes through. By measuring the side forces on the board, a rough estimation of the exerted force on the sail can be made.  
 
+%The implementation:
+\subsubsection{The implementation}
 % What is ``this'' approach? Talk first about the approach, then this sentence.
 %There might not already be any other solutions as clean and simple as this approach.
+
+% MIN NYA -----------------------------
+After some different solutions was suggested the final sensor and measurement method was chosen as the most prominent and clean approach. 
+With this implementation the daggerboard itself will not be disassembled or modified in any way. The other solutions are, either way, more difficult to apply and mount or more complex.  
+% MIN NYA -----------------------------
+
+%% KANSKE TA BORT
 By looking at some different solutions there are no other solutions that might be as clean looking and prominent as this approach. Important to know is that every solution is mandatory to be waterproof and sealed properly from the harsh environment that this system has as its home turf. The solutions that required the sensors to be mounted on the outside or in parts that would be in danger if a crash might occur was scratched.  
 The board itself will not be disassembled in any major part of way. Meaning that this approach doesn’t need any modifications to the board itself. This has been the goal and the chosen approach. Modifications in the mounting plate is the way to go, the other solutions is either way more difficult to apply and mount or more complex.
+%%% ------------------------------
 
-\subsection{The prototype}% If this is about the same as ``Force sensors'', use ``\subsubsection instead.
+\subsubsection{The prototype}% If this is about the same as ``Force sensors'', use ``\subsubsection instead.
 To implement the gauges, a prototype is designed to show how the measurements will be made. The prototype is a bit bigger than the intended solution for this project but it's good to see how it would be constructed. The function is easy to understand. The board goes on the outside and can easily slide up and down past this ball.  The ball itself is kept inside this small area where it can move in and out.
  
 \begin{figure}[H]%look at later figures comment
@@ -153,6 +162,3 @@ As there will always be water around and on the centerplate there is risk of mis
 By the fact that the sensor has to be waterproof the signal has to go through a medium, which can be some type of plastic or even glass.  
 If the signal can be read correctly through this medium or if the signal will get corrupted must be further tested. %Remember to print results here later.
 %That is something that we need to test later when our parts has come in. 
-
-
-
