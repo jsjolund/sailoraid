@@ -35,7 +35,7 @@ To implement the gauges, a prototype is designed to show how the measurements wi
 This way of implementing strain gauges was the first idea. 
 The main case for this strategy was that in the start of this project these gauges were supplied to us, as a leftover from the last group. With this implementation, we could already start working on a prototype and get a small head start in to the project. But as some research shows, it is a more difficult way to solve this problem and it would take bit more work and some sensitive circuits to measure the force. The gauges also need to be stuck in place using some specific glue and can easily be done incorrectly and therefore prevent good measurements.
 
-A model of the pressure sensor was constructed in the CAD program fusion 3D. This model was created in order to clearly show the function of this sensor and to help the thought process involved in the improving of this design.
+A model of the pressure sensor was constructed in the \gls{cad} program fusion 3D. This model was created in order to clearly show the function of this sensor and to help the thought process involved in the improving of this design.
 
 \begin{figure}[H]%look at later figures comment
 \begin{center}
@@ -60,9 +60,9 @@ A better solution is to make some research into load cells, which is a sensor wh
 
 \subsection{Choice of component}
 
-The force from the board onto the mounting plate will be a considerable amount. The actual force is something that’s not known for sure. The initial assumption was that a load cell with a $90.75Kg$ force range should be enough. In the case the sensor will be maxed out the cell it's rated for a $150\%$ overload without causing some damage to the sensor.
+The force from the board onto the mounting plate will be a considerable amount. The actual force is something that’s not known for sure. The initial assumption was that a load cell with a $90.75$ kg force range should be enough. In the case the sensor will be maxed out the cell it's rated for a $150~\%$ overload without causing some damage to the sensor.
 The chosen sensor for this application is selected to this part, the compression load cell called FX1901. 
-From the datasheet the voltage readings of this piece could be calculated. With a maximum voltage reading of around $36mV/V$
+From the datasheet the voltage readings of this piece could be calculated. With a maximum voltage reading of around $36$ mV$/$V.
 
  \begin{figure}[H]%look at later figures comment
 \begin{center}
@@ -78,7 +78,7 @@ From the datasheet the voltage readings of this piece could be calculated. With 
 
 
 In order for the microcontroller to make some good measurements from the load cell an amplification for the  
-That’s a small signal and needs to be amplified to get some good measurements. A good measurement signal to the MCU should be in the order of in between $0 - 5$ volts. 
+That’s a small signal and needs to be amplified to get some good measurements. A good measurement signal to the \gls{mcu} should be in the order of in between $0 - 5$ volts. 
 This is achieved by an amplification gain of around $20$. 
 
 
@@ -108,7 +108,7 @@ The gain on this piece is easily calculated with this function. Gain is 5 plus 8
 
 If our desired 20 gain might not work or the voltages calculated is off, the gain is easily redone with this expression. %It's the same equation...
 \begin{equation}%add a \label{labelname} to refer to this equation.
-Gain = 5 + \frac{80k\Omega}{R_G}
+\textrm{Gain} = 5 + \frac{80~\textrm{k}\Omega}{R_G}
 \end{equation}
 
 
@@ -133,16 +133,16 @@ One of the best implementations of a height sensor would be the use of a linear 
 %The sensor fulfilling our requirements of both functionality and size is the following, NAME, see fig. (\ref{FIGURELABEL}). It is ...
 % ``As we have some tight space requirements this can probably fit...'' -> ``As there are some tight space requirements the module needs to fit''
 %Avoid all loaded terms and terms that is not objective, such as ``feel like''.
-We have found some sensors that might work for us, this is the smallest we found. It is $3cm$ wide and about $5cm$ high. As we have some tight space constraints this can probably fit inside or just stick out a little bit. This particular sensor is in the range of $2000sek$, which feel like a lot. But if no other solution works this might be considered again.  
+We have found some sensors that might work for us, this is the smallest we found. It is $3$ cm wide and about $5$ cm high. As we have some tight space constraints this can probably fit inside or just stick out a little bit. This particular sensor is in the range of $2000$ \gls{sek}, which feel like a lot. But if no other solution works this might be considered again.  
 
 
-We have also looked into some light sensors. This is implemented with the use of a plate placed ion top of the dagger-board and with the light being sent up to this panel the height can be calculated. First we looked into some IR\footnote{Infrared}-sensors; they will probably send the signal in a wide spread pattern which will make the distance measurement troublesome as this signal has just a small plate to bounce off of.  
+We have also looked into some light sensors. This is implemented with the use of a plate placed ion top of the dagger-board and with the light being sent up to this panel the height can be calculated. First we looked into some \gls{ir}-sensors; they will probably send the signal in a wide spread pattern which will make the distance measurement troublesome as this signal has just a small plate to bounce off of.  
   
 %Put all of this paragraph: -->
-With the use of a LIDAR\footnote{LIght Detection And Ranging} system, we can point our light signal at an exact spot and then get an exact measurement of the height.  
-Many of the LIDAR systems found was both too large and expensive to be implemented in this project.
+With the use of a \gls{lidar} system, we can point our light signal at an exact spot and then get an exact measurement of the height.  
+Many of the \gls{lidar} systems found was both too large and expensive to be implemented in this project.
 %Many of the lidar systems we found was too big for our project and also very expensive.  
-A suitable small sensor for the Sailoraid system could be the ``micro LIDAR'' circuit from adafruit%\cite{REFERENCE to circuit!}.
+A suitable small sensor for the Sailoraid system could be the ``micro \gls{lidar}'' circuit from adafruit%\cite{REFERENCE to circuit!}.
 %A suitable sensor that we found was a small "micro lidar" circuit from adafruit: 
 
 \subsubsection{Component}% How about: ``$\mu$LIDAR VL53L0X'' ?
@@ -152,7 +152,7 @@ A suitable small sensor for the Sailoraid system could be the ``micro LIDAR'' ci
 \begin{figure}[H]
 	\centering %\centering can be used inside environments (i.e. all \begin{} here \end{}) and centers everything inside.
 	\includegraphics[width = 10cm]{Figures/Adafruit_height_sensor.png}
-	\caption{Time of flight, $\mu$LIDAR, distance sensor Adafruit VL53L0X}
+	\caption{Time of flight, $\mu$\gls{lidar}, distance sensor Adafruit VL53L0X}
 	\label{micro_lidar}
 \end{figure}
 Problems: % Some problems with this module could be compiled. 
