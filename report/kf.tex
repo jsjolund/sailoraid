@@ -1,6 +1,6 @@
 
 \subsection*{Sensor theory}
-Sensor fusion can be observed everywhere e.g., living animals uses all of its senses to survive daily, an animal cannot hunt using its eyes only, it has to combine its sense of smell, eyes, and hearing to hunt the prey\cite{animal}. Sensor fusion theory is not only found in the living species it is found in cars, planes, computers and so on, this to enhance performance and accuracy. In this project, a sensor fusion will be designed to enhance the accuracy of the dinghy's position and velocity. The fusion will be a global positioning system, GPS and an Inertial Navigation System, INS. The INS contains a low priced, Inertial Measurement Unit, IMU.\\ 
+Sensor fusion can be observed everywhere e.g., living animals uses all of its senses to survive daily, an animal cannot hunt using its eyes only, it has to combine its sense of smell, eyes, and hearing to hunt the prey\cite{animal}. Sensor fusion theory is not only found in the living species it is found in cars, planes, computers and so on, this to enhance performance and accuracy. In this project, a sensor fusion will be designed to enhance the accuracy of the dinghy's position and velocity. The fusion will be a global positioning system, GPS and an Inertial Navigation System, INS. The INS uses a low priced, Inertial Measurement Unit, IMU.\\ 
 The GPS's accuracy is not uniform since there might be building reflections, atmospherics delays or clock bias errors \cite{boken}. Using the only information provided by a Strapdown Inertial Navigation System, SINS is not sufficient either since the IMU sensor will drift after time, but using the information provided by the INS for short time intervals will give more accurate results.  
 
 \subsection{Inertial Navigation System}
@@ -15,7 +15,7 @@ The resolved specific force measurements are integrated to obtain its velocity a
 A popular filter to use when applying sensor fusion is to use a Kalman filter, (KF). The Kalman Filter is a recursive filtering method for discrete data, the algorithm was developed by a Hungarian mathematician Rudolf (Rudi) Emil Kalman in 1960 \cite{boken}. It's popular to use due to its efficiency when calculating predictions. \cite{kf eff}
 
 \subsection{Navigation Frames}
-Navigation algorithm involves various coordinate frames and therefore transformation between frames is a must. In this case, four different frames will be used.\\
+Navigation algorithm involves various coordinate frames and therefore transformation between frames is a must. In this case, four different frames is used.\\
 
 The Inertial frame denoted $i$-frame for future notation is defined such that its origin is at the center of Earth and its axes $X_i$, $Y_i$ and $Z_i$ is non-rotating with respect to the stars. $Z_i$ is coincident with the Earth's polar axis, i.e. North.\\
 
@@ -151,7 +151,7 @@ c_{31} && c_{32} && c_{33}
 \end{bmatrix}
 \label{Eq.C_b_n_compact}
 \end{align}
-The Euler angles is a transformation from one coordinate frame to another and are defined by three successive rotations about the different axis. Its possible to see the three angles as a set of mechanical gimbals. 
+The Euler angles is a transformation from one coordinate frame to another and is defined by three successive rotations about the different axis. Its possible to see the three angles as a set of mechanical gimbals. 
 The problem with Euler angles is that when rotating about each axis, its possible to drive two of the three gimbals so they appear parallel to each other this implies that a degree of freedom is lost, this is called a gimbal-lock \cite{nonlinear}. To resolve this issue its possible to use quaternion attitude representation instead, as Euler angels the representation allows transformation between one coordinate frame to another, but the difference is that the transformation is done in a single rotation, instead of three about a vector defined in the reference frame. The DCM using quaternion is defined such that\cite{nonlinear}.
 \begin{align}
 C_b^n & =
@@ -239,9 +239,9 @@ v_D
 \dot{\lambda}\\
 \dot{h}
 \end{bmatrix}
-\label{Eq.v_n}
+\label{Eq.v_n1}
 \end{align}
-Where $\dot{-}$ symbolizes the first derivative with respect to time. Thus, $\dot{\varphi}$, $\dot{\lambda}$ and $\dot{h}$ can be derived by rewriting Eq. \eqref{Eq.v_n} as
+Where $\dot{-}$ symbolizes the first derivative with respect to time. Thus, $\dot{\varphi}$, $\dot{\lambda}$ and $\dot{h}$ can be derived by rewriting Eq. \eqref{Eq.v_n1} as
 
 \begin{align}
 \begin{bmatrix}
@@ -303,7 +303,7 @@ The Navigation frame Inertial Navigation System can now be seen in Fig. \ref{Fig
 \end{figure}
 \section{Implementation of Sensor Fusion Using a Kalman Filter.}
 \subsection*{Perturbation Analysis}
-Since the differential equations describing velocity, position, and the attitude, DCM is non-linear, utilize a perturbation series to minimize the errors \cite{pertubation}.
+Since the differential equations describing velocity, position, and the attitude, DCM are non-linear, utilize a perturbation series to minimize the errors \cite{pertubation}.
 \begin{equation}
 \hat{r}^n =r^n+\delta r^n
 \label{Eq.per_r}
@@ -546,7 +546,7 @@ Here $\Phi_k$ is the state transition matrix in discrete time domain, in order t
 \Phi_k = \mathcal{L}^{-1}\big[(SI-F)^{-1}\big]
 \label{Eq.Phik}
 \end{equation}
-Since the sample interval, $\Delta t$ is very small in this case Eq. \eqref{Eq.Phik} can be approximated 
+Since the sample interval, $\Delta t$ is very small in this case Eq. \eqref{Eq.Phik} can be approximated using Taylor approximation 
 \begin{equation}
 \Phi_k = e^{F\Delta t} \approx I + F \Delta t 
 \label{Eq.Final_Phik}.
@@ -660,11 +660,13 @@ The data provided by the Inertial Navigation System is working better than just 
 \label{Fig:result_kalman}
 \end{figure}
 
-Inspecting the Mean Squared Error, MSE for the position in $XY$ pane in Fig \ref{Fig:mse} for both INS and raw GPS data we can see that the error is lower for the INS data. 
+
+
+The Mean Squared Error, MSE for the position in XY plane, can be seen in Fig. \ref{Fig:mse} for both INS and raw GPS data we can see that the error is lower for the INS data, in both cases. 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{mse.eps}
-\caption{Mean Squared Error}
+\caption{Mean Squared Error $XY$-plane separately.}
 \label{Fig:mse}
 \end{figure}
 
@@ -684,12 +686,12 @@ The velocities in the $XY$ plane does not represent the true system in a good ma
 \label{Fig:velocity}
 \end{figure}
 \subsection{Discussion/Future Work}
-Depending on what the user wants to measure, e.q. position in 2 dimensions, height or velocity, different sensors should be used. In the case of the first, the INS should be used in the case of the two latter the GPS should be used. \\
+Depending on what the user wants to measure, e.q. position in two dimensions, height or velocity, different sensors should be used. In the firts case, the INS should be used in the case of the two latter the GPS should be used. \\
 
-The Matlab code that exists, as right now, can read from the Nucleo Board using a serial read (assuming that the Nucleo Board uses the same firmware that was used by us), use stored data, (data created by our group) and also generate data, with the IMU and GPS wanted characteristics. \\
+The Matlab code that exists, as right now, can read from the Nucleo Board using a serial read (assuming that the Nucleo Board uses the same firmware that was used by us), use stored data, (data created by our group) and also generate new data, with the IMU and GPS wanted characteristics. \\
 Also, there is a static calibration program for the accelerometer. To see how the program works there exists a readme.txt file in the Matlab folder.\\
 
-Implement a working real-time system for the sensor fusion between the GPS and INS, there exits C-code for this already, but there is some serious bug/bugs which makes the error stored in $\hat{X}$ converge exponentially. A serious attempt finding the problem was conducted and is narrowed down to a problem when calculating the Kalman Gain, $K_k$. Also, figure out why the height position diverges from the wanted value.\\
+Implement a working real-time system for the sensor fusion between the GPS and INS, there exits C-code for this already, but there is some serious bug/bugs which makes the error stored in $\hat{X}$ diverge exponentially. A serious attempt finding the problem was conducted and is narrowed down to a problem when calculating the Kalman Gain, $K_k$. Also, figure out why the height position diverges from the wanted value.\\
 
 Improvements in the INS/Kalman Filter implementation can be done as well, here are some thoughts that might be seen as guidelines/starting points to improve the system. \\
 To obtain much more accurate information from the INS one should consider more advanced techniques for calibrating the IMU. In this case, a static calibration technique was studied. This is done by keeping the IMU in a fixed position to observe the effect of gravity.
