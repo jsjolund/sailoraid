@@ -3475,4 +3475,5 @@ Wire Notes Line
 	20700 8200 14600 8200
 Wire Notes Line
 	14600 8200 14600 1250
+Connection ~ 13100 7100
 $EndSCHEMATC
