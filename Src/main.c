@@ -327,7 +327,7 @@ int main(void)
       sensor.imu.az = ((float) ACC_Value.AXIS_Z) / 1000;
       sensor.imu.my = (((float) MAG_Value.AXIS_X) - MAG_X_BIAS) * MAG_X_SCL / 1000;
       sensor.imu.mx = (((float) MAG_Value.AXIS_Y) - MAG_Y_BIAS) * MAG_Y_SCL / 1000; // LSM6DSL has opposite y-axis compared to LSM303 on IMU board
-      sensor.imu.mz = (((float) MAG_Value.AXIS_Z) - MAG_X_BIAS) * MAG_Z_SCL / 1000;
+      sensor.imu.mz = (((float) MAG_Value.AXIS_Z) - MAG_Z_BIAS) * MAG_Z_SCL / 1000;
 #else
       sensor.imu.gx = ((float) GYR_Value.AXIS_X) / 1000;
       sensor.imu.gy = ((float) GYR_Value.AXIS_Y) / 1000;
@@ -335,23 +335,25 @@ int main(void)
       sensor.imu.ax = ((float) ACC_Value.AXIS_X) / 1000;
       sensor.imu.ay = ((float) ACC_Value.AXIS_Y) / 1000;
       sensor.imu.az = ((float) ACC_Value.AXIS_Z) / 1000;
-      sensor.imu.mx = (((float) MAG_Value.AXIS_X) - MAG_X_BIAS) * MAG_X_SCL / 1000;
-      sensor.imu.my = -(((float) MAG_Value.AXIS_Y) - MAG_Y_BIAS) * MAG_Y_SCL / 1000; // LSM6DSL has opposite y-axis compared to LSM303 on IMU board
-      sensor.imu.mz = (((float) MAG_Value.AXIS_Z) - MAG_X_BIAS) * MAG_Z_SCL / 1000;
+      sensor.imu.my = (((float) MAG_Value.AXIS_X) - MAG_X_BIAS) * MAG_X_SCL / 1000;
+      sensor.imu.mx = (((float) MAG_Value.AXIS_Y) - MAG_Y_BIAS) * MAG_Y_SCL / 1000; // LSM6DSL has opposite y-axis compared to LSM303 on IMU board
+      sensor.imu.mz = (((float) MAG_Value.AXIS_Z) - MAG_Z_BIAS) * MAG_Z_SCL / 1000;
 #endif
 
-      MadgwickUpdate(sensor.imu.gx, sensor.imu.gy, sensor.imu.gz, sensor.imu.ax, sensor.imu.ay, sensor.imu.az, sensor.imu.mx, sensor.imu.my, sensor.imu.mz);
+      MadgwickUpdate(sensor.imu.gx, sensor.imu.gy, sensor.imu.gz,
+          sensor.imu.ax, sensor.imu.ay, sensor.imu.az,
+          sensor.imu.mx, sensor.imu.my, sensor.imu.mz);
       sensor.imu.roll = MadgwickGetRoll();
       sensor.imu.pitch = -MadgwickGetPitch();
       sensor.imu.yaw = -MadgwickGetYaw();
     }
-//    if (taskTimeout(&envSampleTask, &htim2))
-//    {
+    if (taskTimeout(&envSampleTask, &htim2))
+    {
       // Update environment sensors
-//      Pressure_Sensor_Handler(&sensor.env.pressure);
-//      Humidity_Sensor_Handler(&sensor.env.humidity);
-//      Temperature_Sensor_Handler(&sensor.env.temperature);
-//    }
+      Pressure_Sensor_Handler(&sensor.env.pressure);
+      Humidity_Sensor_Handler(&sensor.env.humidity);
+      Temperature_Sensor_Handler(&sensor.env.temperature);
+    }
     if (adcFinished && (taskTimeout(&adcSampleTask, &htim2)))
     {
       // Update ADC
@@ -386,8 +388,8 @@ int main(void)
     }
     if (taskTimeout(&btEnvOutputTask, &htim2))
     {
-//      Temp_Update(sensor.env.temperature);
-//      Humidity_Update(sensor.env.humidity);
+      Temp_Update(sensor.env.temperature);
+      Humidity_Update(sensor.env.humidity);
       Press_Update(sensor.load.cell0, sensor.load.cell1);
     }
     if (taskTimeout(&btRangeOutputTask, &htim2))
@@ -397,6 +399,7 @@ int main(void)
     if (usbImuOutputTask.echo && taskTimeout(&usbImuOutputTask, &htim2))
     {
       printf("%3.4f %3.4f %3.4f\r\n", sensor.imu.roll, sensor.imu.pitch, sensor.imu.yaw);
+//      printf("%3.4f %3.4f %3.4f\r\n", sensor.imu.mx, sensor.imu.my, sensor.imu.mz);
     }
     if (usbGpsOutputTask.echo && taskTimeout(&usbGpsOutputTask, &htim2))
     {

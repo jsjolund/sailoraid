@@ -1,6 +1,6 @@
 import processing.serial.*;
 
-Serial myPort = new Serial(this, "/dev/ttyACM0", 115200);
+Serial myPort = new Serial(this, "/dev/ttyACM3", 115200);
 
 float mxMax = MIN_FLOAT, mxMin = MAX_FLOAT, myMax = MIN_FLOAT, myMin = MAX_FLOAT, mzMax = MIN_FLOAT, mzMin = MAX_FLOAT;
 
@@ -24,7 +24,7 @@ void draw()
     float myScl = avgScl/myS;
     float mzScl = avgScl/mzS;
     
-    println("bias: x="+mxBias+" y="+myBias+" z="+mzBias+" scl: x="+mxScl+" y="+myScl+" z="+mzScl); 
+    println("bias: x:"+mxBias+", y:"+myBias+", z:"+mzBias+", scl: x:"+mxScl+", y:"+myScl+", z:"+mzScl+","); 
 }
 void serialEvent() {
     int newLine = 13;
@@ -34,14 +34,10 @@ void serialEvent() {
 
         if (message != null) {
             String[] list = split(trim(message), " ");
-            if (list.length >= 6) {
-                float yaw = float(list[0]);
-                float pitch = float(list[1]);
-                float roll = float(list[2]);
-
-                float mx = float(list[3]);
-                float my = float(list[4]);
-                float mz = float(list[5]);
+            if (list.length >= 3) {
+                float mx = float(list[0]);
+                float my = float(list[1]);
+                float mz = float(list[2]);
                 
                 if (mx > mxMax) {
                   mxMax = mx;
