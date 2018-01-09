@@ -1,1 +1,50 @@
-Stuff about hardware. 
+\subsection{Battery circuitry}
+Write something about the battery circuit, what program you used and something about the revisions?
+
+\subsection{Main circuitry and requirements}
+The main circuit board is built using the open source electronic design software KiCad\cite{kicad}. It is completely free to use and the source code is open for any modifications.
+The circuit board must fulfill the following:
+\begin{itemize}
+\item Circuit must fit within the casing, with dimensions extracted directly from the cad software\cite{cad}, see \cref{fig:casdim}.
+\item Circuit must be easy to test for both hardware and software errors. Even complete system needs this, since many of the sensors are very small and difficult to solder.
+\item All sensors must fit on the PCB\footnote{Printed Circuit Board}, both physically and also electronically on the ports of the \gls{mcu}.
+\item Must be protected against all common problems, such as overcharge, undercharge, capacitive effects, and more.
+\item All components needs to be actively manufactured to ensure unit can keep being produced for several years in the future.
+\end{itemize}
+
+\subsubsection{revisions (TiP)}
+In total three revisions of the PCB was designed. First revision included the main functionality and test points on basically every pin in the system. It did not follow any space requirements and was riddled with small problems.
+
+The second revision fixed all known problems, followed the space requirements and added a lot of customization. The option to toggle power source and what IMUs were currently powered were added. This way the effect from individual modules could be measured. Also since it was still unclear if a combined chip for all IMUs would be added or not, space for all of them and an evaluation module was added.
+
+With almost all problems solved what remained was some hotfix for an unexpected wiring error in the GPS; interference between $I^2C$ clock and data line; decoupling ground loops much to large; unwanted antennas; ground islands of missing copper and  a KiCad problem where disconnected vias lose their net property.
+For the third revision all decisions have been made. Following communicative devices will be used:
+\begin{itemize}
+\item STM32F411RET \t- Microcontoller unit
+\item FT232RL \t- USB to serial converter (USART)
+\item A2235-H \t- GPS unit (UART)
+\item SPBTLE-RF \t- Bluetooth connection unit (SPI)
+\item Sensors ($I^2C$):
+	\begin{itemize}
+		\item LSM303AGR \t- Accelereometer \& Magnetometer
+		\item LSM6DSL \t- Accelerometer \& Gyroscope
+		\item HTS221 \t- Humidity
+		\item LPS22HB \t- Pressure
+	\end{itemize}
+\item Sensors, connectors only ($I^2C$):
+	\begin{itemize}
+		\item Battery level
+		\item VL530x \t- Time of flight
+	\end{itemize}
+\item INA128 \t- Load cell amplifiers (ADC)
+\end{itemize}
+All $I^2C$ communicative devices is moved to one spot ensuring the shortest possible $I^2C$ data line. Ground vias was added around communication traces to prevent unwanted interference, ground vias were also added to prevent antennas\footnote{Antennas appear from letting an isolated thin ground be connected in only one end, a via can therefore be added to the other end to prevent this from happening.}.
+
+\subsubsection{choices (TiP)}
+stuff3
+
+\subsubsection{results (TiP)}
+stuff4
+
+\subsubsection{discussion (TiP)}
+stuff5

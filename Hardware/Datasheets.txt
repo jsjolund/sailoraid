@@ -31,14 +31,14 @@ ___________________________________________________________________
 Amplifier	INA126			Datasheet
 http://www.ti.com/lit/ds/symlink/ina126.pdf
 
-NEW!!!!!!!!________________________________________________________
+___________________________________________________________________
 IMU:XL/Mag		LSM303C			Datasheet
 http://www.st.com/content/ccc/resource/technical/document/datasheet/59/aa/fb/3b/85/9e/4e/0a/DM00089896.pdf/files/DM00089896.pdf/jcr:content/translations/en.DM00089896.pdf
 
-NEW!!!!!!!!________________________________________________________
-IMU:Humidity	HTS221			Datasheet
+___________________________________________________________________
+Humidity	HTS221			Datasheet
 http://www.st.com/content/ccc/resource/technical/document/datasheet/4d/9a/9c/ad/25/07/42/34/DM00116291.pdf/files/DM00116291.pdf/jcr:content/translations/en.DM00116291.pdf
 
-NEW!!!!!!!!________________________________________________________
-IMU:Pressure	LPS22HB			Datasheet
+___________________________________________________________________
+Pressure	LPS22HB			Datasheet
 http://www.st.com/content/ccc/resource/technical/document/datasheet/bf/c1/4f/23/61/17/44/8a/DM00140895.pdf/files/DM00140895.pdf/jcr:content/translations/en.DM00140895.pdf
