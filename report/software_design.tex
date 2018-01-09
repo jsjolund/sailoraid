@@ -140,3 +140,4 @@ In order to save battery power, it was decided that not all sensor data needed t
 \label{table:systemrates}
 \end{table}
 
+A hardware timer with microsecond resolution was used to calculate the timing of these device communications. For the devices which used polling, a timeout of a few milliseconds was used in case of communication failure on the I$^2$C and SPI data busses. Problems such as noise or framing errors and were handled by discarding any buffered data, clearing hardware error status bits and re-initializing devices if necessary.
