@@ -7,17 +7,17 @@ The circuit board must fulfill the following:
 \begin{itemize}
 \item Circuit must fit within the casing, with dimensions extracted directly from the cad software\cite{cad}, see \autoref{fig:casdim}.
 \item Circuit must be easy to test for both hardware and software errors. Even complete system needs this, since many of the sensors are very small and difficult to solder.
-\item All sensors must fit on the PCB\footnote{Printed Circuit Board}, both physically and also electronically on the ports of the \gls{mcu}.
+\item All sensors must fit on the \gls{pcb}, both physically and also electronically on the ports of the \gls{mcu}.
 \item Must be protected against all common problems, such as overcharge, undercharge, capacitive effects, and more.
 \item All components needs to be actively manufactured to ensure unit can keep being produced for several years in the future.
 \end{itemize}
 
 \subsubsection{Revisions}
-In total three revisions of the PCB was designed. First revision included the main functionality and test points on basically every pin in the system. It did not follow any space requirements and was riddled with small problems.
+In total three revisions of the \gls{pcb} was designed. First revision included the main functionality and test points on basically every pin in the system. It did not follow any space requirements and was riddled with small problems.
 
-The second revision fixed all known problems, followed the space requirements and added a lot of customization. The option to toggle power source and what IMUs were currently powered were added. This way the effect from individual modules could be measured. Also since it was still unclear if a combined chip for all IMUs would be added or not, space for all of them and an evaluation module was added.
+The second revision fixed all known problems, followed the space requirements and added a lot of customization. The option to toggle power source and what \gls{imu}s were currently powered were added. This way the effect from individual modules could be measured. Also since it was still unclear if a combined chip for all \gls{imu}s would be added or not, space for all of them and an evaluation module was added.
 
-With almost all problems solved in the second revision, what remained was some hotfix for an unexpected wiring error in the GPS; interference between $I^2C$ clock and data line; minimizing much to large decoupling ground loops; unwanted antennas; ground islands of missing copper and  a KiCad problem where disconnected vias lose their net property.
+With almost all problems solved in the second revision, what remained was some hotfix for an unexpected wiring error in the \gls{gps}; interference between \gls{i2c} clock and data line; minimizing much to large decoupling ground loops; unwanted antennas; ground islands of missing copper and  a KiCad problem where disconnected \gls{via}s lose their net property.
 For the third revision all decisions have been made. Following communicative devices will be used:
 \begin{itemize}
 \item{\makebox[3cm][l]{STM32F411RET} - Microcontoller unit}
@@ -38,7 +38,7 @@ For the third revision all decisions have been made. Following communicative dev
 	\end{itemize}
 \item INA128 \qquad- Load cell amplifiers (ADC)
 \end{itemize}
-All $I^2C$ communicative devices is moved to one spot ensuring the shortest possible $I^2C$ data line. Ground vias was added around communication traces to prevent unwanted interference, ground vias were also added to prevent antennas\footnote{Antennas appear from letting an isolated thin ground be connected in only one end, a via can therefore be added to the other end to prevent this from happening.}.
+All \gls{i2c} communicative devices is moved to one spot ensuring the shortest possible \gls{i2c} data line. Ground \gls{via}s was added around communication traces to prevent unwanted interference, ground \gls{via}s were also added to prevent antennas\footnote{Antennas appear from letting an isolated thin ground be connected in only one end, a \gls{via} can therefore be added to the other end to prevent this from happening.}.
 
 \subsubsection{choices (TiP)}
 stuff3
