@@ -4,29 +4,26 @@ Since all kinds of sailboats main feature is to move completely analogue without
 To get any kind of measurements of the dinghy, sensors are needed. As of now there are sensors measuring a wide array of items. This section will talk about these sensors; what they measure, where they were purchased, the requirements on the sensor, their features, drawbacks and also how they were implemented.
 
 \subsection{Force sensors}
-The function of the daggerboard is to compensate for the force that the wind is pushing on the sail. The goal is to have a system that can measure the forces that pushes on the daggerboard by the water it goes through. By measuring the side forces on the board, a rough estimation of the exerted force on the sail can be made.  
+The function of the daggerboard is to compensate for the force that the wind is pushing on the sail which also helps to hold the dingy level in the water. The goal is to have a system that can measure the forces that pushes on the daggerboard by the water it goes through. By measuring the side forces on the board, a rough estimation of the exerted force on the sail can be made.  
 
 %The implementation:
 \subsubsection{The implementation}
 % What is ``this'' approach? Talk first about the approach, then this sentence.
-%There might not already be any other solutions as clean and simple as this approach.
 
-% MIN NYA -----------------------------
 After some different solutions was suggested the final sensor and measurement method was chosen as the most prominent and clean approach. 
-With this implementation the daggerboard itself will not be disassembled or modified in any way. The other solutions are, either way, more difficult to apply and mount or more complex.  
-% MIN NYA -----------------------------
+Important to know is that every solution is mandatory to be waterproof and sealed properly from the harsh environment that this system has as its home turf. 
+With this implementation the daggerboard itself will not be disassembled or modified in any way. 
+Solutions that required the sensors to be mounted on the outside or in parts that would be in danger if a crash might occur was scratched.  
+Other solutions are, either way, more difficult to apply and mount or more complex.  
 
-%% KANSKE TA BORT
-By looking at some different solutions there are no other solutions that might be as clean looking and prominent as this approach. Important to know is that every solution is mandatory to be waterproof and sealed properly from the harsh environment that this system has as its home turf. The solutions that required the sensors to be mounted on the outside or in parts that would be in danger if a crash might occur was scratched.  
-The board itself will not be disassembled in any major part of way. Meaning that this approach doesn’t need any modifications to the board itself. This has been the goal and the chosen approach. Modifications in the mounting plate is the way to go, the other solutions is either way more difficult to apply and mount or more complex.
 %%% ------------------------------
 
 \subsubsection{The prototype}% If this is about the same as ``Force sensors'', use ``\subsubsection instead.
-To implement the gauges, a prototype is designed to show how the measurements will be made. The prototype is a bit bigger than the intended solution for this project but it's good to see how it would be constructed. The function is easy to understand. The board goes on the outside and can easily slide up and down past this ball.  The ball itself is kept inside this small area where it can move in and out.
+To implement the gauges, a prototype is designed to show how the measurements will be made. The prototype is a bit bigger than the intended solution for this project but it's good to see how it would be constructed. The function is easy to understand. The board goes on the outside and can easily slide up and down past this steel bead. The bead itself is kept inside a small space where it can move in and out.
  
 \begin{figure}[H]%look at later figures comment
 \begin{center}
-	\includegraphics[width = 10cm]{Figures/Press_sens_func_1.png}
+	\includegraphics[width = 10cm]{Figures/Prototyp_1.png}
 	\caption{Function of first prototype}
 	\label{Press_sens_prot_1}
 \end{center}
