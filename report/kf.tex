@@ -48,7 +48,7 @@ The Body frame denoted $b$-frame is the sensitive axes of the \gls{imu}'s sensor
 \end{itemize}
 
 \subsection{Transformation Between Frames}
-Referring to \autoref\ref{WGS} it can be observed that its possible to align the $n$-frame with the $e$-frame, this is done by rotating the $n$-frame by ($\lambda-90$)-degrees around its $X$-axis (east-direction) and ($-\phi-90$)-degrees about its $Z$-axis, (downward direction) \cite{nonlinear}. Where $\lambda$ and $\varphi$ is the latitude and longitude, respectively. Then the transformation between the two frames can be done using the \gls{dcm}, which is defined as \cite{nonlinear}.
+Referring to \autoref{WGS} it can be observed that its possible to align the $n$-frame with the $e$-frame, this is done by rotating the $n$-frame by ($\lambda-90$)-degrees around its $X$-axis (east-direction) and ($-\phi-90$)-degrees about its $Z$-axis, (downward direction) \cite{nonlinear}. Where $\lambda$ and $\varphi$ is the latitude and longitude, respectively. Then the transformation between the two frames can be done using the \gls{dcm}, which is defined as \cite{nonlinear}.
 \begin{equation}
 C_n^e=R_z(-\lambda-90)R_x(\varphi-90)
 \label{Cosine_1}
