@@ -143,6 +143,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
      */
     private float direction;
     private float batteryPower;
+    private int driftDir = 0;
     private LatLng nextEstimate = new LatLng(0,0);
     private LatLng gpsPos = new LatLng(0,0);
     private Button btnMap;
@@ -545,22 +546,42 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
             } else if(dataType.equals(DATA_TYPE_TEMPERATURE)){
                 data = data.replace(',', '.');
                 TextView tv = findViewById(R.id.tempText);
-                tv.setText(String.format("%.1f\u00B0C", data));
+                tv.setText(String.format("%.1f", Float.parseFloat(data)) +"\u00B0C");
                 if (mLogService != null){
                     if (mLogService.isLogging()){
                         mLogService.writeToLog(DATA_TYPE_TEMPERATURE +":" +time +":" +data);
                     }
                 }
+            } else if(dataType.equals(DATA_TYPE_BATTERY)){
+                data = data.replace(',', '.');
+                String[] battery = data.split(":");
+                TextView tv = findViewById(R.id.batPer);
+             //   tv.setText(battery[0] +"%");
+
+                tv.setText(String.format("%.1f", Float.parseFloat(battery[0])) +"%");
+                tv = findViewById(R.id.batLeft);
+                if (Float.parseFloat(battery[1]) > 60000){
+                    tv.setText("inf");
+                } else{
+                    tv.setText(String.format("%.1f", Float.parseFloat(battery[1])) +"min");
+                }
+                showBatteryLeft(Float.parseFloat(battery[0]));
             } else if(dataType.equals(DATA_TYPE_PRESSURE)){
                 data = data.replace(',', '.');
                 String[] loadCell = data.split(":");
                 // Todo uncomment
-                // this.maxPressure = Math.max(Float.parseFloat(loadCell[0]), Float.parseFloat(loadCell[1]));
+                float maxPressure = Math.max(Float.parseFloat(loadCell[0]), Float.parseFloat(loadCell[1]));
+                if (Float.parseFloat(loadCell[0]) > Float.parseFloat(loadCell[1])){
+                    this.driftDir = -1;
+                } else {
+                    this.driftDir = 1;
+                }
                 //float maxPressure = Float.parseFloat(loadCell[0])-18;
-                // mFeedbackStateChecker.setMaxPressure(maxPressure-18);
-                mFeedbackStateChecker.setMaxPressure(Float.parseFloat(loadCell[0])-18);
+                mFeedbackStateChecker.setMaxPressure(maxPressure-18);
+                //mFeedbackStateChecker.setMaxPressure(Float.parseFloat(loadCell[0])-18);
                 TextView tv = findViewById(R.id.pressureText);
-                tv.setText(String.format("%.1f Psi", mFeedbackStateChecker.getMaxPressure()));
+                //tv.setText(String.valueOf(mFeedbackStateChecker.getMaxPressure()) +" %");
+                tv.setText(String.format("%.1f", mFeedbackStateChecker.getMaxPressure()) +" %");
                 if(mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.INCLINE){
                     mViewDisplayer.getmPressureNeedleView().moveGL(NEEDLE_X_POS, mFeedbackStateChecker.getMaxPressure()/40 -1.2f);
                     mViewDisplayer.getmPressureNeedleView().getGlView().requestRender();
@@ -577,7 +598,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
             } else if(dataType.equals(DATA_TYPE_HUMIDITY)){
                 data = data.replace(',', '.');
                 TextView tv = findViewById(R.id.humText);
-                tv.setText(String.format("%.1f%%", data));
+                tv.setText(String.format("%.1f", Float.parseFloat(data)) +"%");
                 if(mLogService != null) {
                     if (mLogService.isLogging()){
                         mLogService.writeToLog(DATA_TYPE_HUMIDITY + ":" + time + ":" + data);
@@ -592,11 +613,6 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 mFeedbackStateChecker.setSpeed(Float.parseFloat(pos[3])*KM_TO_KNOTS);
                 this.direction = Float.parseFloat(pos[4]);
                // this.batteryPower = Float.parseFloat(pos[5]);
-               // showBatteryLeft(this.batteryPower);
-                if (mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.INCLINE){
-                    TextView tv = findViewById(R.id.batPer);
-                    tv.setText(String.format("%.0f",batteryPower) +"%");
-                }
                 if (latitude != 0f && longitude != 0f) {
                     LatLng currPos = new LatLng(latitude, longitude);
                     if (this.gpsPos.latitude != 0f && this.gpsPos.longitude != 0f){
@@ -621,16 +637,16 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                             tv.setText(String.format("%.1f", mFeedbackStateChecker.getDrift()) +"m");
                             tv = findViewById(R.id.speedText);
                             tv.setText(String.format("%.1f", mFeedbackStateChecker.getSpeed()) +"kn");
-
+                            displayDrift((float) mFeedbackStateChecker.getDrift()*driftDir, DRIFT_ARROW_CENTER);
                         }
                         if (mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.INCLINE){
-                            displayDrift((float) mFeedbackStateChecker.getDrift(), DRIFT_ARROW_CENTER);
+                            displayDrift((float) mFeedbackStateChecker.getDrift()*driftDir, DRIFT_ARROW_CENTER);
                         }
                         if (mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.MAP) {
-                            displayDrift((float) mFeedbackStateChecker.getDrift(), MAP_DRIFT_ARROW_CENTER);
+                            displayDrift((float) mFeedbackStateChecker.getDrift()*driftDir, MAP_DRIFT_ARROW_CENTER);
                         }
                         if (mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.GRAPHIC) {
-                            displayDrift((float) mFeedbackStateChecker.getDrift(), GRAPHIC_DRIFT_ARROW_CENTER);
+                            displayDrift((float) mFeedbackStateChecker.getDrift()*driftDir, GRAPHIC_DRIFT_ARROW_CENTER);
                             mViewDisplayer.getmSpeedView().moveGL(GRAPHIC_SPEED_X_POS+(mFeedbackStateChecker.getSpeed()/7), GRAPHIC_SPEED_Y_POS);
                             mViewDisplayer.getmSpeedView().getGlView().requestRender();
                         }
@@ -706,7 +722,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     Change icon in toolbar menu to display current battery level
      */
     private void showBatteryLeft(float bat){
-        if (mMenu != null){
+  /*      if (mMenu != null){
             if(bat > 70){
                 mMenu.getItem(R.id.battery).setIcon(getDrawable(R.drawable.high_bat));
             } else if(bat<70 && bat > 30){
@@ -714,7 +730,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
             } else if(bat < 30){
                 mMenu.getItem(R.id.battery).setIcon(getDrawable(R.drawable.low_bat));
             }
-        }
+        }*/
     }
 
     private void startRepeatingTask() {
@@ -733,14 +749,17 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     private void displayDrift(float drift, float arrowCenter){
         // Use pitch for testing drifting feedback
             // Max resize ARROW_SCALE*x = 12 also move from center with -x/6
-        mViewDisplayer.getmLeftDriftView().resizeGL(DRIFT_ARROW_SCALE_X*drift/15, DRIFT_ARROW_SCALE_Y);
-        mViewDisplayer.getmLeftDriftView().moveGL(arrowCenter-drift/45, 0);
-        mViewDisplayer.getmRightDriftView().resizeGL(DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
-        mViewDisplayer.getmRightDriftView().moveGL(-arrowCenter, 0);
-        mViewDisplayer.getmLeftDriftView().resizeGL(DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
-        mViewDisplayer.getmLeftDriftView().moveGL(arrowCenter, 0);
-        mViewDisplayer.getmRightDriftView().resizeGL(DRIFT_ARROW_SCALE_X*(-drift/15), DRIFT_ARROW_SCALE_Y);
-        mViewDisplayer.getmRightDriftView().moveGL(-arrowCenter-drift/45, 0);
+        if (drift > 0){
+            mViewDisplayer.getmLeftDriftView().resizeGL(DRIFT_ARROW_SCALE_X*drift/15, DRIFT_ARROW_SCALE_Y);
+            mViewDisplayer.getmLeftDriftView().moveGL(arrowCenter-drift/45, 0);
+            mViewDisplayer.getmRightDriftView().resizeGL(DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+            mViewDisplayer.getmRightDriftView().moveGL(-arrowCenter, 0);
+        } else {
+            mViewDisplayer.getmLeftDriftView().resizeGL(DRIFT_ARROW_SCALE_X, DRIFT_ARROW_SCALE_Y);
+            mViewDisplayer.getmLeftDriftView().moveGL(arrowCenter, 0);
+            mViewDisplayer.getmRightDriftView().resizeGL(DRIFT_ARROW_SCALE_X*(-drift/15), DRIFT_ARROW_SCALE_Y);
+            mViewDisplayer.getmRightDriftView().moveGL(-arrowCenter-drift/45, 0);
+        }
         mViewDisplayer.getmLeftDriftView().getGlView().requestRender();
         mViewDisplayer.getmRightDriftView().getGlView().requestRender();
     }

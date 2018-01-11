@@ -29,6 +29,7 @@ public class SampleGattAttributes {
     public static String ACCELEROMETER_SERVICE =    "02366e80-cf3a-11e1-9ab4-0002a5d5c51b";
     public static String NUCLEO_GPS_SERVICE = "abcd6e80-cf3a-11e1-9ab4-0002a5d5c51b";
     public static String NUCLEO_RANGE_SERVICE = "23cd6e80-cf3a-11e1-9ab4-0002a5d5c51b";
+    public static String BATTERY_SERVICE =    "24cd6e80-cf3a-11e1-9ab4-0002a5d5c51b";
 
     public static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
 
@@ -44,7 +45,7 @@ public class SampleGattAttributes {
     public static String FREE_FALL_MEASUREMENT =    "e23e78a0-cf4a-11e1-8ffc-0002a5d5c51b";
 
     public static String NUCLEO_GPS_MEASUREMENT = "aabb1b80-cf4b-11e1-ac36-0002a5d5c51b";
-    public static String BATTERY_MEASUREMENT =     "01c50b60-e48c-11e2-a073-0002a5d5c51b";
+    public static String BATTERY_MEASUREMENT =    "24bb1b80-cf4b-11e1-ac36-0002a5d5c51b";
 
     public static String NUCLEO_RANGE_MEASUREMENT = "23bb1b80-cf4b-11e1-ac36-0002a5d5c51b";
 
@@ -56,6 +57,7 @@ public class SampleGattAttributes {
         attributes.put(ACCELEROMETER_SERVICE, "Accelerometer Service");
         attributes.put(ENV_SERVICE, "Enviromental Service");
         attributes.put(NUCLEO_GPS_SERVICE, "Nucleao gps service");
+        attributes.put(BATTERY_SERVICE, "Battery service");
         // Sample Characteristics.
         attributes.put(HEART_RATE_MEASUREMENT, "Heart Rate Measurement");
         attributes.put(ACCELEROMETER_MEASUREMENT, "Accelerometer Measurement");
