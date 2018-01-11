@@ -1,4 +1,7 @@
 
+\newpage
+
+
 \subsection*{Sensor theory}
 Sensor fusion can be observed everywhere e.g., living animals uses all of its senses to survive daily, an animal cannot hunt using its eyes only, it has to combine its sense of smell, eyes, and hearing to hunt the prey\cite{animal}. Sensor fusion theory is not only found in the living species it is found in cars, planes, computers and so on, this to enhance performance and accuracy. In this project, a sensor fusion will be designed to enhance the accuracy of the dinghy's position and velocity. The fusion will be a global positioning system,  \gls{gps} and an \gls{ins}. The \gls{ins} uses a low priced \gls{imu}.\\ 
 The \gls{gps}'s accuracy is not uniform since there might be building reflections, atmospherics delays or clock bias errors \cite{boken}. Using the only information provided by a \gls{sins} is not sufficient either since the \gls{imu} sensor will drift after time, but using the information provided by the \gls{ins} for short time intervals will give more accurate results.  
@@ -21,7 +24,7 @@ The Inertial frame denoted $i$-frame for future notation is defined such that it
 
 The Earth navigation frame denoted $e$-frame for future notation is fixed with respect to Earth and has its origin at the center of the Earth. The frame is defined as $X_e$, $Y_e$ and $Z_e$, with $Z_e$ along Earth's polar axis. Axis $X_e$ and $Y_e$ lies along the intersection of the plane of the Greenwich meridian with the Earth's equatorial plane. The $e$-frame rotates at a constant rate with respect to the $i$-frame and is denoted $\omega_e$.\\
 
-The Navigation frame denoted $n$-frame for future notation is a local frame and has its origin located in the navigation system, in this case, point P, see Fig. \ref{WGS}, and its axes aligned with the directions of north, east and down, denoted NED. The turn rate of the navigation frame with respect to Earth's fixed frame, $\omega_{en}^n$, is directed by the motion of point P with respect to the Earth and is referred to the transport rate.   
+The Navigation frame denoted $n$-frame for future notation is a local frame and has its origin located in the navigation system, in this case, point P, see \autoref{WGS}, and its axes aligned with the directions of north, east and down, denoted NED. The turn rate of the navigation frame with respect to Earth's fixed frame, $\omega_{en}^n$, is directed by the motion of point P with respect to the Earth and is referred to the transport rate.   
 
 \begin{figure}[H]
 \centering
@@ -30,7 +33,7 @@ The Navigation frame denoted $n$-frame for future notation is a local frame and 
 \label{WGS}
 \end{figure}
 
-The Body frame denoted $b$-frame is the sensitive axes of the \gls{imu}'s sensors, which are made to coincide with the axes of the moving body in which the \gls{imu} is mounted in. The body, in this case, is referred to the dinghy, see Fig. \ref{Fig:body_frame}.
+The Body frame denoted $b$-frame is the sensitive axes of the \gls{imu}'s sensors, which are made to coincide with the axes of the moving body in which the \gls{imu} is mounted in. The body, in this case, is referred to the dinghy, see \autoref{Fig:body_frame}.
 
 \begin{figure}[H]
 \centering
@@ -45,7 +48,7 @@ The Body frame denoted $b$-frame is the sensitive axes of the \gls{imu}'s sensor
 \end{itemize}
 
 \subsection{Transformation Between Frames}
-Referring to Fig. \ref{WGS} it can be observed that its possible to align the $n$-frame with the $e$-frame, this is done by rotating the $n$-frame by ($\lambda-90$)-degrees around its $X$-axis (east-direction) and ($-\phi-90$)-degrees about its $Z$-axis, (downward direction) \cite{nonlinear}. Where $\lambda$ and $\varphi$ is the latitude and longitude, respectively. Then the transformation between the two frames can be done using the \gls{dcm}, which is defined as \cite{nonlinear}.
+Referring to \autoref\ref{WGS} it can be observed that its possible to align the $n$-frame with the $e$-frame, this is done by rotating the $n$-frame by ($\lambda-90$)-degrees around its $X$-axis (east-direction) and ($-\phi-90$)-degrees about its $Z$-axis, (downward direction) \cite{nonlinear}. Where $\lambda$ and $\varphi$ is the latitude and longitude, respectively. Then the transformation between the two frames can be done using the \gls{dcm}, which is defined as \cite{nonlinear}.
 \begin{equation}
 C_n^e=R_z(-\lambda-90)R_x(\varphi-90)
 \label{Cosine_1}
@@ -294,7 +297,7 @@ where
 \Delta \bar{v}_{k+1}^n = \Delta \bar{v}_f^n - (2\omega_{ie}^n+\omega_{en}^n) \times \bar{v}_n \Delta t +\bar{\gamma}\Delta t
 \end{equation}
 where $\gamma = [0 \quad 0 \quad 9.8123]$.\\ \\
-The Navigation frame Inertial Navigation System can now be seen in Fig. \ref{Fig:body_frame}, Where its possible to examine all the steps which were derived earlier, from the \gls{imu} to the output.
+The Navigation frame Inertial Navigation System can now be seen in \autoref{Fig:body_frame}, Where its possible to examine all the steps which were derived earlier, from the \gls{imu} to the output.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.7\textwidth]{Figures/ins_2}
@@ -482,7 +485,7 @@ F_{ev} =
 \end{align}
 
 \subsection{Implementing the Fusion Kalman Filter}
-This system uses a feedback method to control the drift errors in the \gls{imu}, the model can be seen in Fig. \ref{Fig:Feedback}.
+This system uses a feedback method to control the drift errors in the \gls{imu}, the model can be seen in \autoref{Fig:Feedback}.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.7\textwidth]{Figures/feed-back.png}
@@ -635,7 +638,7 @@ R_k = diag(\sigma_{r_N}^2 \quad \sigma_{r_E}^2 \quad \sigma_{r_d}^2 \quad \sigma
 \end{equation}
 where $\sigma_{r_{(N,E,d)}}^2$ and $\sigma_{v_{(N,E,d)}}^2$ is the variance of the position and velocity in all direction, respectively.\\
 
-The Kalman Filter is invoked every time the \gls{gps} is updated, i.e. $1Hz$, but since the \gls{imu} and the \gls{gps} updates at different frequencies a problem arises. The problem is such that at $t_{GPS}(k)$ there won't be a value to read from the \gls{imu}, since discrete time domain. To solve this problem a linear interpolation is done between $t_{imu}(k)$ and $t_{imu}(k+1)$, where $t_{imu}(k)$ $\leq$ $t_{GPS}(k)$ $\leq$  $t_{imu}(k+1)$. See Fig. \ref{Fig.different_update}.
+The Kalman Filter is invoked every time the \gls{gps} is updated, i.e. $1Hz$, but since the \gls{imu} and the \gls{gps} updates at different frequencies a problem arises. The problem is such that at $t_{GPS}(k)$ there won't be a value to read from the \gls{imu}, since discrete time domain. To solve this problem a linear interpolation is done between $t_{imu}(k)$ and $t_{imu}(k+1)$, where $t_{imu}(k)$ $\leq$ $t_{GPS}(k)$ $\leq$  $t_{imu}(k+1)$. See \autoref{Fig.different_update}.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{Figures/linear.pdf}
@@ -652,7 +655,7 @@ r_n(t_k(GPS) = r_n(t_{imu}(k)) + \frac{r_n(t_{imu}(k+1))-r_n(t_{imu}(k))}{t_{imu
 v_n(t_k(GPS) = v_n(t_{imu}(k)) + \frac{v_n(t_{imu}(k+1))-v_n(t_{imu}(k))}{t_{imu}(k+1)-t_{imu}(k)}(t_{GPS}(k)-t_{GPS}(k)).
 \end{equation}
 \subsection{Result}
-The data provided by the Inertial Navigation System is working better than just using the raw \gls{gps} data, on some occasions. If the goal is to estimate the position, then it's better to use the \gls{ins} connected to a Kalman Filter, this can be seen in Fig. \ref{Fig:result_kalman}. As seen, the Filtered data is inaccurate in the beginning but after some time converges to the true value, true value as in the case of wanted value, and at some points even catches the wanted value. In comparison to the raw \gls{gps} data, the \gls{ins} is a better estimator for the user's position.
+The data provided by the Inertial Navigation System is working better than just using the raw \gls{gps} data, on some occasions. If the goal is to estimate the position, then it's better to use the \gls{ins} connected to a Kalman Filter, this can be seen in \autoref{Fig:result_kalman}. As seen, the Filtered data is inaccurate in the beginning but after some time converges to the true value, true value as in the case of wanted value, and at some points even catches the wanted value. In comparison to the raw \gls{gps} data, the \gls{ins} is a better estimator for the user's position.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{result.eps}
@@ -662,7 +665,7 @@ The data provided by the Inertial Navigation System is working better than just 
 
 
 
-The Mean Squared Error, MSE for the position in XY plane, can be seen in Fig. \ref{Fig:mse} for both \gls{ins} and raw \gls{gps} data we can see that the error is lower for the \gls{ins} data, in both cases. 
+The Mean Squared Error, MSE for the position in XY plane, can be seen in \autoref{Fig:mse} for both \gls{ins} and raw \gls{gps} data we can see that the error is lower for the \gls{ins} data, in both cases. 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{mse.eps}
@@ -670,14 +673,14 @@ The Mean Squared Error, MSE for the position in XY plane, can be seen in Fig. \r
 \label{Fig:mse}
 \end{figure}
 
-When estimating the height, i.e. $Z$-direction the result is poor for the \gls{ins}, the estimated value from the \gls{ins} is diverging from the true value, this can be seen in Fig. \ref{Fig:Height}. In this case, the \gls{gps} data is more accurate. 
+When estimating the height, i.e. $Z$-direction the result is poor for the \gls{ins}, the estimated value from the \gls{ins} is diverging from the true value, this can be seen in \autoref{Fig:Height}. In this case, the \gls{gps} data is more accurate. 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{Height.eps}
 \caption{Height. True VS. Filtered and raw \gls{gps} data.}
 \label{Fig:Height}
 \end{figure}
-The velocities in the $XY$ plane does not represent the true system in a good manner either this can be seen in Fig. \ref{Fig:velocity}. In this case, the \gls{gps} data is more accurate as well.
+The velocities in the $XY$ plane does not represent the true system in a good manner either this can be seen in \autoref{Fig:velocity}. In this case, the \gls{gps} data is more accurate as well.
 
 \begin{figure}[H]
 \centering
@@ -714,5 +717,8 @@ A more advanced interpolation technique between \gls{imu} data and \gls{gps} dat
 
 
 One should also try different types of control methods to see if one can achieve more accurate results or not, e.g. feed-forward method.\\
-Weighted parameters if one believes the \gls{ins} more than the \gls{gps} or vice-versa, this question arises when e.g. the \gls{gps} is connected to many/few satellites or if the user is having a large/small velocity or sensor anomalies. \\ \\
+Weighted parameters if one believes the \gls{ins} more than the \gls{gps} or vice-versa, this question arises when e.g. the \gls{gps} is connected to many/few satellites or if the user is having a large/small velocity or sensor anomalies. 
+
+
+
 
