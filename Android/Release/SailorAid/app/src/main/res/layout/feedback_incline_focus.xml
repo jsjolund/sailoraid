@@ -84,12 +84,25 @@
             android:background="@color/background">
 
             <TextView
-                android:text="Tilt: "
+                android:text="Heel: "
                 android:textSize="8pt" />
 
             <TextView
                 android:id="@+id/tiltText"
                 android:layout_width="wrap_content"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Pitch: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/tiltYText"
                 android:textSize="8pt" />
         </TableRow>
 
@@ -106,6 +119,61 @@
                 android:textSize="8pt" />
         </TableRow>
 
+
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Range: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/rangeText"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Wave: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/zText"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Pow: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/batPer"
+                android:textSize="8pt" />
+        </TableRow>
+
+        <TableRow
+            android:layout_margin="1dp"
+            android:background="@color/background">
+
+            <TextView
+                android:text="Bat: "
+                android:textSize="8pt" />
+
+            <TextView
+                android:id="@+id/batLeft"
+                android:textSize="8pt" />
+        </TableRow>
         <TableRow
             android:layout_margin="1dp"
             android:background="@color/background">
@@ -131,87 +199,6 @@
                 android:id="@+id/humText"
                 android:textSize="8pt" />
         </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="1dp"
-            android:background="@color/background">
-
-            <TextView
-                android:text="Range: "
-                android:textSize="8pt" />
-
-            <TextView
-                android:id="@+id/rangeText"
-                android:textSize="8pt" />
-        </TableRow>
-
-        <TableRow
-            android:layout_margin="1dp"
-            android:background="@color/background">
-
-            <TextView
-                android:text="Tilt: "
-                android:textSize="8pt" />
-
-            <TextView
-                android:id="@+id/tiltYText"
-                android:textSize="8pt" />
-        </TableRow>
-
-        <TableRow
-            android:layout_margin="1dp"
-            android:background="@color/background">
-
-            <TextView
-                android:text="Drift: "
-                android:textSize="8pt" />
-
-            <TextView
-                android:id="@+id/driftText"
-                android:textSize="8pt" />
-        </TableRow>
-
-        <TableRow
-            android:layout_margin="1dp"
-            android:background="@color/background">
-
-            <TextView
-                android:text="Z: "
-                android:textSize="8pt" />
-
-            <TextView
-                android:id="@+id/zText"
-                android:textSize="8pt" />
-        </TableRow>
-
-        <TableRow
-            android:layout_margin="1dp"
-            android:background="@color/background">
-
-            <TextView
-                android:text="Bat: "
-                android:textSize="8pt" />
-
-            <TextView
-                android:id="@+id/batPer"
-                android:textSize="8pt" />
-        </TableRow>
-
-        <TableRow
-            android:layout_margin="1dp"
-            android:background="@color/background">
-
-            <TextView
-                android:text="Bat: "
-                android:textSize="8pt" />
-
-            <TextView
-                android:id="@+id/batLeft"
-                android:textSize="8pt" />
-        </TableRow>
-
         <Button
             android:id="@+id/mapviewbtn"
             android:layout_width="match_parent"
@@ -287,9 +274,18 @@
         app:layout_constraintLeft_toRightOf="@id/guidelineLeftVert"
         app:layout_constraintRight_toLeftOf="@id/guidelineRightVert"
         android:background="@color/background"
-        android:text="Drift"
+        android:text="Drift: "
+        android:id="@+id/driftHolder"
         android:textAlignment="center" />
 
+    <TextView
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        app:layout_constraintLeft_toRightOf="@id/driftHolder"
+        app:layout_constraintTop_toBottomOf="@id/driftBar"
+        app:layout_constraintRight_toRightOf="@id/driftImg"
+        android:id="@+id/driftText"
+        android:textSize="8pt" />
 
     <LinearLayout
         android:layout_width="0dp"

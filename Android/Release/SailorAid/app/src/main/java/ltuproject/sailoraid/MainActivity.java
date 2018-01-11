@@ -281,13 +281,19 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                         if (chosenDevice != null){
-                            mBluetoothLeService.close();
-                            tryingToConnect = true;
-                            Intent gattServiceIntent = new Intent(getApplicationContext(), BTLEConnection.class);
-                            if (!mBluetoothLeService.isStarted()){
-                                startService(gattServiceIntent);
-                            } else{
-                                mBluetoothLeService.connect(chosenDevice);
+                            if (mBluetoothLeService != null){
+                                mBluetoothLeService.close();
+                                tryingToConnect = true;
+                                Intent gattServiceIntent = new Intent(getApplicationContext(), BTLEConnection.class);
+                                if (!mBluetoothLeService.isStarted()){
+                                    startService(gattServiceIntent);
+                                } else{
+                                    mBluetoothLeService.connect(chosenDevice);
+                                }
+                            }
+                            else {
+                                Intent gattServiceIntent = new Intent(getApplicationContext(), BTLEConnection.class);
+                                bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
                             }
                         }
                     }
@@ -457,10 +463,10 @@ public class MainActivity extends AppCompatActivity {
                 data = data.replace(',', '.');
                 String[] loadCell = data.split(":");
                 // Todo uncomment
-                // this.maxPressure = Math.max(Float.parseFloat(loadCell[0]), Float.parseFloat(loadCell[1]));
+                float maxPressure = Math.max(Float.parseFloat(loadCell[0]), Float.parseFloat(loadCell[1]));
                 //float maxPressure = Float.parseFloat(loadCell[0])-18;
-                // mMainStateChecker.setMaxPressure(maxPressure-18);
-                mMainStateChecker.setMaxPressure(Float.parseFloat(loadCell[0])-18);
+                mMainStateChecker.setMaxPressure(maxPressure-18);
+                //mMainStateChecker.setMaxPressure(Float.parseFloat(loadCell[0])-18);
                 if (mLogService != null){
                     if (mLogService.isLogging()){
                         mLogService.writeToLog(DATA_TYPE_PRESSURE +":" +time  +":" +mMainStateChecker.getMaxPressure());
@@ -468,8 +474,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else if(dataType.equals(DATA_TYPE_HUMIDITY)){
                 data = data.replace(',', '.');
-                TextView tv = findViewById(R.id.humText);
-                tv.setText(String.format("%.1f%%", data));
                 if(mLogService != null) {
                     if (mLogService.isLogging()){
                         mLogService.writeToLog(DATA_TYPE_HUMIDITY + ":" + time + ":" + data);
@@ -489,7 +493,6 @@ public class MainActivity extends AppCompatActivity {
                     if (this.gpsPos.latitude != 0f && this.gpsPos.longitude != 0f){
                         //Calculate distance and speed from last point, possibly could filter moving avg
                         double dist = Locator.distance_on_geoid(currPos.latitude, currPos.longitude, this.gpsPos.latitude, this.gpsPos.longitude);
-
                         // Calculate perpendicular drift from the ship navigational bearing will update from previously calculated value to compare with the new values.
                         if (this.nextEstimate.latitude != 0f && this.nextEstimate.longitude != 0f){
                             if(mLogService != null) {

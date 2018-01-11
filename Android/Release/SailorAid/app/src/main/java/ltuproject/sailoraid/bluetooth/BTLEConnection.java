@@ -464,6 +464,7 @@ public class BTLEConnection extends Service {
             if (uuid.equals(SampleGattAttributes.ACCELEROMETER_SERVICE.toString())
                     || uuid.equals(SampleGattAttributes.ENV_SERVICE.toString())
                     || uuid.equals(SampleGattAttributes.NUCLEO_GPS_SERVICE.toString())
+                    || uuid.equals(SampleGattAttributes.BATTERY_SERVICE.toString())
                     || uuid.equals(SampleGattAttributes.NUCLEO_RANGE_SERVICE.toString())){
                 setmGattService(gattService);
             }
@@ -536,7 +537,8 @@ Creates a handler for a thread that registers found Gatt characteristics from co
             float pressure0 = bytesToFloats(characteristic.getValue())[0];
             float pressure1 = bytesToFloats(characteristic.getValue())[1];
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_PRESSURE);
-            intent.putExtra(EXTRA_DATA, String.format("%f:%f", pressure0, pressure1));
+            intent.putExtra(EXTRA_DATA, pressure0 +":" +pressure1);
+           // intent.putExtra(EXTRA_DATA, String.format("%f:%f", pressure0, pressure1));
 
         } else if (UUID_HUMIDITY_MEASUREMENT.equals(characteristic.getUuid())) {
             float humidity = bytesToFloats(characteristic.getValue())[0];
@@ -547,7 +549,9 @@ Creates a handler for a thread that registers found Gatt characteristics from co
             float batteryPercentage = bytesToFloats(characteristic.getValue())[0];
             float timeLeft = bytesToFloats(characteristic.getValue())[1];
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_BATTERY);
-            intent.putExtra(EXTRA_DATA, String.format("%f:%f", batteryPercentage, timeLeft));
+            intent.putExtra(EXTRA_DATA, batteryPercentage +":" +timeLeft);
+
+           // intent.putExtra(EXTRA_DATA, String.format("%f:%f", batteryPercentage, timeLeft));
 
         } else if (UUID_GPS_MEASUREMENT.equals(characteristic.getUuid())) {
             float[] coords = bytesToFloats(characteristic.getValue());
