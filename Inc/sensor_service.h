@@ -118,13 +118,15 @@ typedef struct {
 tBleStatus Add_Orientation_Service(void);
 tBleStatus Orientation_Update(float x, float y, float z);
 tBleStatus Add_GPS_Service(void);
-tBleStatus GPS_Update(float lon, float lat, float elv, float spd, float dir, float battery);
+tBleStatus GPS_Update(float lon, float lat, float elv, float spd, float dir);
 tBleStatus Add_Orientation_Service(void);
 tBleStatus Orient_Update(AxesRaw_t *data);
 tBleStatus Temp_Update(float temp);
 tBleStatus Press_Update(float press0, float press1);
+tBleStatus Bat_Update(float percentage, float timeLeft);
 tBleStatus Humidity_Update(float humidity);
 tBleStatus Add_Environmental_Sensor_Service(void);
+tBleStatus Add_Bat_Service(void);
 tBleStatus Add_Range_Service(void);
 tBleStatus Range_Update(float range);
 void       setConnectable(void);
