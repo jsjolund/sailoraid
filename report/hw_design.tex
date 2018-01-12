@@ -1,9 +1,6 @@
 This chapter will summarize most of the process of creating the \gls{pcb} used to mount all the sensors and sending the data to the phone application. This circuit board will be the link between the physical forces and manipulated data sent to the handheld device. More on how this data is manipulated and how the circuit board is programmed in \autoref{sec:sw}. 
 
-\subsection{Main circuitry and requirements}\label{sec:hw:req}
-The main circuit board is built using the open source electronic design software KiCad\cite{kicad}. It is completely free to use and the source code is open for any modifications.
-
-The circuit board must minimally fulfill the following:
+The circuit board must minimally fulfill the following set of basic requirements to function properly:
 \begin{itemize}[noitemsep]
 \item Circuit must fit within the casing, with dimensions extracted directly from the cad software\cite{cad}, see \autoref{fig:casdim}.
 \item Circuit must be easy to test for both hardware and software errors. Even complete system needs this, since many of the sensors are very small and difficult to solder.
@@ -13,6 +10,8 @@ The circuit board must minimally fulfill the following:
 \end{itemize}
 
 \subsection{Method}
+% Methodology
+The main circuit board is built using the open source electronic design software KiCad\cite{kicad}. It is completely free to use and the source code is open for any modifications.
 Designing circuit boards differs slightly between what software you are using. KiCad\cite{kicad} uses a four step process as follows:
 \begin{enumerate}[noitemsep]
 \item Draw schematic:
@@ -23,7 +22,7 @@ Designing circuit boards differs slightly between what software you are using. K
 	\end{enumerate}
 \item Create net-list:
 	\begin{enumerate}[noitemsep]
-	\item (Optional:) All components with non-standard (or simply not standard enough) footprints must be custom designed, these include all sensors and the Bluetooth module.
+	\item (Optional:) All components with non-standard (or simply not standard enough) footprints must be custom designed, these include all sensors and the \gls{bt} module.
 	\item Associate all components with whatever physical footprint are to be used.
 	\item Generate net-list.
 	\end{enumerate}
@@ -36,9 +35,11 @@ Designing circuit boards differs slightly between what software you are using. K
 	\end{enumerate}
 \item Generate manufacturing (gerber/drill) files.
 \end{enumerate}
+% Borrowed shit
 The initial required circuitry, see \autoref{fig:schr3a}, was copied from earlier works with the \gls{st} \gls{arm} \gls{mcu}'s but modified to meet our needs. The power section, also found in \autoref{fig:schr3a}, is designed to only allow for exactly $+5V$. This design is credited to, and derived from \emph{Maxim Integrated}, Application note 760\cite{overprotection}.
 *WRITE MORE HERE!*
 
+% Original custom shit
 Non-standard library entries include following components:\\
 \begin{minipage}{\linewidth}
 \begin{table}[H]
@@ -46,7 +47,7 @@ Non-standard library entries include following components:\\
 	\begin{tabular}{ l | l | l | l }
  	Name		& Type 								& Library 				& Used in         \\
  			&									&					& last rev.\footnote{revision}\\\hline
-  	a2235-h  	& \gls{gps} 								& a2235-h.lib 			& \textbf{YES}\\
+  	A2235-H  	& \gls{gps} 								& a2235-h.lib 			& \textbf{YES}\\
   	FT232RL 	& USBtoSerial converter 						& ftdi.lib\cite{ftdi}			& \textbf{YES}\\
   	HTS221 	& Humidity sensor 							& Custom\_sensors.lib 		& \textbf{YES}\\
   	LM1117ADJ 	& Voltage Regulator						& PowerSupply.lib\cite{lm1117} 	& \textbf{YES}\\
@@ -62,11 +63,11 @@ Non-standard library entries include following components:\\
 \end{table}
 \end{minipage}
 
-\subsection{Revisions}\label{sec:hw:rev}
+%\subsection{Revisions}\label{sec:hw:rev}
 In total three revisions of the \gls{pcb} was designed. The first revision was designed well before any components arrived and was meant exclusively as a prototype, while both the second and third revisions were supposed to have full functionality. All revisions following the first were initially supposed to be designed as consecutive debugged states, but complete redesigns of component placings and tracing was eventually necessary.
 
 \subsubsection{First revision}
-First revision included the main functionality and test points on basically every pin in the system. It did not follow any space requirements and was riddled with small problems. The USBtoSerial converter was broken, the \gls{i2c} line was short circuited somewhere, the custom footprint for the \gls{gps} was mirrored, the Bluetooth worked, but poorly due to inferences from other circuitry and so on and so fourth. Most of this was probably because we had to design the \gls{pcb} and draw all custom made footprints before actually receiving the components. This revision was also meant as a prototype, and not enough time was put to make sure all isolation's and trace widths had well thought out values. A high-speed switching logic had been designed for the wakeup-signal to the \gls{gps}, but this was not used. The schematic of revision one has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr1}.
+First revision included the main functionality and test points on basically every pin in the system. It did not follow any space- or requirements and was riddled with small problems. The USBtoSerial converter was broken, the \gls{i2c} line was short circuited somewhere, the custom footprint for the \gls{gps} was mirrored, the \gls{bt} worked, but poorly due to inferences from other circuitry and so on and so fourth. Most of this was probably because we had to design the \gls{pcb} and draw all custom made footprints before actually receiving the components. This revision was also meant as a prototype, and not enough time was put to make sure all isolation's and trace widths had well thought out values. A high-speed switching logic had been designed for the wakeup-signal to the \gls{gps}, but this was not used. The schematic of revision one has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr1}.
 \begin{figure}[tbh]
 	\centering
     \includegraphics[width=\linewidth]{Figures/pcb_rev1.jpg}
@@ -75,40 +76,56 @@ First revision included the main functionality and test points on basically ever
 \end{figure}
 
 \subsubsection{Second revision}
-The second revision fixed all known problems, followed the space requirements and added a lot of customization. The option to toggle power source and what \gls{imu}s were currently powered were added. This way the effect from individual modules could be measured. Also since it was still unclear if a combined chip for all \gls{imu}s would be added or not, space for all of them and an evaluation module was added. However, some wires was lost in the transition from revision one to two, as all net-labels in the schematic was redrawn; also the micro-\gls{usb} housing was to small for continuous use and was ripped of by our, way to strong, programmers; all of this was hotfixed and eventually the circuit board worked as expected. As with revision one, the schematic of revision two has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr2}.
+The second revision fixed all known problems, followed the space requirements and added a lot of customization. The option to toggle power source and what \gls{imu}s were currently powered were added. This way the effect from individual modules could be measured. Also since it was still unclear if a combined chip for all \gls{imu}s would be added or not, space for all of them and an evaluation module was added. However, some wires was lost in the transition from revision one to two, as all net-labels in the schematic was redrawn; also the micro-\gls{usb} housing was to small for continuous use and was ripped of by our, way to strong, programmers; all of this was hot fixed and eventually the circuit board worked as expected. As with revision one, the schematic of revision two has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr2}.
 \begin{figure}[tbh]
 	\centering
-    \includegraphics[width=\linewidth]{Figures/pcb_rev2.jpg}
+	\includegraphics[width=\linewidth]{Figures/pcb_rev2.jpg}
 	\caption{Second (2) revision circuit board}
 	\label{fig:pcbr2}
 \end{figure}
 
 \subsubsection{Third revision}
 With almost all problems solved in the second revision, what remained was some hotfix for an unexpected wiring error in the \gls{gps}; interference between \gls{i2c} clock and data line; minimizing much to large decoupling ground loops; unwanted antennas; ground islands of missing copper and a KiCad problem where disconnected \gls{via}s lose their net property. The option to pull power from either \gls{usb} or batteries remained in the last revision, as this makes programming and testing much easier. A four pin connector to measure the battery level through \gls{i2c} was added, and since the power level of this depends slightly on the power left in the batteries a logic level converter was designed to allow for a variable voltage level, see \autoref{fig:schr3b}.
-For the third revision all decisions have been made and the schematic can be seen as \autoref{fig:schr3a}, \ref{fig:schr3b} and \ref{fig:schr3c}. Following communicative devices will be used:
-\begin{itemize}
+For the third revision all decisions have been made and the schematic can be seen as \autoref{fig:schr3a}, \ref{fig:schr3b} and \ref{fig:schr3c}.
+
+Following communicative devices will used and act as ``mudule areas'', i.e. these units will be the central units of the \gls{pcb} layout. This was introduced in the second
+\begin{itemize}[noitemsep]
 \item{\makebox[3cm][l]{STM32F411RET} - Microcontoller unit}
 \item{\makebox[3cm][l]{FT232RL} - \gls{usb}to serial converter (USART)}
 \item{\makebox[3cm][l]{A2235-H} - \gls{gps} unit (UART)}
-\item{\makebox[3cm][l]{SPBTLE-RF} - Bluetooth connection unit (SPI)}
+\item{\makebox[3cm][l]{SPBTLE-RF} - \gls{bt} connection unit (SPI)}
 \item Sensors ($I^2C$):
-	\begin{itemize}
+	\begin{itemize}[noitemsep]
 	\item{\makebox[3cm][l]{LSM303AGR} - Accelereometer \& Magnetometer}
 	\item{\makebox[3cm][l]{LSM6DSL} - Accelerometer \& Gyroscope}
 	\item{\makebox[3cm][l]{HTS221} - Humidity}
 	\item{\makebox[3cm][l]{LPS22HB} - Pressure}
 	\end{itemize}
 \item Sensors, connectors only ($I^2C$):
-	\begin{itemize}
+	\begin{itemize}[noitemsep]
 	\item Battery level
 	\item VL530x \qquad- Time of flight
 	\end{itemize}
-\item INA128 \qquad- Load cell amplifiers (ADC)
+\item INA128 \qquad- Analog load cell amplifiers (ADC)
+\item MCDTS2-4N \qquad- Tactile push buttons (Pull-up/Pull-down)
 \end{itemize}
-All \gls{i2c} communicative devices is moved to one spot ensuring the shortest possible \gls{i2c} data line. Ground \gls{via}s was added around communication traces to prevent unwanted interference, ground \gls{via}s were also added to prevent antennas\footnote{Antennas appear from letting an isolated thin ground be connected in only one end, a \gls{via} can therefore be added to the other end to prevent this from happening.}.
+The layout of the components are such that all \gls{i2c} communicative devices are moved to one spot ensuring the shortest possible \gls{i2c} data line. Ground \gls{via}s was added around communication traces to prevent unwanted interference, ground \gls{via}s were also added to prevent antennas\footnote{Antennas appear by letting isolated thin grounds be connected on only one end, a \gls{via} can therefore be added to the other end to prevent this from happening.}. The power is placed in the bottom right, since this is as far as possible from everything else. \gls{usb} is placed next to the power, as power can be opted to be drawn from \gls{usb} rather than battery. Analog plane with the load cells are put right next to the power to ensure the star-ground\footnote{A common node ground connecting all grounds together to ensure the same set working level} to be as close as possible to the power-source allowing for as little noise as possible. \gls{bt} communication devices are rather fragile, it is therefore placed as far as possible from everything in the top left corner of the \gls{pcb}. This \gls{bt} module (SPBTLE-RF) requires \gls{spi} communication and in total $6$ isolated traces are to be drawn between the \gls{mcu} and the \gls{bt} unit. To minimize crossover the \gls{gps} is placed in the top-mid of the \gls{pcb}. Lastly the buttons whose placing is of low importance are placed in the middle-left, between the power source and the \gls{bt} unit. The third, and last, revision of the \gls{pcb} can be seen in \autoref{fig:pcbr3}, a simple explanation of the layout can be seen in \autoref{fig:pcbr3simple}.
+\begin{figure}[tb]
+	\centering
+    \includegraphics[width=\linewidth]{Figures/pcb_rev3.jpg}
+	\caption{third (3) revision circuit board}
+	\label{fig:pcbr3}
+\end{figure}
+\begin{figure}[tb]
+	\centering
+    \includegraphics[width=.75\linewidth]{Figures/pcb_rev3_simple.png}
+	\caption{Simple model of third (3) revision circuit board areas}
+	\label{fig:pcbr3simple}
+\end{figure}
 
-\subsection{choices (TiP)}\label{sec:hw:tip1}
-stuff3
+\subsection{Component choices}\label{sec:hw:tip1}
+\chapterauthor{Eriksson, Kenny (Brolin, Daniel)}
+\input{tmp_hw_choice_of_components_kenny.tex}
 
 \subsection{results (TiP)}\label{sec:hw:tip2}
 stuff4

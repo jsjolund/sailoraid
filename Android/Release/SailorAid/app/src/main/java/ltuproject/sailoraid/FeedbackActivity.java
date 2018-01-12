@@ -506,8 +506,8 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
             if(dataType.equals(DATA_TYPE_INCLINE)){
                 // Get Roll, pitch and yaw
                 String[] accelerometer = data.split(":");
-                mFeedbackStateChecker.setInclineX(Float.parseFloat(accelerometer[1]));
-                mFeedbackStateChecker.setInclineY(Float.parseFloat(accelerometer[0]));
+                mFeedbackStateChecker.setInclineX(-Float.parseFloat(accelerometer[1]));
+                mFeedbackStateChecker.setInclineY(-Float.parseFloat(accelerometer[0]));
                 mFeedbackStateChecker.setBearingZ(Float.parseFloat(accelerometer[2]));
                 if (mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.INCLINE){
                     TextView tv = findViewById(R.id.tiltText);
@@ -563,7 +563,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 if (Float.parseFloat(battery[1]) > 60000){
                     tv.setText("inf");
                 } else{
-                    tv.setText(String.format("%.1f", Float.parseFloat(battery[1])) +"min");
+                    tv.setText(String.format("%.0f", Float.parseFloat(battery[1])) +"min");
                 }
                 showBatteryLeft(Float.parseFloat(battery[0]));
             } else if(dataType.equals(DATA_TYPE_PRESSURE)){
@@ -576,11 +576,8 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 } else {
                     this.driftDir = 1;
                 }
-                //float maxPressure = Float.parseFloat(loadCell[0])-18;
                 mFeedbackStateChecker.setMaxPressure(maxPressure-18);
-                //mFeedbackStateChecker.setMaxPressure(Float.parseFloat(loadCell[0])-18);
                 TextView tv = findViewById(R.id.pressureText);
-                //tv.setText(String.valueOf(mFeedbackStateChecker.getMaxPressure()) +" %");
                 tv.setText(String.format("%.1f", mFeedbackStateChecker.getMaxPressure()) +" %");
                 if(mViewDisplayer.getmCurrentViewState() == ViewDisplayer.ViewStates.INCLINE){
                     mViewDisplayer.getmPressureNeedleView().moveGL(NEEDLE_X_POS, mFeedbackStateChecker.getMaxPressure()/40 -1.2f);
@@ -722,15 +719,16 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
     Change icon in toolbar menu to display current battery level
      */
     private void showBatteryLeft(float bat){
-  /*      if (mMenu != null){
+        if (mMenu != null){
+            MenuItem item = mMenu.findItem(R.id.battery);
             if(bat > 70){
-                mMenu.getItem(R.id.battery).setIcon(getDrawable(R.drawable.high_bat));
+                item.setIcon(getDrawable(R.drawable.high_bat));
             } else if(bat<70 && bat > 30){
-                mMenu.getItem(R.id.battery).setIcon(getDrawable(R.drawable.mid_bat));
+                item.setIcon(getDrawable(R.drawable.mid_bat));
             } else if(bat < 30){
-                mMenu.getItem(R.id.battery).setIcon(getDrawable(R.drawable.low_bat));
+                item.setIcon(getDrawable(R.drawable.low_bat));
             }
-        }*/
+        }
     }
 
     private void startRepeatingTask() {

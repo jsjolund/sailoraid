@@ -533,13 +533,10 @@ Creates a handler for a thread that registers found Gatt characteristics from co
             intent.putExtra(EXTRA_DATA, String.valueOf(temperature));
 
         } else if (UUID_PRESSURE_MEASUREMENT.equals(characteristic.getUuid())) {
-            //float pressure = bytesToFloats(characteristic.getValue())[0];
             float pressure0 = bytesToFloats(characteristic.getValue())[0];
             float pressure1 = bytesToFloats(characteristic.getValue())[1];
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_PRESSURE);
             intent.putExtra(EXTRA_DATA, pressure0 +":" +pressure1);
-           // intent.putExtra(EXTRA_DATA, String.format("%f:%f", pressure0, pressure1));
-
         } else if (UUID_HUMIDITY_MEASUREMENT.equals(characteristic.getUuid())) {
             float humidity = bytesToFloats(characteristic.getValue())[0];
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_HUMIDITY);
@@ -551,8 +548,6 @@ Creates a handler for a thread that registers found Gatt characteristics from co
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_BATTERY);
             intent.putExtra(EXTRA_DATA, batteryPercentage +":" +timeLeft);
 
-           // intent.putExtra(EXTRA_DATA, String.format("%f:%f", batteryPercentage, timeLeft));
-
         } else if (UUID_GPS_MEASUREMENT.equals(characteristic.getUuid())) {
             float[] coords = bytesToFloats(characteristic.getValue());
             float lon = coords[0];
@@ -560,9 +555,7 @@ Creates a handler for a thread that registers found Gatt characteristics from co
             float elev = coords[2];
             float speed = coords[3];
             float direction = coords[4];
-            //float battery = coords[5];
             intent.putExtra(EXTRA_TYPE, DATA_TYPE_POSITION);
-//            intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f:%f:%f:%f", lat, lon, elev, speed, direction, battery));
             intent.putExtra(EXTRA_DATA, String.format("%f:%f:%f:%f:%f", lat, lon, elev, speed, direction));
         } else if (UUID_COMPASS_MEASUREMENT.equals(characteristic.getUuid())){
             // Yaw might still be used as it is but should be added compass values to this
