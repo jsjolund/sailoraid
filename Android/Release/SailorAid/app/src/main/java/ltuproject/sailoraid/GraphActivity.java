@@ -159,7 +159,7 @@ public class GraphActivity extends AppCompatActivity {
             case R.id.drift_enable:
                 if (!item.isChecked()){
                     item.setChecked(true);
-                    new ProgressTask().execute(driftList, R.id.graph_drift,"Drift", "Degrees", 0, 3);
+                    new ProgressTask().execute(driftList, R.id.graph_drift,"Drift", "Meters", 0, 3);
                 } else{
                     item.setChecked(false);
                     removeChosenGraph(R.id.graph_drift);
@@ -169,7 +169,7 @@ public class GraphActivity extends AppCompatActivity {
             case R.id.pressure_enable:
                 if (!item.isChecked()){
                     item.setChecked(true);
-                    new ProgressTask().execute(pressureList, R.id.graph_pressure,"Pressure", "Psi", 1, 3);
+                    new ProgressTask().execute(pressureList, R.id.graph_pressure,"Pressure", "%", 1, 3);
                 } else{
                     item.setChecked(false);
                     removeChosenGraph(R.id.graph_pressure);
@@ -208,7 +208,7 @@ public class GraphActivity extends AppCompatActivity {
                     new ProgressTask().execute(rangeList, R.id.graph_range,"Range", "cm", 0, 3);
                 } else{
                     item.setChecked(false);
-                    removeChosenGraph(R.id.graph_hum);
+                    removeChosenGraph(R.id.graph_range);
                 }
                 return true;
             default:

@@ -32,15 +32,16 @@ public class StateChecker implements Runnable{
     private static float SOGLASERLIMIT = 16.8f;
     private static int SOGUPPERLIMIT = 12;
     private static int SOGLOWERLIMIT = 6;
-    private static int RANGEMAXLIMIT = 80;
-    private static int RANGEUPPERLIMIT = 70;
+    private static int RANGEMAXLIMIT = 30;
+    private static int RANGEUPPERLIMIT = 20;
     private static int RANGELOWELIMIT = 10;
     private static int RANGEMIDLIMIT = 40;
-    private static int PRESSUREUPPERLIMIT = 80;
-    private static int PRESSUREMIDLIMIT = 50;
-    private static int PRESSURELOWLIMIT = 20;
+    private static int PRESSUREUPPERLIMIT = 60;
+    private static int PRESSUREMIDLIMIT = 30;
+    private static int PRESSURELOWLIMIT = 10;
     private static int DRIFTUPPERLIMIT = 1;
     private static float DRIFTLOWERLIMIT = 0.5f;
+    private static float WAVEHIGHLIMIT = 1.5f;
 
     private float inclineX, inclineY, bearingZ;
     private float direction, speed;
@@ -108,7 +109,9 @@ public class StateChecker implements Runnable{
                  */
             String txt ="";
             if(!isSpeaking){
-                if(abs(inclineX) > HEELINCLINEUPPERLIMIT){
+                if(wavePeriod > WAVEHIGHLIMIT){
+                    mFeedbackState = FeedbackStates.HARDWIND;
+                } else if(abs(inclineX) > HEELINCLINEUPPERLIMIT){
                     mFeedbackState = FeedbackStates.HEEL;
                 } else if (speed > SOGWRLIMIT){
                     mFeedbackState = FeedbackStates.WRSPEED;
@@ -132,11 +135,7 @@ public class StateChecker implements Runnable{
                     mFeedbackState = FeedbackStates.LANDCRAB;
                 }
                 if (!mFeedbackState.equals(lastFeedbackState)){
-                    if (startFlag == 0){
-                        startFlag = 1;
-                    } else {
-                        talkFeedback();
-                    }
+                    talkFeedback();
                 }
                 lastFeedbackState = mFeedbackState;
             }
@@ -236,6 +235,13 @@ public class StateChecker implements Runnable{
                 feedbackText.setTextColor(contx.getColor(R.color.darkgreen));
                 feedbackText.setBackground(contx.getDrawable(R.color.orange));
                 mVibrator = new IntervalVibrator(contx, 3, 200, 500);
+                break;
+            case HARDWIND:
+                txt = "Sea is rough! \n Head to shore!";
+                feedbackText.setText(txt);
+                feedbackText.setTextColor(contx.getColor(R.color.red));
+                feedbackText.setBackground(contx.getDrawable(R.color.blue));
+                mVibrator = new IntervalVibrator(contx, 2, 700, 500);
                 break;
             default:
 
