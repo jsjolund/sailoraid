@@ -37,7 +37,6 @@ Designing circuit boards differs slightly between what software you are using. K
 \end{enumerate}
 % Borrowed shit
 The initial required circuitry, see \autoref{fig:schr3a}, was copied from earlier works with the \gls{st} \gls{arm} \gls{mcu}'s but modified to meet our needs. The power section, also found in \autoref{fig:schr3a}, is designed to only allow for exactly $+5V$. This design is credited to, and derived from \emph{Maxim Integrated}, Application note 760\cite{overprotection}.
-*WRITE MORE HERE!*
 
 % Original custom shit
 Non-standard library entries include following components:\\
@@ -109,7 +108,9 @@ Following communicative devices will used and act as ``mudule areas'', i.e. thes
 \item INA128 \qquad- Analog load cell amplifiers (ADC)
 \item MCDTS2-4N \qquad- Tactile push buttons (Pull-up/Pull-down)
 \end{itemize}
-The layout of the components are such that all \gls{i2c} communicative devices are moved to one spot ensuring the shortest possible \gls{i2c} data line. Ground \gls{via}s was added around communication traces to prevent unwanted interference, ground \gls{via}s were also added to prevent antennas\footnote{Antennas appear by letting isolated thin grounds be connected on only one end, a \gls{via} can therefore be added to the other end to prevent this from happening.}. The power is placed in the bottom right, since this is as far as possible from everything else. \gls{usb} is placed next to the power, as power can be opted to be drawn from \gls{usb} rather than battery. Analog plane with the load cells are put right next to the power to ensure the star-ground\footnote{A common node ground connecting all grounds together to ensure the same set working level} to be as close as possible to the power-source allowing for as little noise as possible. \gls{bt} communication devices are rather fragile, it is therefore placed as far as possible from everything in the top left corner of the \gls{pcb}. This \gls{bt} module (SPBTLE-RF) requires \gls{spi} communication and in total $6$ isolated traces are to be drawn between the \gls{mcu} and the \gls{bt} unit. To minimize crossover the \gls{gps} is placed in the top-mid of the \gls{pcb}. Lastly the buttons whose placing is of low importance are placed in the middle-left, between the power source and the \gls{bt} unit. The third, and last, revision of the \gls{pcb} can be seen in \autoref{fig:pcbr3}, a simple explanation of the layout can be seen in \autoref{fig:pcbr3simple}.
+The layout of the components are such that all \gls{i2c} communicative devices are moved to one spot ensuring the shortest possible \gls{i2c} data line, these are placed to the top right of the \gls{pcb}. The power is placed in the bottom left, since this is as far as possible from everything else. \gls{usb} is placed next to the power, as power can be opted to be drawn from \gls{usb} rather than battery. Analog plane with the load cells are put right next to the power to ensure the star-ground\footnote{A common node ground connecting all grounds together to ensure the same set working level} to be as close as possible to the power-source allowing for as little noise as possible. \gls{bt} communication devices are rather fragile, it is therefore placed as far as possible from everything in the top left corner of the \gls{pcb}. This \gls{bt} module (SPBTLE-RF) requires \gls{spi} communication and in total $6$ isolated traces are to be drawn between the \gls{mcu} and the \gls{bt} unit. To minimize crossover the \gls{gps} is placed in the top-mid of the \gls{pcb}. Lastly the buttons whose placing is of low importance are placed in the middle-left, between the power source and the \gls{bt} unit. 
+Ground \gls{via}s was added around communication traces to prevent unwanted interference, ground \gls{via}s were also added to prevent antennas\footnote{Antennas appear by letting isolated thin grounds be connected on only one end, a \gls{via} can therefore be added to the other end to prevent this from happening.}.
+The third, and last, revision of the \gls{pcb} can be seen in \autoref{fig:pcbr3}, a simple explanation of the layout can be seen in \autoref{fig:pcbr3simple}.
 \begin{figure}[tb]
 	\centering
     \includegraphics[width=\linewidth]{Figures/pcb_rev3.jpg}
@@ -124,7 +125,7 @@ The layout of the components are such that all \gls{i2c} communicative devices a
 \end{figure}
 
 \subsection{Component choices}\label{sec:hw:tip1}
-\chapterauthor{Eriksson, Kenny (Brolin, Daniel)}
+\chapterauthor*{Eriksson, Kenny (Brolin, Daniel)}
 \input{tmp_hw_choice_of_components_kenny.tex}
 
 \subsection{results (TiP)}\label{sec:hw:tip2}
