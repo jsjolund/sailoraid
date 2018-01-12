@@ -563,7 +563,7 @@ public class FeedbackActivity extends AppCompatActivity implements OnMapReadyCal
                 if (Float.parseFloat(battery[1]) > 60000){
                     tv.setText("inf");
                 } else{
-                    tv.setText(String.format("%.1f", Float.parseFloat(battery[1])) +"min");
+                    tv.setText(String.format("%.0f", Float.parseFloat(battery[1])) +"min");
                 }
                 showBatteryLeft(Float.parseFloat(battery[0]));
             } else if(dataType.equals(DATA_TYPE_PRESSURE)){
