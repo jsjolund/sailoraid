@@ -4,176 +4,175 @@ Lithium-ion batteries packs large amounts energy in a small package and can powe
 \subsection{Lithium-ion Battery Composition}
 Lithium-ion batteries are similar to other batteries in the way that they work by the same electrochemical principles. Though there are differences that has to be taken into account when developing a battery management system.
 
-A lithium-based battery does not have any metallic lithium in it, instead, lithium ions are intercalated in the electrode material. Due to the highly reversible properties of the intercalation, \gls{li-ion} batteries have greater electrode stability and cycle life compared to other electrochemical processes. They have high coulombic efficiency in all states of charge. Self-discharge is also slower in \gls{li-ion} batteries which makes them useful in situations where they may not be used for extended periods and are expected to work once the system turns on.
+A lithium-based battery does not have any metallic lithium in it, instead, lithium ions are intercalated in the electrode material. Due to the highly reversible properties of the intercalation, \gls{lion} batteries have greater electrode stability and cycle life compared to other electrochemical processes. They have high coulombic efficiency in all states of charge. Self-discharge is also slower in \gls{lion} batteries which makes them useful in situations where they may not be used for extended periods and are expected to work once the system turns on.
 
-Memory effects present in other chemistries cause gradual loss of capacity if not discharged properly are not present in lithium-ion batteries and makes the usage more flexible. Trickle charging is a common method of determining the state of charge (\gls{soc}), but lithium-ion batteries lead to overcharging and may damage the battery.
+Memory effects present in other chemistries cause gradual loss of capacity if not discharged properly are not present in lithium-ion batteries and makes the usage more flexible. Trickle charging is a common method of determining the \gls{soc}, but lithium-ion batteries lead to overcharging and may damage the battery.
 
-Water-based electrolytes are common in most batteries but as electrolysis begins at two volts in water and the voltages present in lithium cells are higher than that, that is not possible. Organic solvents are instead used. These solvents are flammable and have high vapor pressures. The increased performance of \gls{li-ion} batteries comes with higher severity if something would happen to go wrong, so they have to be handled with extra care.
+Water-based electrolytes are common in most batteries but as electrolysis begins at two volts in water and the voltages present in lithium cells are higher than that, that is not possible. Organic solvents are instead used. These solvents are flammable and have high vapour pressures. The increased performance of \gls{lion} batteries comes with higher severity if something would happen to go wrong, so they have to be handled with extra care.
 
-One of the most common form factors is the cylindrical cell referred to as 18650. That is 18 mm in diameter and 65 mm in length.\cite{book26}. The figure \autoref{cellstruct} displays the parts that build up such a cylindrical cell.
+One of the most common form factors is the cylindrical cell referred to as 18650. That is 18 mm in diameter and 65 mm in length.\cite{book26}. The figure \autoref{fig:cellstruct} displays the parts that build up such a cylindrical cell.
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.3\textwidth]{Figure/cellstruct.png}
-\caption{\gls{li-ion} 18650 battery structure}
-\label{cellstruct}
+	\centering
+	\includegraphics[width=0.3\textwidth]{Figures/missing.png}%Missing: Cellstruct.png
+	\caption{\gls{lion} 18650 battery structure}
+	\label{fig:cellstruct}
 \end{figure}
 
 \subsection{Charging}
 Charging can be either controlled by a separate charger or by the management system itself. Whichever implementation is used these are the battery management system must make\cite{book111}:
 
-\begin{itemize}
-\item Charging rate
-\item Life of the batteries
-\item Charge termination
+\begin{itemize}[noitemsep]
+	\item Charging rate
+	\item Life of the batteries
+	\item Charge termination
 \end{itemize}
 
-The preferred way of charging \gls{li-ion} batteries is \gls{cccv}-charging (constant current, constant voltage). The charge cycle begins with a constant current after the specification of the battery in use. This current is supplied continually until the battery has reached its end-of-charge-voltage. Then charging is switched over to constant voltage mode and the current will taper off as the cell reaches its full capacity. Charging is then terminated when the current goes below a predefined value. Figure \autoref{cccv} displays the process. As the voltage curve is steep when the battery reaches its full capacity precise regulation is needed to prevent overcharging\cite{book112}.
+The preferred way of charging \gls{lion} batteries is \gls{cccv}-charging. The charge cycle begins with a constant current after the specification of the battery in use. This current is supplied continually until the battery has reached its end-of-charge-voltage. Then charging is switched over to constant voltage mode and the current will taper off as the cell reaches its full capacity. Charging is then terminated when the current goes below a predefined value. Figure \autoref{fig:cccv} displays the process. As the voltage curve is steep when the battery reaches its full capacity precise regulation is needed to prevent overcharging\cite{cccv}\cite{book112}.
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.3\textwidth]{Figure/cccv.png}
-\caption{How \gls{cccv}-charging behave.}
-\label{cccv}
+	\centering
+	\includegraphics[width=0.3\textwidth]{Figures/missing.png} %Missing: cccv.png
+	\caption{Behaviour of \gls{cccv}-charging}
+	\label{fig:cccv}
 \end{figure}
 
 \subsection{Balancing}
 Unlike other types of batteries that have a lower coulombic efficiency, lithium-ion batteries do not self-balance during a charge cycle. Without the ability to transfer charge, capacity will be limited to the battery with the lowest capacity in a series configuration. Knowing the capacity in real-time increases the efficiency of the balancing process.
 Cell balancing is used for one or more of these purposes\cite{book183}:
 
-\begin{itemize}
-\item Minimize charge difference
-\item Maximize available battery power
-\item Maximize available battery energy
+\begin{itemize}[noitemsep]
+	\item Minimize charge difference
+	\item Maximize available battery power
+	\item Maximize available battery energy
 \end{itemize}
 
-Figure \autoref{variations} shows the variations that can occur between cells in a series stack.
+Figure \ref{fig:variations} shows the variations that can occur between cells in a series stack.
+%Note \ref is used here since \autoref sadly doesn't automatically uppercase beginning of sentences
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.3\textwidth]{Figure/variations.png}
-\caption{Series stack cell variations.}
-\label{variations}
+	\centering
+	\includegraphics[width=0.3\textwidth]{Figures/missing.png} %Missing: variations.png
+	\caption{Series stack cell variations.}
+	\label{fig:variations}
 \end{figure}
 
 \subsection{18650 Basic Safety}
 There are both protected and unprotected 18650 batteries. Protected ones include three basic safety features\cite{webpage}:
 
-\begin{itemize}
-\item \gls{ptc}
-\item \gls{cid}
-\item \gls{pcb}
+\begin{itemize}[noitemsep]
+	\item \gls{ptc}
+	\item \gls{cid}
+	\item \gls{pcb}
 \end{itemize}
 
 A \gls{ptc} is a resistor that increases resistance when temperature rises, thus protecting against over temperatures. It will automatically reset when the temperature goes down.
 \gls{cid} or pressure valve disables the battery permanently if the vapor pressure inside the cell becomes too high. Preventing further swelling and possible fire.
-The \gls{pcb} protects against over discharge, overcharge, and overcurrent. Depending on the design, it will be reset when there is no fault condition anymore or when it is placed in a charger.  
+The \gls{pcb} protects against over discharge, overcharge, and overcurrent. Depending on the design, it will be reset when there is no fault condition any more or when it is placed in a charger.  
 
-Figure \autoref{protection} is an illustration of a protected \gls{li-ion} battery. The pressure valve on the left side also breaks the connection between the internal and external positive pole which is why it is called \gls{cid} or current interrupt device.
+Figure \autoref{fig:protection} is an illustration of a protected \gls{lion} battery. The pressure valve on the left side also breaks the connection between the internal and external positive pole which is why it is called \gls{cid} or current interrupt device.
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.3\textwidth]{Figure/protection.png}
-\caption{A protected 18650 cell.}
-\label{protection}
+	\centering
+	\includegraphics[width=0.3\textwidth]{Figures/missing.png} %Missing: protection.png
+	\caption{A protected 18650 cell.}
+	\label{fig:protection}
 \end{figure}
 
 \subsection{Safety and Abuse Conditions}
-Due to the differences between \gls{li-ion} batteries and other batteries, and their higher capacity they are more susceptible to faults when abused. Follow is a list of abuse conditions and their implications\cite{book35}.
+Due to the differences between \gls{lion} batteries and other batteries, and their higher capacity they are more susceptible to faults when abused. Follow is a list of abuse conditions and their implications\cite{book35}.
 
 \begin{itemize}
-\item Overcharge occurs when \gls{soc} is greater than 100\%. Cell voltage will begin to rise fast and may damage load or monitoring circuitry. Irreversible degradation inside the cell will occur. Both single large events and many small events cause degradation. Unlike in other chemistries, small currents causes this. Leading to thermal runaway, cell swelling, and venting. Begins somewhere between 3.75V and 4.2V depending on the cell.
-\item Over-discharge occurs when \gls{soc} reaches below 0\%, the voltage decreases fast and can even be reversed if discharge current is too high. A reversed voltage may result in damaged monitoring circuitry. Internal damage includes dissolution of the negative terminal foil. Self-over-discharge cannot be prevented. Minimum voltage before over discharge occurs is between 1.8-2.5V depending on the cell.
+\item Overcharge occurs when \gls{soc} is greater than $100\%$. Cell voltage will begin to rise fast and may damage load or monitoring circuitry. Irreversible degradation inside the cell will occur. Both single large events and many small events cause degradation. Unlike in other chemistries, small currents causes this. Leading to thermal runaway, cell swelling, and venting. Begins somewhere between $3.75V$ and $4.2V$ depending on the cell.
+\item Over-discharge occurs when \gls{soc} reaches below $0\%$, the voltage decreases fast and can even be reversed if discharge current is too high. A reversed voltage may result in damaged monitoring circuitry. Internal damage includes dissolution of the negative terminal foil. Self-over-discharge cannot be prevented. Minimum voltage before over discharge occurs is between $1.8-2.5V$ depending on the cell.
 \item High temperatures increase cell degradation which in turn causes thermal runaway further increasing inside temperatures. Excessive temperatures activate exothermic chemical reactions in the organic solvents. Releasing high amounts of energy that leads to venting of cell contents, fire or explosion.
-\item Low temperatures can cause plating on of metal lithium onto the electrodes which Leeds to irreversible capacity loss and possibly metallic “dendrite” growth. Dendrites can penetrate the separator leading to internal short circuits. Low temperatures also increase cell impedance thus limiting discharging capabilities. Charging below 0°C is not recommended, although some cells allow temperatures below -10°C.
+\item Low temperatures can cause plating on of metal lithium onto the electrodes which Leeds to irreversible capacity loss and possibly metallic “dendrite” growth. Dendrites can penetrate the separator leading to internal short circuits. Low temperatures also increase cell impedance thus limiting discharging capabilities. Charging below $0\degree C$ is not recommended, although some cells allow temperatures below $-10\degree C$.
 \item Overcurrent, both during dis- and re-charging can cause the same type of problems as with general over- and under-charge conditions, at the same time high currents increases temperature. The maximum current allowed for is a function of \gls{soc} and temperature. Even though temperature would be held at acceptable levels, the amount of current will still be limited by the number of ions the negative terminal can receive at any given moment.
 \item Age is a major factor when it comes to Li-ion batteries, the risk of failure increases with age. Monitoring and estimating remaining battery lifetime can be done and is expressed in \gls{soh}.
 \end{itemize}
 
 \subsection{Determining \gls{bms} Specifications}
-
-A flow chart was used to determine the power requirements of the system powered by the batteries. As is seen in figure \autoref{powerinput}. The particular \gls{mcu} used runs on 3.3V and the sensors that were chosen would run on 3.3V and 5.5V respectively, so those requirements where definite. There were thoughts about adding a display that might have needed 12V, therefore the light blue block in figure \autoref{powerinput}. As the project continued it was omitted and 12V would not be needed. Therefore two batteries in series are used. Resulting in a voltage range of 8.4V fully charged and down to 6V fully depleted. This voltage is then stepped down to 5V and supplied to the system.
-Current wise it was not know how much the system would draw but it was estimated that the capacity of the batteries of 2.2Ah would be enough to power the system for several hours.
-In a worst-case scenario, the system would draw more than 500mA which would result in 4h and 24min of usage.
-Safety is of high priority as concluded earlier. So a second flowchart was created to determine the specifications of the monitoring of the two batteries in a series configuration. Figure \autoref{battery} displays these specifications.
+A flow chart was used to determine the power requirements of the system powered by the batteries. As is seen in \autoref{fig:powerinput}. The particular \gls{mcu} used runs on 3.3V and the sensors that were chosen would run on $3.3V$ and $5.5V$ respectively, so those requirements where definite. There were thoughts about adding a display that might have needed $12V$, therefore the light blue block in \autoref{fig:powerinput}. As the project continued it was omitted and $12V$ would not be needed. Therefore two batteries in series are used. Resulting in a voltage range of $8.4V$ fully charged and down to $6V$ fully depleted. This voltage is then stepped down to $5V$ and supplied to the system.
+Current wise it was not know how much the system would draw but it was estimated that the capacity of the batteries of $2.2Ah$ would be enough to power the system for several hours.
+In a worst-case scenario, the system would draw more than $500mA$ which would result in $4h$ and $24min$ of usage.
+Safety is of high priority as concluded earlier. So a second flowchart was created to determine the specifications of the monitoring of the two batteries in a series configuration. Figure \ref{fig:battery} displays these specifications.
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.3\textwidth]{Figure/powerinput.png}
-\caption{Power input flowchart.}
-\label{powerinput}
+	\centering
+	\includegraphics[width=0.3\textwidth]{Figures/missing.png} %Missing: powerinput.png
+	\caption{Power input flowchart}
+	\label{fig:powerinput}
 \end{figure}
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.3\textwidth]{Figure/battery.png}
-\caption{Battery management flowchart.}
-\label{battery}
+	\centering
+	\includegraphics[width=0.3\textwidth]{Figures/missing.png} %Missing: battery.png
+	\caption{Battery management flowchart}
+	\label{fig:battery}
 \end{figure}
 
 
-Three ICs where chosen for the \gls{bms}. The BQ28Z610 is a gas gauge \gls{ic} for Li-ion batteries from Texas Instruments, including these features:
+Three ICs where chosen for the \gls{bms}. The BQ28Z610 is a gas gauge \gls{ic} for Li-ion batteries from \gls{ti}, including these features:
 
-\begin{itemize}
-\item \gls{i2c} communication of status to host.
-\item Balancing of cells, both during charge and use.
-\item Temperature monitoring and regulation.
-\item Under and overvoltage protection.
-\item Overcurrent protection.
-\item \gls{soc} reporting.
+\begin{itemize}[noitemsep]
+	\item \gls{i2c} communication of status to host.
+	\item Balancing of cells, both during charge and use.
+	\item Temperature monitoring and regulation.
+	\item Under and overvoltage protection.
+	\item Overcurrent protection.
+	\item \gls{soc} reporting.
 \end{itemize}
 
 The BQ24133, also a \gls{ti} \gls{ic}, is chosen for charging purposes, making use of the following features:
 
-\begin{itemize}
-\item 1-3 series cells.
-\item Temperature monitoring and regulation.
-\item Power Path, load can safely be connected during charging.
+\begin{itemize}[noitemsep]
+	\item 1-3 series cells.
+	\item Temperature monitoring and regulation.
+	\item Power Path, load can safely be connected during charging.
 \end{itemize}
 
 The output voltage is managed by the \gls{ti} \gls{ic} LM2596 step-down converter.
 
-During development, a BQ28Z610 development board was used together with together with a Luxorparts variable voltage regulator utilizing the LM2596 and a generic \gls{li-ion} \gls{2s} charger.
+During development, a BQ28Z610 development board was used together with together with a Luxorparts variable voltage regulator utilizing the LM2596 and a generic \gls{lion} \gls{2s} charger.
 
 The BQ28Z610’s software was configured using a windows computer, \gls{ti}’s software bqStudio and the EV2300 \gls{pc} interface board.
 A \gls{pwb} containing the three \gls{ic}’s mentioned above was designed using KiCad. The designs were made according to the typical application of each \gls{ic}. Typical applications are found in data sheets.  
 
 \subsection{Current State}
-
-Figure \autoref{modules} displays how the \gls{bms} is currently set up. Up left on top of the main PCB is the BQ28Z610 development board, and below that is the voltage regulator. Charging is enabled via the charging port visible to the right, on the lid.
+Figure \autoref{fig:modules} displays how the \gls{bms} is currently set up. Up left on top of the main PCB is the BQ28Z610 development board, and below that is the voltage regulator. Charging is enabled via the charging port visible to the right, on the lid.
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.3\textwidth]{Figure/modules.png}
-\caption{Current setup.}
-\label{modules}
+	\centering
+	\includegraphics[width=0.3\textwidth]{Figures/missing.png} %Missing: modules.png
+	\caption{Current setup.} %Current what setup?
+	\label{fig:modules}
 \end{figure}
 
 
-Charging is done by turning the device upside down and connecting a \gls{2s} \gls{li-ion} charger. See figure \autoref{charging}.
+Charging is done by turning the device upside down and connecting a \gls{2s} \gls{lion} charger. See figure \autoref{fig:charging}.
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.3\textwidth]{Figure/charging.png}
-\caption{How to charge.}
-\label{modules}
-\end{charging}  
+	\centering
+	\includegraphics[width=0.3\textwidth]{Figures/missing.png} %Missing: charging.png
+	\caption{How to charge}
+	\label{fig:charging}
+\end{figure}
 
-A connection diagram for this configuration can be seen in figure\autoref{diagram}. The charger is connected to the input of the voltage regulator. This configuration has all the features of that implemented on the \gls{pwb} except the charger is external, charges with 1A instead of 2A and there is no Power Path, meaning that the device has to be turned off to make charging safely.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.3\textwidth]{Figure/diagram.png}
-\caption{Connection diagram.}
-\label{diagram}
-\end{charging} 
-
-Figure \autoref{bmspwb} shows the unpopulated \gls{pwb} that when soldered and tested would fulfill all requirements. It is supposed to be the entire \gls{bms}. 
-Schematics, board layout, and Gerber-files can all be found in the appendix.
+A connection diagram for this configuration can be seen in figure\autoref{fig:diagram}. The charger is connected to the input of the voltage regulator. This configuration has all the features of that implemented on the \gls{pwb} except the charger is external, charges with 1A instead of $2A$ and there is no power Path, meaning that the device has to be turned off to make charging safely.
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.3\textwidth]{Figure/bmspwb.png}
-\caption{Unpopulated \gls{bms}-\gls{pwb}.}
-\label{diagram}
-\end{bmspwb}
+	\centering
+	\includegraphics[width=0.3\textwidth]{Figures/missing.png} %Missing: diagram.png
+	\caption{Connection diagram.}
+	\label{fig:diagram}
+\end{figure} 
+
+Figure \ref{fig:bmspwb} shows the unpopulated \gls{pwb} that when soldered and tested would fulfill all requirements. It is supposed to be the entire \gls{bms}. 
+Schematics, board layout, and Gerber-files can all be found in the appendix. %Nope. Not there. Also, refer to them!: Can be found in the appendix, see: \autoref{first}, \ref{second}, ..., and \ref{last}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.3\textwidth]{Figures/missing.png} %Missing bmspwb.png
+	\caption{\gls{bms} \gls{pwb}}
+	\label{fig:bmspwb}
+\end{figure}
