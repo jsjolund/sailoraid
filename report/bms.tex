@@ -28,7 +28,7 @@ Charging can be either controlled by a separate charger or by the management sys
 	\item Charge termination
 \end{itemize}
 
-The preferred way of charging \gls{lion} batteries is \gls{cccv}-charging. The charge cycle begins with a constant current after the specification of the battery in use. This current is supplied continually until the battery has reached its end-of-charge-voltage. Then charging is switched over to constant voltage mode and the current will taper off as the cell reaches its full capacity. Charging is then terminated when the current goes below a predefined value. Figure \autoref{fig:cccv} displays the process. As the voltage curve is steep when the battery reaches its full capacity precise regulation is needed to prevent overcharging\cite{cccv}\cite{book112}.
+The preferred way of charging \gls{lion} batteries is \gls{cccv}-charging. The charge cycle begins with a constant current after the specification of the battery in use. This current is supplied continually until the battery has reached its end-of-charge-voltage. Then charging is switched over to constant voltage mode and the current will taper off as the cell reaches its full capacity. Charging is then terminated when the current goes below a predefined value. \autoref{fig:cccv} displays the process. As the voltage curve is steep when the battery reaches its full capacity precise regulation is needed to prevent overcharging\cite{cccv}\cite{book112}.
 
 \begin{figure}[H]
 	\centering
@@ -47,7 +47,7 @@ Cell balancing is used for one or more of these purposes\cite{book183}:
 	\item Maximize available battery energy
 \end{itemize}
 
-Figure \ref{fig:variations} shows the variations that can occur between cells in a series stack.
+\autoref{fig:variations} shows the variations that can occur between cells in a series stack.
 %Note \ref is used here since \autoref sadly doesn't automatically uppercase beginning of sentences
 
 \begin{figure}[H]
@@ -92,10 +92,10 @@ Due to the differences between \gls{lion} batteries and other batteries, and the
 \end{itemize}
 
 \subsection{Determining \gls{bms} Specifications}
-A flow chart was used to determine the power requirements of the system powered by the batteries. As is seen in \autoref{fig:powerinput}. The particular \gls{mcu} used runs on 3.3V and the sensors that were chosen would run on $3.3V$ and $5.5V$ respectively, so those requirements where definite. There were thoughts about adding a display that might have needed $12V$, therefore the light blue block in \autoref{fig:powerinput}. As the project continued it was omitted and $12V$ would not be needed. Therefore two batteries in series are used. Resulting in a voltage range of $8.4V$ fully charged and down to $6V$ fully depleted. This voltage is then stepped down to $5V$ and supplied to the system.
+A flow chart was used to determine the power requirements of the system powered by the batteries. As is seen in \autoref{fig:powerinput}. The particular \gls{mcu} used runs on $3.3V$ and the sensors that were chosen would run on $3.3V$ and $5.5V$ respectively, so those requirements where definite. There were thoughts about adding a display that might have needed $12V$, therefore the light blue block in \autoref{fig:powerinput}. As the project continued it was omitted and $12V$ would not be needed. Therefore two batteries in series are used. Resulting in a voltage range of $8.4V$ fully charged and down to $6V$ fully depleted. This voltage is then stepped down to $5V$ and supplied to the system.
 Current wise it was not know how much the system would draw but it was estimated that the capacity of the batteries of $2.2Ah$ would be enough to power the system for several hours.
 In a worst-case scenario, the system would draw more than $500mA$ which would result in $4h$ and $24min$ of usage.
-Safety is of high priority as concluded earlier. So a second flowchart was created to determine the specifications of the monitoring of the two batteries in a series configuration. Figure \ref{fig:battery} displays these specifications.
+Safety is of high priority as concluded earlier. So a second flowchart was created to determine the specifications of the monitoring of the two batteries in a series configuration. \autoref{fig:battery} displays these specifications.
 
 \begin{figure}[H]
 	\centering
@@ -112,7 +112,7 @@ Safety is of high priority as concluded earlier. So a second flowchart was creat
 \end{figure}
 
 
-Three ICs where chosen for the \gls{bms}. The BQ28Z610 is a gas gauge \gls{ic} for Li-ion batteries from \gls{ti}, including these features:
+Three\gls{ic}s where chosen for the \gls{bms}. The BQ28Z610 is a gas gauge \gls{ic} for Li-ion batteries from \gls{ti}, including these features:
 
 \begin{itemize}[noitemsep]
 	\item \gls{i2c} communication of status to host.
@@ -167,7 +167,7 @@ A connection diagram for this configuration can be seen in figure\autoref{fig:di
 	\label{fig:diagram}
 \end{figure} 
 
-Figure \ref{fig:bmspwb} shows the unpopulated \gls{pwb} that when soldered and tested would fulfill all requirements. It is supposed to be the entire \gls{bms}. 
+\autoref{fig:bmspwb} shows the unpopulated \gls{pwb} that when soldered and tested would fulfill all requirements. It is supposed to be the entire \gls{bms}. 
 Schematics, board layout, and Gerber-files can all be found in the appendix. %Nope. Not there. Also, refer to them!: Can be found in the appendix, see: \autoref{first}, \ref{second}, ..., and \ref{last}.
 
 \begin{figure}[H]
