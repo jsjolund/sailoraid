@@ -407,8 +407,8 @@ public class HistoryActivity extends AppCompatActivity {
         topSOGHolder.setText(String.format("%.2fkn", (mLogService.getTopSOG())));
         maxDriftHolder.setText(String.format("%.2fm", (mLogService.getAvgDrift())));
         totalDriftHolder.setText(String.format("%.2fm", (mLogService.getTotalDrift())));
-        avgPressureHolder.setText(String.format("%.2fPsi", (mLogService.getAvgPressure())));
-        maxPressureHolder.setText(String.format("%.2fPsi", (mLogService.getMaxPressure())));
+        avgPressureHolder.setText(String.format("%.2f", (mLogService.getAvgPressure())) +"%");
+        maxPressureHolder.setText(String.format("%.2f", (mLogService.getMaxPressure())) +"%");
         totDistanceHolder.setText(String.format("%.2fkm", (mLogService.getTotDistance())));
         setInclineData();
         setSOGData();
@@ -426,7 +426,7 @@ public class HistoryActivity extends AppCompatActivity {
         float score = (mLogService.getTopSOG()*4+mLogService.getAvgSOG()*2)/2 + (10/ (mLogService.getAvgIncline()+mLogService.getMaxIncline()/4) ) + (10/ (mLogService.getAvgDrift() + mLogService.getTotalDrift()/100) );
         TextView sScore = findViewById(R.id.sailorScoreText);
         sScore.setVisibility(View.VISIBLE);
-        sScore.setText("Your Sailor Score was: " +score +"! \n Not so happy then.");
+        sScore.setText("Your Sailor Score was: " +score +"! \n Good job!");
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
