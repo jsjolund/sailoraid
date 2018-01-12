@@ -60,6 +60,7 @@ extern SensorState_t sensor;
 uint16_t orientServHandle, freeFallCharHandle, orientCharHandle;
 uint16_t gpsServHandle, gpsCharHandle;
 uint16_t rangeServHandle, rangeCharHandle;
+uint16_t batServHandle, batCharHandle;
 uint16_t envSensServHandle, tempCharHandle, pressCharHandle, humidityCharHandle;
 
 /**
@@ -93,6 +94,10 @@ do {\
 #define COPY_RANGE_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x23,0xcd,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_RANGE_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x23,0xbb,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 
+#define COPY_BAT_SERVICE_UUID(uuid_struct)  COPY_UUID_128(uuid_struct,0x24,0xcd,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_BAT_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x24,0xbb,0x1b,0x80, 0xcf,0x4b, 0x11,0xe1, 0xac,0x36, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+
+
 /* Store Value into a buffer in Little Endian Format */
 #define STORE_LE_16(buf, val)    (((buf)[0] =  (uint8_t) (val)    ) , \
                                    ((buf)[1] =  (uint8_t) (val>>8) ) )
@@ -101,9 +106,10 @@ do {\
                                    ((buf)[1] =  (uint8_t) (val>>8) ) , \
                                    ((buf)[2] =  (uint8_t) (val>>16) ) , \
                                    ((buf)[3] =  (uint8_t) (val>>24) ) )
-#define GPS_SERVICE_DATA_LEN 24
+#define GPS_SERVICE_DATA_LEN 20
 #define ORIENT_SERVICE_DATA_LEN 12
 #define LOAD_CELL_SERVICE_DATA_LEN 8
+#define BAT_SERVICE_DATA_LEN 8
 
 /**
  * @}
@@ -208,14 +214,13 @@ tBleStatus Add_GPS_Service(void)
 
 }
 
-tBleStatus GPS_Update(float lon, float lat, float elv, float spd, float dir, float battery)
+tBleStatus GPS_Update(float lon, float lat, float elv, float spd, float dir)
 {
   i32_t* loni = (i32_t*) &lon;
   i32_t* lati = (i32_t*) &lat;
   i32_t* elvi = (i32_t*) &elv;
   i32_t* spdi = (i32_t*) &spd;
   i32_t* diri = (i32_t*) &dir;
-  i32_t* bati = (i32_t*) &battery;
 
   tBleStatus ret;
   uint8_t buff[GPS_SERVICE_DATA_LEN];
@@ -225,7 +230,6 @@ tBleStatus GPS_Update(float lon, float lat, float elv, float spd, float dir, flo
   STORE_LE_32(buff + 8, *elvi);
   STORE_LE_32(buff + 12, *spdi);
   STORE_LE_32(buff + 16, *diri);
-  STORE_LE_32(buff + 20, *bati);
 
   ret = aci_gatt_update_char_value(gpsServHandle, gpsCharHandle, 0, GPS_SERVICE_DATA_LEN, buff);
 
@@ -274,6 +278,55 @@ tBleStatus Range_Update(float range)
   if (ret != BLE_STATUS_SUCCESS)
   {
     printf("Error 0x%02x while updating Range characteristic.\n", ret);
+    return BLE_STATUS_ERROR;
+  }
+  return BLE_STATUS_SUCCESS;
+
+}
+
+tBleStatus Add_Bat_Service(void)
+{
+  tBleStatus ret;
+
+  uint8_t uuid[16];
+
+  COPY_BAT_SERVICE_UUID(uuid);
+  ret = aci_gatt_add_serv(UUID_TYPE_128, uuid, PRIMARY_SERVICE, 7, &batServHandle);
+  if (ret != BLE_STATUS_SUCCESS)
+    goto fail;
+
+  COPY_BAT_UUID(uuid);
+  ret = aci_gatt_add_char(batServHandle, UUID_TYPE_128, uuid, BAT_SERVICE_DATA_LEN,
+  CHAR_PROP_NOTIFY | CHAR_PROP_READ,
+  ATTR_PERMISSION_NONE,
+  GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 16, 0, &batCharHandle);
+  if (ret != BLE_STATUS_SUCCESS)
+    goto fail;
+
+  printf("Service Bat added. Handle 0x%04X, Bat Charac handle: 0x%04X\n", batServHandle, batCharHandle);
+  return BLE_STATUS_SUCCESS;
+
+  fail: printf("Error while adding Bat service.\n");
+  return BLE_STATUS_ERROR;
+
+}
+
+tBleStatus Bat_Update(float percentage, float timeLeft)
+{
+  i32_t* percentagei = (i32_t*) &percentage;
+  i32_t* timeLefti = (i32_t*) &timeLeft;
+  tBleStatus ret;
+
+  uint8_t buff[BAT_SERVICE_DATA_LEN];
+
+  STORE_LE_32(buff, *percentagei);
+  STORE_LE_32(buff + 4, *timeLefti);
+
+  ret = aci_gatt_update_char_value(batServHandle, batCharHandle, 0, BAT_SERVICE_DATA_LEN, buff);
+
+  if (ret != BLE_STATUS_SUCCESS)
+  {
+    printf("Error 0x%02x while updating Bat characteristic.\n", ret);
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
@@ -482,7 +535,7 @@ void Read_Request_CB(uint16_t handle)
   else if (handle == gpsCharHandle + 1)
   {
     GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation,
-        sensor.gps.pos.speed, sensor.gps.pos.direction, sensor.gps.info.battery);
+        sensor.gps.pos.speed, sensor.gps.pos.direction);
   }
   else if (handle == tempCharHandle + 1)
   {
@@ -496,7 +549,14 @@ void Read_Request_CB(uint16_t handle)
   {
     Humidity_Update(sensor.env.humidity);
   }
-
+  else if (handle == rangeCharHandle + 1)
+  {
+    Range_Update(sensor.range.range0);
+  }
+  else if (handle == batCharHandle + 1)
+  {
+    Bat_Update(sensor.gps.info.batteryPercentCharge, sensor.gps.info.batteryTimeToEmpty);
+  }
   //EXIT:
   if (connection_handle != 0)
     aci_gatt_allow_read(connection_handle);

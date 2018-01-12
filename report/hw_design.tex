@@ -4,7 +4,7 @@ This chapter will summarize most of the process of creating the \gls{pcb} used t
 The main circuit board is built using the open source electronic design software KiCad\cite{kicad}. It is completely free to use and the source code is open for any modifications.
 
 The circuit board must minimally fulfill the following:
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item Circuit must fit within the casing, with dimensions extracted directly from the cad software\cite{cad}, see \autoref{fig:casdim}.
 \item Circuit must be easy to test for both hardware and software errors. Even complete system needs this, since many of the sensors are very small and difficult to solder.
 \item All sensors must fit on the \gls{pcb}, both physically and also electronically on the ports of the \gls{mcu}.
@@ -12,25 +12,84 @@ The circuit board must minimally fulfill the following:
 \item All components needs to be actively manufactured to ensure unit can keep being produced for several years in the future.
 \end{itemize}
 
-\subsection{method}
+\subsection{Method}
 Designing circuit boards differs slightly between what software you are using. KiCad\cite{kicad} uses a four step process as follows:
-\begin{enumerate}
-\item stuff
+\begin{enumerate}[noitemsep]
+\item Draw schematic:
+	\begin{enumerate}[noitemsep]
+	\item Place and connect all components.
+	\item (Optional:) All non-standard components must be custom designed, this is referred to as ``library''. Most sensors requires custom built libraries.
+	\item Annotate schematic and run \gls{erc} to identify simple electronic violations.
+	\end{enumerate}
+\item Create net-list:
+	\begin{enumerate}[noitemsep]
+	\item (Optional:) All components with non-standard (or simply not standard enough) footprints must be custom designed, these include all sensors and the Bluetooth module.
+	\item Associate all components with whatever physical footprint are to be used.
+	\item Generate net-list.
+	\end{enumerate}
+\item Design \gls{pcb} layout:
+	\begin{enumerate}[noitemsep]
+	\item Import net-list to \gls{pcb} editor.
+	\item Set global and net-specific design rules.
+	\item Place and connect all components.
+	\item Run \gls{drc} to identify all specified design rule violations.
+	\end{enumerate}
+\item Generate manufacturing (gerber/drill) files.
 \end{enumerate}
+The initial required circuitry, see \autoref{fig:schr3a}, was copied from earlier works with the \gls{st} \gls{arm} \gls{mcu}'s but modified to meet our needs. The power section, also found in \autoref{fig:schr3a}, is designed to only allow for exactly $+5V$. This design is credited to, and derived from \emph{Maxim Integrated}, Application note 760\cite{overprotection}.
+*WRITE MORE HERE!*
+
+Non-standard library entries include following components:\\
+\begin{minipage}{\linewidth}
+\begin{table}[H]
+\centering
+	\begin{tabular}{ l | l | l | l }
+ 	Name		& Type 								& Library 				& Used in         \\
+ 			&									&					& last rev.\footnote{revision}\\\hline
+  	a2235-h  	& \gls{gps} 								& a2235-h.lib 			& \textbf{YES}\\
+  	FT232RL 	& USBtoSerial converter 						& ftdi.lib\cite{ftdi}			& \textbf{YES}\\
+  	HTS221 	& Humidity sensor 							& Custom\_sensors.lib 		& \textbf{YES}\\
+  	LM1117ADJ 	& Voltage Regulator						& PowerSupply.lib\cite{lm1117} 	& \textbf{YES}\\
+  	LPS22HB 	& Pressure sensor  							& Custom\_sensors.lib 		& \textbf{YES}\\
+  	LSM303AGR	& Acc.\footnote{Accelerometer}/Mag.\footnote{Magnetometer} \gls{imu} & Custom\_sensors.lib & \textbf{YES}\\
+  	LSM303Cx 	& Acc./Mag. \gls{imu} 						& Custom\_sensors.lib		& \textbf{NO} \\
+  	LSM6DSL 	& Acc./Gyro.\footnote{Gyroscope} \gls{imu} 			& Custom\_sensors.lib 		& \textbf{YES}\\
+  	LSM9DS1 	& Acc./Gyro./Mag. 							& Custom\_sensors.lib 		& \textbf{NO} \\
+  	MCDTS2-4N 	& Tactile switch button 						& Custom\_Switches.lib 		& \textbf{YES}\\
+\end{tabular}
+\caption{Non-standard library entries custom or third-party designed}
+\label{table:nstdlibs}
+\end{table}
+\end{minipage}
 
 \subsection{Revisions}\label{sec:hw:rev}
-In total three revisions of the \gls{pcb} was designed. The initial 
+In total three revisions of the \gls{pcb} was designed. The first revision was designed well before any components arrived and was meant exclusively as a prototype, while both the second and third revisions were supposed to have full functionality. All revisions following the first were initially supposed to be designed as consecutive debugged states, but complete redesigns of component placings and tracing was eventually necessary.
 
-First revision included the main functionality and test points on basically every pin in the system. It did not follow any space requirements and was riddled with small problems.
+\subsubsection{First revision}
+First revision included the main functionality and test points on basically every pin in the system. It did not follow any space requirements and was riddled with small problems. The USBtoSerial converter was broken, the \gls{i2c} line was short circuited somewhere, the custom footprint for the \gls{gps} was mirrored, the Bluetooth worked, but poorly due to inferences from other circuitry and so on and so fourth. Most of this was probably because we had to design the \gls{pcb} and draw all custom made footprints before actually receiving the components. This revision was also meant as a prototype, and not enough time was put to make sure all isolation's and trace widths had well thought out values. A high-speed switching logic had been designed for the wakeup-signal to the \gls{gps}, but this was not used. The schematic of revision one has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr1}.
+\begin{figure}[tbh]
+	\centering
+    \includegraphics[width=\linewidth]{Figures/pcb_rev1.jpg}
+	\caption{First (1) revision circuit board}
+	\label{fig:pcbr1}
+\end{figure}
 
-The second revision fixed all known problems, followed the space requirements and added a lot of customization. The option to toggle power source and what \gls{imu}s were currently powered were added. This way the effect from individual modules could be measured. Also since it was still unclear if a combined chip for all \gls{imu}s would be added or not, space for all of them and an evaluation module was added.
+\subsubsection{Second revision}
+The second revision fixed all known problems, followed the space requirements and added a lot of customization. The option to toggle power source and what \gls{imu}s were currently powered were added. This way the effect from individual modules could be measured. Also since it was still unclear if a combined chip for all \gls{imu}s would be added or not, space for all of them and an evaluation module was added. However, some wires was lost in the transition from revision one to two, as all net-labels in the schematic was redrawn; also the micro-\gls{usb} housing was to small for continuous use and was ripped of by our, way to strong, programmers; all of this was hotfixed and eventually the circuit board worked as expected. As with revision one, the schematic of revision two has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr2}.
+\begin{figure}[tbh]
+	\centering
+    \includegraphics[width=\linewidth]{Figures/pcb_rev2.jpg}
+	\caption{Second (2) revision circuit board}
+	\label{fig:pcbr2}
+\end{figure}
 
-With almost all problems solved in the second revision, what remained was some hotfix for an unexpected wiring error in the \gls{gps}; interference between \gls{i2c} clock and data line; minimizing much to large decoupling ground loops; unwanted antennas; ground islands of missing copper and  a KiCad problem where disconnected \gls{via}s lose their net property.
-For the third revision all decisions have been made. Following communicative devices will be used:
+\subsubsection{Third revision}
+With almost all problems solved in the second revision, what remained was some hotfix for an unexpected wiring error in the \gls{gps}; interference between \gls{i2c} clock and data line; minimizing much to large decoupling ground loops; unwanted antennas; ground islands of missing copper and a KiCad problem where disconnected \gls{via}s lose their net property. The option to pull power from either \gls{usb} or batteries remained in the last revision, as this makes programming and testing much easier. A four pin connector to measure the battery level through \gls{i2c} was added, and since the power level of this depends slightly on the power left in the batteries a logic level converter was designed to allow for a variable voltage level, see \autoref{fig:schr3b}.
+For the third revision all decisions have been made and the schematic can be seen as \autoref{fig:schr3a}, \ref{fig:schr3b} and \ref{fig:schr3c}. Following communicative devices will be used:
 \begin{itemize}
 \item{\makebox[3cm][l]{STM32F411RET} - Microcontoller unit}
-\item{\makebox[3cm][l]{FT232RL} - USB to serial converter (USART)}
-\item{\makebox[3cm][l]{A2235-H} - GPS unit (UART)}
+\item{\makebox[3cm][l]{FT232RL} - \gls{usb}to serial converter (USART)}
+\item{\makebox[3cm][l]{A2235-H} - \gls{gps} unit (UART)}
 \item{\makebox[3cm][l]{SPBTLE-RF} - Bluetooth connection unit (SPI)}
 \item Sensors ($I^2C$):
 	\begin{itemize}

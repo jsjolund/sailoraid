@@ -90,13 +90,39 @@ first={ARM architecture (ARM)\glsadd{armg}}, see=[Glossary:]{armg}}
 description={STMicroelectronics}, 
 first={STMicroelectronics (ST)\glsadd{stg}}, see=[Glossary:]{stg}}
 
+%%% DRC
+\newglossaryentry{drcg}{name={DRC},
+    description={Design Rule Check (DRC) is an automated check of your designed \gls{pcb}
+	to see if it follows all specified design rules}}
+\newglossaryentry{drc}{type=\acronymtype, name={DRC}, 
+description={Design Rule Check}, 
+first={Design Rule Check (DRC)\glsadd{drcg}}, see=[Glossary:]{drcg}}
+
+%%% ERC
+\newglossaryentry{ercg}{name={ERC},
+    description={Electronic Rule Check (ERC) is an automated check of your designed schematic
+	to see if it follows all electronic rules}}
+\newglossaryentry{erc}{type=\acronymtype, name={ERC}, 
+description={Electronic Rule Check}, 
+first={Electronic Rule Check (ERC)\glsadd{ercg}}, see=[Glossary:]{ercg}}
+
 %%% UART
 \newglossaryentry{uartg}{name={UART},
     description={Universal Asynchronous Receiver-Transmitter (UART) is a 
-    computer hardware device for asynchronous serial communication}}
+    computer hardware device for asynchronous serial communication 
+	in which the data format and transmission speeds are configurable. It generally requires
+	less power and is slower than its counterpart USART}}
 \newglossaryentry{uart}{type=\acronymtype, name={UART}, 
 description={Universal Asynchronous Receiver-Transmitter}, 
 first={Universal Asynchronous Receiver-Transmitter (UART)\glsadd{uartg}}, see=[Glossary:]{uartg}}
+
+%%% USART
+\newglossaryentry{usartg}{name={USART},
+    description={Universal Synchronous Asynchronous Receiver-Transmitter (USART) is a 
+    computer hardware device for synchronous asynchronous serial communication}}
+\newglossaryentry{usart}{type=\acronymtype, name={USART}, 
+description={Universal Synchronous Asynchronous Receiver-Transmitter}, 
+first={Universal Synchronous Asynchronous Receiver-Transmitter (USART)\glsadd{usartg}}, see=[Glossary:]{usartg}}
 
 %%% USB
 \newglossaryentry{usbg}{name={USB},

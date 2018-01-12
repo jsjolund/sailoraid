@@ -81,16 +81,6 @@ Madgwick \gls{ahrs} \cite{madgwick} is a type of sensor fusion algorithm which c
 
 The mathematical background of this algorithm is quite complicated and outside the scope of this report, see the official report \cite{madgwick-report} for more details.
 
-
-\subsubsection{USB UART}
-\label{usb-uart}
-Since this project involved analyzing sensor data for developing sensor fusion algorithms, for example combining \gls{gps} and accelerometer for accurate positioning (section \ref{kf}) and measuring water wave properties, it was important to be able to log data at a reasonably high frequency. Transferring serial commands between a computer and the \gls{mcu} also helped in debugging the code. To this end, a hardware \gls{uart}-over-\gls{usb} chip was used, the ST-LINK/V2-1 on the Nucleo board, and FTDI FT232R on the custom project board.
-
-At a relatively low baud rate of 115200 bps, it was determined that send and receive should both be interrupt based using \gls{dma} transfers to minimize the impact on system resources. Reception of data like key presses from a computer was handled one character at a time. The characters were appended as a string until the enter key was detected. At this point the string was matched against a list of valid commands, and the appropriate task performed -- such as sending current sensor values. Sending was implemented as a simple circular buffer which could be transferred to the \gls{uart} peripheral registers using \gls{dma}.
-
-In order to log sensor values for later analysis a simple \gls{matlab} script was developed for listening to sensor data over the \gls{uart} serial port. By inputting a serial command, the embedded system starts sending live sensor data at at constant rate. The \gls{matlab} script listens to this and logs it to a table structure which can be used for analysis of sensor data.
-
-
 \subsubsection{GPS}
 \begin{figure}[H]
 \centering
@@ -115,6 +105,34 @@ Several \gls{nmea} parsing libraries are freely available on the web. The one ch
 In order to communicate with the VL53L0X range finder sensor, another software library called X-CUBE-53L0A1 \cite{x-cube-53l0a} developed by \gls{st} was used. This software was written for another Nucleo expansion board called X-NUCLEO-53L0A1 which integrated three range sensor units to perform gesture recognition. It was however possible to modify the code to work with the single sensor used in this project. The library implemented a leaky integrator algorithm (basically a low-pass filter) to reduce measurement noise and improve accuracy.
 
 Since the sensor measures the time-of-flight of a laser beam, it was obvious that having the firmware code block while waiting for measurement data was not a realistic option. Instead, the code repeatedly alternated between instructing the sensor to initiate a measurement, and reading back the data from the last measurement. Since the module was meant only to measure the height of the dinghy center board a low measurement frequency of 1 Hz was used.
+
+
+\subsubsection{USB UART}
+\label{usb-uart}
+Since this project involved analyzing sensor data for developing sensor fusion algorithms, for example combining \gls{gps} and accelerometer for accurate positioning (section \ref{kf}) and measuring water wave properties, it was important to be able to log data at a reasonably high frequency. Transferring serial commands between a computer and the \gls{mcu} also helped in debugging the code. To this end, a hardware \gls{uart}-over-\gls{usb} chip was used, the ST-LINK/V2-1 on the Nucleo board, and FTDI FT232R on the custom project board.
+
+It was determined that send and receive should both be interrupt based using \gls{dma} transfers to minimize the impact on system resources. Reception of data like key presses from a computer was handled one character at a time. The characters were appended as a string until the enter key was detected. At this point the string was matched against a list of valid commands, and the appropriate task performed -- such as sending current sensor values. Sending was implemented as a simple circular buffer which could be transferred to the \gls{uart} peripheral registers using \gls{dma}.
+
+To connect to the \gls{usb}-\gls{uart}, a baud rate of 230400 bps should be used, with eight data bits, no parity and one stop bit. Commands can be entered with the the keyboard and executed by pressing the enter key. Valid commands and outputs are listed in table \ref{table:serial}. The rate at which the serial outputs sensor values can be adjusted in the main firmware source file.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l | l }
+  Command & Serial output \\
+  \hline
+  \texttt{imu} & Orientation in euler angles \\
+  \texttt{gpsraw} & Raw \gls{nmea} \gls{gps} coding\\
+  \texttt{gps} & Formatted \gls{gps} data from the \gls{nmea} coding\\
+  \texttt{adc} & Load cell output\\
+  \texttt{env} & Environment humidity, pressure and temperature \\
+  \texttt{range} & Range sensor measurement in centimeters \\
+  \texttt{matlab} & Complete sensor state in binary format \\
+\end{tabular}
+\caption{Serial connection commands and outputs.}
+\label{table:serial}
+\end{table}
+
+In order to log sensor values for later analysis a simple \gls{matlab} script was developed for listening to sensor data over the \gls{uart} serial port. By inputting a serial command, the embedded system starts sending live sensor data at at constant rate. The \gls{matlab} script listens to this and logs it to a table structure which can be used for analysis of sensor data.
 
 
 \subsubsection{Firmware design pattern}

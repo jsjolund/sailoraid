@@ -1,40 +1,40 @@
 /**
-  ******************************************************************************
-  * File Name          : main.c
-  * Description        : Main program body
-  ******************************************************************************
-  ** This notice applies to any and all portions of this file
-  * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
-  * inserted by the user or by software development tools
-  * are owned by their respective copyright owners.
-  *
-  * COPYRIGHT(c) 2017 STMicroelectronics
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * File Name          : main.c
+ * Description        : Main program body
+ ******************************************************************************
+ ** This notice applies to any and all portions of this file
+ * that are not between comment pairs USER CODE BEGIN and
+ * USER CODE END. Other portions of this file, whether
+ * inserted by the user or by software development tools
+ * are owned by their respective copyright owners.
+ *
+ * COPYRIGHT(c) 2017 STMicroelectronics
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *   1. Redistributions of source code must retain the above copyright notice,
+ *      this list of conditions and the following disclaimer.
+ *   2. Redistributions in binary form must reproduce the above copyright notice,
+ *      this list of conditions and the following disclaimer in the documentation
+ *      and/or other materials provided with the distribution.
+ *   3. Neither the name of STMicroelectronics nor the names of its contributors
+ *      may be used to endorse or promote products derived from this software
+ *      without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************
+ */
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -78,7 +78,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 #define ADC_SAMPLE_RATE 10.0
 #define RANGE_SAMPLE_RATE 10.0
 
-#define USB_ENV_OUTPUT_RATE 0.1
+#define USB_ENV_OUTPUT_RATE 1.0
 #define USB_GPS_OUTPUT_RATE 1.0
 #define USB_IMU_OUTPUT_RATE 60.0
 #define USB_RANGE_OUTPUT_RATE 10.0
@@ -225,6 +225,44 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   }
 }
 
+static void GetBatteryTimeToEmptyAndPercentCharge(uint16_t* timeToEmpty, uint16_t* percentCharge)
+{
+  // For some reason we need to lower the baud rate to 5000k
+  // to communicate with BQ28Z610.
+  while (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_BUSY)
+    ;
+  if (HAL_I2C_DeInit(&hi2c1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+  hi2c1.Init.ClockSpeed = 5000;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+  while (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_BUSY)
+    ;
+  // Read the BQ28Z610 (0xAA) register RelativeStateOfCharge (0x2C) (in percent)
+  *percentCharge = 0;
+  HAL_I2C_Mem_Read(&hi2c1, 0xAA, (uint16_t) 0x2C, 1, (uint8_t *) percentCharge, 1, 0x1000);
+  while (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_BUSY);
+
+  // Read the BQ28Z610 (0xAA) register AverageTimeToEmpty (0x16) (in minutes)
+  HAL_I2C_Mem_Read(&hi2c1, 0xAA, (uint16_t) 0x16, 1, (uint8_t *) timeToEmpty, 2, 0x1000);
+
+  // Reset to 400k baud rate
+  if (HAL_I2C_DeInit(&hi2c1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+  while (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_BUSY)
+    ;
+  hi2c1.Init.ClockSpeed = MAIN_I2C_SPEED;
+  MX_I2C1_Init();
+  while (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_BUSY)
+    ;
+}
+
 /* USER CODE END 0 */
 
 int main(void)
@@ -305,9 +343,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-  /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-  /* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
     HCI_Process();
     User_Process();
 
@@ -318,6 +356,7 @@ int main(void)
       Accelero_Sensor_Handler(&ACC_Value);
       Gyro_Sensor_Handler(&GYR_Value);
       Magneto_Sensor_Handler(&MAG_Value);
+
 #ifdef BOARD_REV2
       sensor.imu.gx = ((float) GYR_Value.AXIS_X) / 1000;
       sensor.imu.gy = ((float) GYR_Value.AXIS_Y) / 1000;
@@ -340,9 +379,7 @@ int main(void)
       sensor.imu.mz = (((float) MAG_Value.AXIS_Z) - MAG_Z_BIAS) * MAG_Z_SCL / 1000;
 #endif
 
-      MadgwickUpdate(sensor.imu.gx, sensor.imu.gy, sensor.imu.gz,
-          sensor.imu.ax, sensor.imu.ay, sensor.imu.az,
-          sensor.imu.mx, sensor.imu.my, sensor.imu.mz);
+      MadgwickUpdate(sensor.imu.gx, sensor.imu.gy, sensor.imu.gz, sensor.imu.ax, sensor.imu.ay, sensor.imu.az, sensor.imu.mx, sensor.imu.my, sensor.imu.mz);
       sensor.imu.roll = MadgwickGetRoll();
       sensor.imu.pitch = -MadgwickGetPitch();
       sensor.imu.yaw = -MadgwickGetYaw();
@@ -380,10 +417,15 @@ int main(void)
     }
     if (taskTimeout(&btGpsOutputTask, &htim2))
     {
+      uint16_t percentCharge, timeToEmpty;
+      GetBatteryTimeToEmptyAndPercentCharge(&timeToEmpty, &percentCharge);
+      sensor.gps.info.batteryPercentCharge = percentCharge;
+      sensor.gps.info.batteryTimeToEmpty = timeToEmpty;
+      Bat_Update(sensor.gps.info.batteryPercentCharge, sensor.gps.info.batteryTimeToEmpty);
+
       // To avoid race conditions, disable GPS update while reading
       HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
-      GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation,
-          sensor.gps.pos.speed, sensor.gps.pos.direction, sensor.gps.info.battery);
+      GPS_Update(sensor.gps.pos.longitude, sensor.gps.pos.latitude, sensor.gps.pos.elevation, sensor.gps.pos.speed, sensor.gps.pos.direction);
       HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
     }
     if (taskTimeout(&btEnvOutputTask, &htim2))
@@ -405,9 +447,11 @@ int main(void)
     {
       // To avoid race conditions, disable GPS update while reading
       HAL_NVIC_DisableIRQ(GPS_USART_IRQn);
-      printf("date %d/%d %d, time %d:%d, lat %f, lon %f, elv %f, speed %f, dir %f satuse %d, satview %d\r\n", sensor.gps.time.day, sensor.gps.time.month,
+      printf("date %d/%d %d, time %d:%d, lat %f, lon %f, elv %f, speed %f, dir %f satuse %d, satview %d, bat %f, %f min\r\n",
+          sensor.gps.time.day,
+          sensor.gps.time.month,
           sensor.gps.time.year, sensor.gps.time.hour, sensor.gps.time.min, sensor.gps.pos.latitude, sensor.gps.pos.longitude, sensor.gps.pos.elevation,
-          sensor.gps.pos.speed, sensor.gps.pos.direction, sensor.gps.info.satUse, sensor.gps.info.satView);
+          sensor.gps.pos.speed, sensor.gps.pos.direction, sensor.gps.info.satUse, sensor.gps.info.satView, sensor.gps.info.batteryPercentCharge, sensor.gps.info.batteryTimeToEmpty);
       HAL_NVIC_EnableIRQ(GPS_USART_IRQn);
     }
     if (usbEnvOutputTask.echo && taskTimeout(&usbEnvOutputTask, &htim2))
@@ -429,8 +473,11 @@ int main(void)
       char sync[] = { 0xff, 0xff, 0xff, 0xff };
       SerialUsbTransmit(sync, 4);
     }
-    if (usbAdcOutputTask.echo && taskTimeout(&usbAdcOutputTask, &htim2)) {
-      while (!adcFinished) {}
+    if (usbAdcOutputTask.echo && taskTimeout(&usbAdcOutputTask, &htim2))
+    {
+      while (!adcFinished)
+      {
+      }
       printf("adc %3.4f, %3.4f\r\n", sensor.load.cell0, sensor.load.cell1);
     }
   }
@@ -439,21 +486,22 @@ int main(void)
 }
 
 /** System Clock Configuration
-*/
+ */
 void SystemClock_Config(void)
 {
 
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
-    /**Configure the main internal regulator output voltage 
-    */
-  __HAL_RCC_PWR_CLK_ENABLE();
+  /**Configure the main internal regulator output voltage
+   */
+  __HAL_RCC_PWR_CLK_ENABLE()
+  ;
 
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-    /**Initializes the CPU, AHB and APB busses clocks 
-    */
+  /**Initializes the CPU, AHB and APB busses clocks
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -467,10 +515,9 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Initializes the CPU, AHB and APB busses clocks 
-    */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  /**Initializes the CPU, AHB and APB busses clocks
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -481,12 +528,12 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure the Systick interrupt time 
-    */
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+  /**Configure the Systick interrupt time
+   */
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
 
-    /**Configure the Systick 
-    */
+  /**Configure the Systick
+   */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* SysTick_IRQn interrupt configuration */
@@ -500,8 +547,8 @@ static void MX_ADC1_Init(void)
   ADC_ChannelConfTypeDef sConfig;
   ADC_InjectionConfTypeDef sConfigInjected;
 
-    /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
-    */
+  /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+   */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
@@ -519,8 +566,8 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
-    */
+  /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+   */
   sConfig.Channel = ADC_CHANNEL_14;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
@@ -529,8 +576,8 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
-    */
+  /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+   */
   sConfig.Channel = ADC_CHANNEL_15;
   sConfig.Rank = 2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -538,8 +585,8 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-    */
+  /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time
+   */
   sConfigInjected.InjectedChannel = ADC_CHANNEL_14;
   sConfigInjected.InjectedRank = 1;
   sConfigInjected.InjectedNbrOfConversion = 2;
@@ -554,8 +601,8 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-    */
+  /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time
+   */
   sConfigInjected.InjectedChannel = ADC_CHANNEL_15;
   sConfigInjected.InjectedRank = 2;
   if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
@@ -680,13 +727,15 @@ static void MX_USART2_UART_Init(void)
 }
 
 /** 
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void) 
+ * Enable DMA controller clock
+ */
+static void MX_DMA_Init(void)
 {
   /* DMA controller clock enable */
-  __HAL_RCC_DMA2_CLK_ENABLE();
-  __HAL_RCC_DMA1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE()
+  ;
+  __HAL_RCC_DMA1_CLK_ENABLE()
+  ;
 
   /* DMA interrupt init */
   /* DMA1_Stream5_IRQn interrupt configuration */
@@ -708,28 +757,32 @@ static void MX_DMA_Init(void)
 }
 
 /** Configure pins as 
-        * Analog 
-        * Input 
-        * Output
-        * EVENT_OUT
-        * EXTI
-*/
+ * Analog
+ * Input
+ * Output
+ * EVENT_OUT
+ * EXTI
+ */
 static void MX_GPIO_Init(void)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct;
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE()
+  ;
+  __HAL_RCC_GPIOH_CLK_ENABLE()
+  ;
+  __HAL_RCC_GPIOA_CLK_ENABLE()
+  ;
+  __HAL_RCC_GPIOB_CLK_ENABLE()
+  ;
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPS_NRST_GPIO_Port, GPS_NRST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, BNRG_SPI_CS_Pin|LED2_Pin|BNRG_SPI_RESET_Pin|GPS_ON_OFF_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, BNRG_SPI_CS_Pin | LED2_Pin | BNRG_SPI_RESET_Pin | GPS_ON_OFF_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(RANGE_SHDN_GPIO_Port, RANGE_SHDN_Pin, GPIO_PIN_SET);
@@ -754,7 +807,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(BNRG_SPI_IRQ_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : BNRG_SPI_CS_Pin BNRG_SPI_RESET_Pin */
-  GPIO_InitStruct.Pin = BNRG_SPI_CS_Pin|BNRG_SPI_RESET_Pin;
+  GPIO_InitStruct.Pin = BNRG_SPI_CS_Pin | BNRG_SPI_RESET_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -768,7 +821,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(LED2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LPS22H_INT1_O_Pin LSM6DSL_INT1_O_Pin LSM6DSL_INT2_O_Pin */
-  GPIO_InitStruct.Pin = LPS22H_INT1_O_Pin|LSM6DSL_INT1_O_Pin|LSM6DSL_INT2_O_Pin;
+  GPIO_InitStruct.Pin = LPS22H_INT1_O_Pin | LSM6DSL_INT1_O_Pin | LSM6DSL_INT2_O_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -807,25 +860,25 @@ static void MX_GPIO_Init(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @param  None
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @param  None
+ * @retval None
+ */
 void _Error_Handler(char * file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* USER CODE END Error_Handler_Debug */ 
+  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef USE_FULL_ASSERT
 
 /**
-   * @brief Reports the name of the source file and the source line number
-   * where the assert_param error has occurred.
-   * @param file: pointer to the source file name
-   * @param line: assert_param error line source number
-   * @retval None
-   */
+ * @brief Reports the name of the source file and the source line number
+ * where the assert_param error has occurred.
+ * @param file: pointer to the source file name
+ * @param line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t* file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
@@ -836,11 +889,11 @@ void assert_failed(uint8_t* file, uint32_t line)
 #endif
 
 /**
-  * @}
-  */ 
+ * @}
+ */
 
 /**
-  * @}
-*/ 
+ * @}
+ */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

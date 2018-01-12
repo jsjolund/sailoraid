@@ -158,6 +158,13 @@ void BTinit(void)
     printf("Range Sensor service added successfully.\n");
   else
     printf("Error while adding Range Sensor service.\n");
+
+  ret = Add_Bat_Service();
+
+  if (ret == BLE_STATUS_SUCCESS)
+    printf("Bat Sensor service added successfully.\n");
+  else
+    printf("Error while adding Bat Sensor service.\n");
 #if NEW_SERVICES
   /* Instantiate Timer Service with two characteristics:
    * - seconds characteristic (Readable only)

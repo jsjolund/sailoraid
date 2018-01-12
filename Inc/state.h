@@ -40,7 +40,7 @@ typedef struct GPScoordinate
 typedef struct GPSinfo
 {
   int satUse, satView;
-  float battery;
+  float batteryTimeToEmpty, batteryPercentCharge;
 } GPSinfo_t;
 
 typedef struct GPSstate
