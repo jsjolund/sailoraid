@@ -1,4 +1,5 @@
 %In order to sail properly and make the most out of the wind that’s is supplied by the nature itself some data acquisition is needed. The sailing is all about this harnessing all the forces of the nature and the wind that it pushing towards you. Since there has not been any other extensive projects and measurements in this particular area the measurements have to be done in new ways. 
+
 Since all kinds of sailboats main feature is to move completely analogue without the need of fuel or electricity, the use and optimization of surrounding forces are of foremost importance. Measuring this will provide the sailor with all the information needed to optimize the way they move and control their dinghy.
 
 To get any kind of measurements of the dinghy, sensors are needed. As of now there are sensors measuring a wide array of items. This section will talk about these sensors; what they measure, where they were purchased, the requirements on the sensor, their features, drawbacks and also how they were implemented.
@@ -10,30 +11,29 @@ The function of the daggerboard is to compensate for the force that the wind is 
 
 
 \subsubsection{The implementation}
-After some different solutions was suggested the final sensor and measurement method was chosen as the most prominent and clean approach. 
+After some different solutions was suggested the final sensor and measurement method was chosen as the most prominent and clean approach. This is shown in \autoref{Press_sens_impl}.
 Important to know is that every solution is mandatory to be waterproof and sealed properly from the harsh environment that this system has as its home turf. 
 With this implementation the daggerboard itself will not be disassembled or modified in any way. 
 Solutions that required the sensors to be mounted on the outside or in parts that would be in danger if a crash might occur was scratched.  
 Other solutions are, either way, more difficult to apply and mount or more complex.  
 
-
-\subsubsection{The prototype}
-To implement the gauges, a prototype is designed to show how the measurements will be made. The prototype is a bit bigger than the intended solution for this project but it's good to see how it would be constructed. The function is easy to understand. The board goes on the outside and can easily slide up and down past this steel bead. The bead itself is kept inside a small space where it can move in and out.
- 
-\begin{figure}[H]%look at later figures comment
+\begin{figure}[H]
 \begin{center}
 	\includegraphics[width = 10cm]{Figures/Prototyp_1.png}
 	\caption{Function of first prototype}
-	\label{Press_sens_prot_1}
+	\label{Press_sens_impl}
 \end{center}
 \end{figure}
 
+\subsubsection{The prototype}
+To implement the gauges, a prototype is designed to show how the measurements will be made. The prototype is a bit bigger than the intended solution for this project but it's good to see how it would be constructed. The function is easy to understand. The board goes on the outside and can easily slide up and down past this steel bead. The bead itself is kept inside a small space where it can move in and out.
+
 A model of the pressure sensor was created in order to clearly show the function of this sensor and to help the thought process involved in the improving of this design.
 
-\begin{figure}[H]%look at later figures comment
+\begin{figure}[H]
 \begin{center}
 	\includegraphics[width = 10cm]{Figures/Press_sens_prot_1.png}
-	\caption{Function of first prototype}
+	\caption{First prototype of a force sensor}
 	\label{Press_sens_prot_1}
 \end{center}
 \end{figure}
@@ -43,7 +43,7 @@ The gauge itself will measure a small difference in resistance. This small diffe
 
 A better solution is to make some research into load cells, which is a sensor which also utilizes strain gauges to measuring forces. The difference is that the gauges are already implemented in the sensor. The difference in this prototype is instead of having a metal plate, it can be built with a piece of plastic or rubber which can deform so the force is distributed directly to the sensor. By implementing this sensor, a lot of time was saved in troubleshooting. And by having a sensor unit, the modified mounting plate will be easier to produce. 
  
-\begin{figure}[H]%look at later figures comment
+\begin{figure}[H]
 \begin{center}
 	\includegraphics[width = 10cm]{Figures/Press_sens_func_2.png}
 	\caption{Function of second prototype}
@@ -55,10 +55,10 @@ A better solution is to make some research into load cells, which is a sensor wh
 \subsubsection{Sensor}
 The force from the board onto the mounting plate will be a considerable amount. The actual force is something that’s not known for sure. The initial assumption was that a load cell with a $90.75$ kg force range should be enough. If the sensor will be maxed out the cell it's rated for a $150\%$ overload without causing some damage to the sensor.  
 
-The chosen sensor for this application is this part, the compression load cell called FX1901\cite{load cell}.  
+The chosen sensor for this application is this part, the compression load cell called FX1901\cite{load_cell}.  
 From the datasheet, the voltage readings of this part could be calculated. The maximum voltage difference is calculated to be around $180mV$. 
 
-\begin{figure}[H]%look at later figures comment
+\begin{figure}[H]
 \begin{center}
 	\includegraphics[width = 10cm]{Figures/Load_cell.png}
 	\caption{Load cell, FX1901}
@@ -68,11 +68,10 @@ From the datasheet, the voltage readings of this part could be calculated. The m
 
 
 \subsection{Amplifier}
-With a such small signal, an amplifier is needed to get some desired measurements. A good measurement signal to the MCU should be in the order of in between$0–3.3$ volts. Since the maximum value from the load cell is 180mV an signal of 3.3 volts is achieved by an amplification gain of around $20$.  
-0
-A suitable amplifier needs to be chosen from this implementation. Inspiration is taken from The University of Chicago\ref{UoC} in an experiment where they use this exact load cell together with an instrumental amplifier called INA125. This amplifier is somewhat more complicated and has some more features that other amplifiers.  
+With a such small signal, an amplifier is needed to get some desired measurements. A good measurement signal to the \gls{mcu} should be in the order of in between$0–3.3$ volts. Since the maximum value from the load cell is $180mV$ an signal of $3.3$ volts is achieved by an amplification gain of around $20$.  
+A suitable amplifier needs to be chosen from this implementation. Inspiration is taken from The University of Chicago\cite{UoC} in an experiment where they use this exact load cell together with an instrumental amplifier called INA125. This amplifier is somewhat more complicated and has some more features that other amplifiers.  
 
-In the same family of instrument amplifiers, a model called INA126 is selected as a less complicated and more power efficient solution.  
+In the same family of instrument amplifiers, a model called INA126\cite{ina_126} is selected as a less complicated and more power efficient solution.  
 This amplifier has a smaller power draw due to some simpler functions and lesser precision. But for this application it's sufficient.  
 The implementation is easy and the gain can easily be determined by connection a resistor Rg between two pins on the amplifier. 
 
@@ -121,7 +120,6 @@ A new product called "micro-lidar" can be used, as it is both have a small form 
 The chosen circuit is VL53L0X from Adafruit\cite{micro_lidar}. 
 
 \begin{figure}[H]
-	\centering %\centering can be used inside environments (i.e. all \begin{} here \end{}) and centers everything inside.
 	\includegraphics[width = 10cm]{Figures/Adafruit_height_sensor.png}
 	\caption{Time of flight, $\mu$\gls{lidar}, distance sensor Adafruit VL53L0X}
 	\label{micro_lidar}
@@ -131,10 +129,9 @@ It can measure hights up one meters with great accuracy and communicates with \g
 
 By the fact that the sensor must be waterproof the signal has to go through a medium. The medium can be some type of plastic or even glass.   
 
-All the information about this sensor when used with a cover widow can be found in the specific datasheet: “VL53L0X ranging module cover window guidelines” \ref{Tof_cover}. The maximum thickness of the cover window and the air gap between the sensor and the window is 2 mm. That’s the parameters that need to be considered. The cover window can be some type of plastic or glass. To reflect the signal a detection plate is constructed and fastened to the top of the daggerboard. This plate is level with the sensor and has a white underside for best performance of the sensor. 
+All the information about this sensor when used with a cover widow can be found in the specific datasheet: “VL53L0X ranging module cover window guidelines” \cite{Tof_cover}. The maximum thickness of the cover window and the air gap between the sensor and the window is 2 mm. That’s the parameters that need to be considered. The cover window can be some type of plastic or glass. To reflect the signal a detection plate is constructed and fastened to the top of the daggerboard. This plate is level with the sensor and has a white underside for best performance of the sensor. 
 
 \begin{figure}[H]
-	\centering %\centering can be used inside environments (i.e. all \begin{} here \end{}) and centers everything inside.
 	\includegraphics[width = 10cm]{Figures/height_measure.jpg}
 	\caption{Height measurement model}
 	\label{height_measure}
@@ -143,7 +140,7 @@ All the information about this sensor when used with a cover widow can be found 
 
 \subsubsection{Results}
 
-The sensor works very well in the open air and can detect heights up to 1.5 meters with great accuracy. It also works well when used behind a thin plastic cover. With a 1mm thin plastic cover the maximum heigt measurement is decresed to about one meter. In the case the sensor is mounted behind a thin epoxy window witch was to thick at the beginning but was sanded down to a sutible thickness. The final window was then polished to a crystal clear finish for the best measurements. The measurement is heavily dependent on the the finish of the window, if there is small inperfections on the window such as scratch the sensor can't take measurements.
+The sensor works very well in the open air and can detect heights up to 1.5 meters with great accuracy. It also works well when used behind a thin plastic cover. With a 1mm thin plastic cover the maximum heigt measurement is decresed to about one meter. In the case the sensor is mounted behind a thin epoxy window witch was to thick at the beginning but was sanded down to a sutible thickness. The final window were then polished to a crystal clear finish for the best measurements. The measurement is heavily dependent on the the finish of the window, if there is small inperfections on the window such as scratch the sensor can't take measurements.
 
 As there will always be water around and on the center plate the light that is sent might get directed "wrong" if there are only some small water droplets in between the sensor and the panel that we want to reflect our light on.  
 
