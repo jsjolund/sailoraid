@@ -1,4 +1,4 @@
-The software has been divided into two parts, the firmware for the \gls{arm} \gls{mcu} with associated sensors, and an Android application which can display sensor data. These two parts utilize a Bluetooth connection to communicate their current states. For example, when the \gls{imu} calculates a new orientation, this data should be processed by the firmware, and the resulting calculations sent to the Android application over Bluetooth to be displayed to the user.
+The software has been divided into two parts, the firmware for the \gls{arm} \gls{mcu} with associated sensors, and an Android application which can display sensor data. These two parts utilize a Bluetooth connection to communicate their current states; for example, when the \gls{imu} calculates a new orientation, this data should be processed by the firmware and the resulting calculations sent to the Android application over Bluetooth to be displayed to the user.
 
 \subsection{ARM firmware}
 
@@ -9,9 +9,9 @@ The software has been divided into two parts, the firmware for the \gls{arm} \gl
 \label{nucleo-board}
 \end{figure}
 
-For rapid prototyping and firmware development purposes, the NUCLEO-F411RE development board seen in figure \ref{nucleo-board} was used. This board contains break-out pins for the \gls{arm} Cortex-M microcontroller STM32F411RE, a \gls{uart} to \gls{usb} bridging circuit and general purpose \gls{led}s and buttons. It is compatible with various Arudino shields as well as expansion boards developed by \gls{st}.
+For rapid prototyping and firmware development purposes, the NUCLEO-F411RE development board seen in \autoref{nucleo-board} was used. This board contains break-out pins for the \gls{arm} Cortex-M microcontroller STM32F411RE, an \gls{uart} to \gls{usb} bridging circuit and general purpose \gls{led}s and buttons. It is compatible with various Arduino shields\footnote{Shields are boards that can be plugged on top of the development board, extending its capabilities.} as well as expansion boards developed by \gls{st}.
 
-In order to speed up firmware development, the STM32CubeMX \cite{stm32cubemx} initialization code generator was used to set up a basic working system. This application, developed by \gls{st}, can generate C language code for setting up \gls{mcu} clocks, peripherals, interrupts and similar. It is controlled by a graphical interface for setting \gls{mcu} options and controlling the previously mentioned code generation.
+In order to speed up firmware development, the STM32CubeMX \cite{stm32cubemx} initialization code generator was used to set up a basic working system. This application, developed by \gls{st}, can generate C language code for setting up \gls{mcu} clocks, peripherals, interrupts and similar. It is controlled by a graphical interface (appendix \autoref{fig:mxc}) for setting \gls{mcu} options and controlling the previously mentioned code generation.
 
 The main challenge in working with this type of code generation is integrating it with external software libraries directly not built for it. If the library interferes with generated code by overriding settings and register values, the software may enter an undefined state and stop working. Care therefore had to be taken to only use the parts of the libraries which did not interfere. Frequent testing of any newly added functionality had to be done in order to find interfering parts.
 
