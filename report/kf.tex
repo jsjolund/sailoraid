@@ -175,7 +175,7 @@ The angular velocity of the $e$-frame with respect to the $i$-frame projected on
 \bar{\omega}_{ie}^e = 
 \begin{bmatrix}
 0 & 0 & \omega_e
-\end{bmatrix}^T.
+\end{bmatrix}^T
 \end{equation}
 Where $\omega_e$ is the angular velocity of the Earth and has a value of
 $7.2921158 \times 10^{-5}$ $rad/s$ \cite{nonlinear}. Using the projection matrix Eq. \eqref{Cosine_1} its possible to project $\bar{\omega}_ {ie}^i$ onto the $n$-frame
@@ -183,7 +183,7 @@ $7.2921158 \times 10^{-5}$ $rad/s$ \cite{nonlinear}. Using the projection matrix
 \bar{\omega}_{ie}^n=C_e^n\bar{\omega}_{ie}^e=
 \begin{bmatrix}
 \omega_e cos(\varphi) & 0 & -\omega_e sin(\varphi)
-\end{bmatrix}^T.
+\end{bmatrix}^T
 \label{omega_ie}
 \end{align}
 $\bar{\omega}_{en}^n$ represents the turn rate of the $n$-frame with respect to the $e$-frame its called the transport rate and may be expressed as the rate of change of latitude and longitude as follows
@@ -191,7 +191,7 @@ $\bar{\omega}_{en}^n$ represents the turn rate of the $n$-frame with respect to 
 \bar{\omega}_{en}^n=
 \begin{bmatrix}
 \dot{\lambda}cos(\varphi) & -\dot{\varphi} & -\dot{\lambda}sin(\varphi)
-\end{bmatrix}^T.
+\end{bmatrix}^T
 \label{omega_en}
 \end{align}
 Where $\dot{\lambda}=v_e/(R_N+h)cos(\varphi)$ and $\dot{\varphi}=v_n/(R_E+h)$ \cite{nonlinear}, here we assume the Earth to be an ellipsoid and that there are no variations in Earth's gravitation depending on where the user is on the ellipsoid. $R_N$ is the meridian radius of curvature and defined as $R_N=R_0(1-e^2)/(1-e^2sin^2\varphi)^{3/2}$ \cite{nonlinear}. $R_E$ is the transverse radius of curvature and defined as $R_E=R_0/(1-e^2sin^2\varphi)^{1/2}$. Where $R_0$ is the length of the semi-major axis and has a constant value of $6356752.3142$ m, $e$ is the major eccentricity of the ellipsoid and has a constant value of $0.081819$, $\varphi$ is the current latitude in radians, $v_N$ and $v_E$ is the velocity in north and east direction, respectively and $h$ is the height above the surface of the Earth. Then Rewriting Eq. \eqref{omega_en} with the new expressions.
@@ -218,7 +218,7 @@ Describing the position of the dinghy in the $n$-frame is done by \cite{nonlinea
 \bar{r}^n=
 \begin{bmatrix}
 \varphi & \lambda & h
-\end{bmatrix}^T.
+\end{bmatrix}^T
 \end{align}
 Since velocity is described as the rate of change of its position with respect to a frame of reference and is a function of time, the velocities in the north, east and down can be expressed as.
 \begin{align}
@@ -292,7 +292,8 @@ where
 \begin{equation}
 \Delta \bar{v}_{k+1}^n = \Delta \bar{v}_f^n - (2\omega_{ie}^n+\omega_{en}^n) \times \bar{v}_n \Delta t +\bar{\gamma}\Delta t
 \end{equation}
-where $\gamma = [0 \quad 0 \quad 9.8123]$.\\ \\
+where $\gamma = [0 \quad 0 \quad 9.8123]$
+
 The Navigation frame Inertial Navigation System can now be seen in \autoref{Fig:body_frame}, Where its possible to examine all the steps which were derived earlier, from the \gls{imu} to the output.
 \begin{figure}[H]
 \centering
@@ -328,7 +329,7 @@ Where $\hat{}$ is the computed values, $\delta$ and $e_{NED}$ are the errors in 
 \subsubsection{Error Dynamics Position}
 Perturbing \eqref{Eq.per_r}, the linearized position is obtained since the position dynamics is a function of both position and velocity, the position error dynamics is obtained as
 \begin{equation}
-\delta \dot{\bar{r}}^n = F_{rr}\delta \bar{r}^n + F_{rv}\delta \bar{v}^n.
+\delta \dot{\bar{r}}^n = F_{rr}\delta \bar{r}^n + F_{rv}\delta \bar{v}^n
 \end{equation}
 
 \noindent Where
@@ -348,7 +349,7 @@ F_{rv} &=
 \frac{1}{(M+h)} && 0 && 0\\
 0 && \frac{1}{(N+h)cos(\varphi)} && 0 \\
 0 && 0 && -1
-\end{bmatrix}.
+\end{bmatrix}
 \label{Eq.Frv}
 \end{align}
 \subsubsection{Error Dynamics Velocity}
@@ -364,7 +365,7 @@ where $II$ is expressed as follow, using Eq. \eqref{Eq.omega_in}.
 2\omega_e cos(\varphi) + \frac{v_E}{(N+h)} \\
 \frac{-v_N}{(M+h)} \\
 -2\omega_e sin(\varphi) - \frac{v_E tan(\varphi)}{(N+h)}
-\end{bmatrix}.
+\end{bmatrix}
 \label{Eq.II}
 \end{align}
 Now perturbing $I$ with $II$, using Eq. \eqref{omega_en} and \eqref{Eq.omega_in}, the following is obtained.
@@ -476,7 +477,7 @@ F_{ev} =
 0 && \frac{1}{(N+h)} && 0\\
 \frac{-1}{(M+h)} && 0 && 0\\
 0 && \frac{-tan(\varphi)}{(N+h)} && 0
-\end{bmatrix}.
+\end{bmatrix}
 \label{Eq.Fev}
 \end{align}
 
@@ -548,7 +549,7 @@ Here $\Phi_k$ is the state transition matrix in discrete time domain, in order t
 Since the sample interval, $\Delta t$ is very small in this case Eq. \eqref{Eq.Phik} can be approximated using Taylor approximation 
 \begin{equation}
 \Phi_k = e^{F\Delta t} \approx I + F \Delta t 
-\label{Eq.Final_Phik}.
+\label{Eq.Final_Phik}
 \end{equation}
 From Eq. \eqref{Eq.discrete}, $\hat{w}_k$ is the driven response $t_{k+1}$ due to the input white noise. White noise is uncorrelated between sample periods, i.e the noise between $t_k$ and $t_{k+1}$ is uncorrelated \cite{signal_process}. Then the covariance matrix which is associated with $\bar{w}_k$ is \cite{signal_process}
 
@@ -562,7 +563,7 @@ From Eq. \eqref{Eq.discrete}, $\hat{w}_k$ is the driven response $t_{k+1}$ due t
 
 and $Q_k$ can then be approximated using a first order of the discrete transition matrix \cite{Discrete_kalman}
 \begin{equation}
-Q_k\approx \Phi_k GQG^T \Phi_k^T.
+Q_k\approx \Phi_k GQG^T \Phi_k^T
 \label{Eq.Q_k}
 \end{equation}
 
@@ -617,7 +618,7 @@ h_{INS} - h_{GPS} \\
 v_{N_{INS}} - v_{N_{GPS}} \\
 v_{E_{INS}} - v_{E_{GPS}} \\
 v_{d_{INS}} - v_{d_{GPS}}
-\end{bmatrix}.
+\end{bmatrix}
 \end{align}
 The measurement matrix $H_k$ is defined such
 \begin{align}
@@ -637,7 +638,7 @@ where $\sigma_{r_{(N,E,d)}}^2$ and $\sigma_{v_{(N,E,d)}}^2$ is the variance of t
 The Kalman Filter is invoked every time the \gls{gps} is updated, i.e. $1Hz$, but since the \gls{imu} and the \gls{gps} updates at different frequencies a problem arises. The problem is such that at $t_{GPS}(k)$ there won't be a value to read from the \gls{imu}, since discrete time domain. To solve this problem a linear interpolation is done between $t_{imu}(k)$ and $t_{imu}(k+1)$, where $t_{imu}(k)$ $\leq$ $t_{GPS}(k)$ $\leq$  $t_{imu}(k+1)$. See \autoref{Fig.different_update}.
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.8\textwidth]{Figures/linear.pdf}
+\includegraphics[width=\textwidth]{Figures/linear.pdf}
 \caption{Different update sequences \gls{imu} and \gls{gps}}
 \label{Fig.different_update}
 \end{figure}
@@ -664,7 +665,7 @@ The data provided by the Inertial Navigation System is working better than just 
 The Mean Squared Error, MSE for the position in XY plane, can be seen in \autoref{Fig:mse} for both \gls{ins} and raw \gls{gps} data we can see that the error is lower for the \gls{ins} data, in both cases. 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{mse.eps}
+\includegraphics[width=0.8\textwidth]{mse.eps}
 \caption{Mean Squared Error $XY$-plane separately.}
 \label{Fig:mse}
 \end{figure}
@@ -695,13 +696,13 @@ Implement a working real-time system for the sensor fusion between the \gls{gps}
 Improvements in the \gls{ins}/Kalman Filter implementation can be done as well, here are some thoughts that might be seen as guidelines/starting points to improve the system. \\
 To obtain much more accurate information from the \gls{ins} one should consider more advanced techniques for calibrating the \gls{imu}. In this case, a static calibration technique was studied. This is done by keeping the \gls{imu} in a fixed position to observe the effect of gravity.
 Consider implementing a more advanced technique, e.g. using this three-stage process.
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item Coarse checking or evaluation using very simple test, such as a single stationary test on a bench, to establish the variance and standard deviation of the \gls{imu}, (gravity).
 \item Static testing and studying the effects of natural phenomenon on the \gls{imu}.
 \item Dynamic testing where the \gls{imu} is subjected to motions that should resemble the conditions out on the sea, e.g. constant waves hitting the sides of the boat. 
 \end{itemize}
 The purpose of this more advanced calibration technique is to determine the following parameters \cite{non-linear}
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item scale factors
 \item scale factor linearity
 \item null bias error
