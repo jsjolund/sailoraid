@@ -1,4 +1,5 @@
-\subsection{Introduction}
+% !TEX encoding = IsoLatin9
+'\subsection{Introduction}
 Lithium-ion batteries packs large amounts energy in a small package and can power systems for long periods before recharge is needed. But because of the high energy density they have to be handled with care. Beyond protection a \gls{bms} can be used to report battery percentages and remaining capacity. The specific type of battery used in this project is ICR18650.
 
 \subsection{Lithium-ion Battery Composition}
@@ -10,7 +11,7 @@ Memory effects present in other chemistries cause gradual loss of capacity if no
 
 Water-based electrolytes are common in most batteries but as electrolysis begins at two volts in water and the voltages present in lithium cells are higher than that, that is not possible. Organic solvents are instead used. These solvents are flammable and have high vapour pressures. The increased performance of \gls{lion} batteries comes with higher severity if something would happen to go wrong, so they have to be handled with extra care.
 
-One of the most common form factors is the cylindrical cell referred to as 18650. That is 18 mm in diameter and 65 mm in length \cite{book26}. The figure \autoref{fig:cellstruct} displays the parts that build up such a cylindrical cell.
+One of the most common form factors is the cylindrical cell referred to as 18650. That is 18 mm in diameter and 65 mm in length \cite{book}[p.26-27]. The figure \autoref{fig:cellstruct} displays the parts that build up such a cylindrical cell.
 
 \begin{figure}[H]
 	\centering
@@ -20,7 +21,7 @@ One of the most common form factors is the cylindrical cell referred to as 18650
 \end{figure}
 
 \subsection{Charging}
-Charging can be either controlled by a separate charger or by the management system itself. Whichever implementation is used these are the battery management system must make\cite{book111}:
+Charging can be either controlled by a separate charger or by the management system itself. Whichever implementation is used these are the battery management system must make\cite{book}[p.111]:
 
 \begin{itemize}[noitemsep]
 	\item Charging rate
@@ -28,7 +29,7 @@ Charging can be either controlled by a separate charger or by the management sys
 	\item Charge termination
 \end{itemize}
 
-The preferred way of charging \gls{lion} batteries is \gls{cccv}-charging. The charge cycle begins with a constant current after the specification of the battery in use. This current is supplied continually until the battery has reached its end-of-charge-voltage. Then charging is switched over to constant voltage mode and the current will taper off as the cell reaches its full capacity. Charging is then terminated when the current goes below a predefined value. \autoref{fig:cccv} displays the process. As the voltage curve is steep when the battery reaches its full capacity precise regulation is needed to prevent overcharging\cite{cccv}\cite{book112}.
+The preferred way of charging \gls{lion} batteries is \gls{cccv}-charging. The charge cycle begins with a constant current after the specification of the battery in use. This current is supplied continually until the battery has reached its end-of-charge-voltage. Then charging is switched over to constant voltage mode and the current will taper off as the cell reaches its full capacity. Charging is then terminated when the current goes below a predefined value. \autoref{fig:cccv} displays the process. As the voltage curve is steep when the battery reaches its full capacity precise regulation is needed to prevent overcharging\cite{cccv}\cite{book}[p.111-112].
 
 \begin{figure}[H]
 	\centering
@@ -39,7 +40,7 @@ The preferred way of charging \gls{lion} batteries is \gls{cccv}-charging. The c
 
 \subsection{Balancing}
 Unlike other types of batteries that have a lower coulombic efficiency, lithium-ion batteries do not self-balance during a charge cycle. Without the ability to transfer charge, capacity will be limited to the battery with the lowest capacity in a series configuration. Knowing the capacity in real-time increases the efficiency of the balancing process.
-Cell balancing is used for one or more of these purposes\cite{book183}:
+Cell balancing is used for one or more of these purposes\cite{book}[p.183-185]:
 
 \begin{itemize}[noitemsep]
 	\item Minimize charge difference
@@ -80,7 +81,7 @@ Figure \autoref{fig:protection} is an illustration of a protected \gls{lion} bat
 \end{figure}
 
 \subsection{Safety and Abuse Conditions}
-Due to the differences between \gls{lion} batteries and other batteries, and their higher capacity they are more susceptible to faults when abused. Follow is a list of abuse conditions and their implications\cite{book35}.
+Due to the differences between \gls{lion} batteries and other batteries, and their higher capacity they are more susceptible to faults when abused. Follow is a list of abuse conditions and their implications\cite{book}[p.35-38].
 
 \begin{itemize}
 \item Overcharge occurs when \gls{soc} is greater than $100\%$. Cell voltage will begin to rise fast and may damage load or monitoring circuitry. Irreversible degradation inside the cell will occur. Both single large events and many small events cause degradation. Unlike in other chemistries, small currents causes this. Leading to thermal runaway, cell swelling, and venting. Begins somewhere between $3.75V$ and $4.2V$ depending on the cell.
@@ -135,8 +136,8 @@ The output voltage is managed by the \gls{ti} \gls{ic} LM2596 step-down converte
 
 During development, a BQ28Z610 development board was used together with together with a Luxorparts variable voltage regulator utilizing the LM2596 and a generic \gls{lion} \gls{2s} charger.
 
-The BQ28Z610â€™s software was configured using a windows computer, \gls{ti}â€™s software bqStudio and the EV2300 \gls{pc} interface board.
-A \gls{pwb} containing the three \gls{ic}â€™s mentioned above was designed using KiCad. The designs were made according to the typical application of each \gls{ic}. Typical applications are found in data sheets.  
+The BQ28Z610's software was configured using a windows computer, \gls{ti}'s software bqStudio\cite{bqStudio} and the EV2300 \gls{pc} interface board.
+A \gls{pwb} containing the three \gls{ic}'€™s mentioned above was designed using KiCad\cite{kicad}. The designs were made according to the typical application of each \gls{ic}. Typical applications are found in data sheets.  
 
 \subsection{Current State}
 Figure \autoref{fig:modules} displays how the \gls{bms} is currently set up. Up left on top of the main PCB is the BQ28Z610 development board, and below that is the voltage regulator. Charging is enabled via the charging port visible to the right, on the lid.
