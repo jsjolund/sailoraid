@@ -58,7 +58,7 @@ Non-standard library entries include following components:\\
   	LSM9DS1 	& Acc./Gyro./Mag. 							& Custom\_sensors.lib 		& \textbf{NO} \\
   	MCDTS2-4N 	& Tactile switch button 						& Custom\_Switches.lib 		& \textbf{YES}\\
 \end{tabular}
-\caption{Non-standard library entries custom or third-party designed}
+\caption{Non-standard library entries custom or third-party designed.}
 \label{table:nstdlibs}
 \end{table}
 \end{minipage}
@@ -69,19 +69,19 @@ In total three revisions of the \gls{pcb} was designed. The first revision was d
 
 \subsubsection{First revision}
 First revision included the main functionality and test points on basically every pin in the system. It did not follow any space- or requirements and was riddled with small problems. The USBtoSerial converter was broken, the \gls{i2c} line was short circuited somewhere, the custom footprint for the \gls{gps} was mirrored, the \gls{bt} worked, but poorly due to inferences from other circuitry and so on and so fourth. Most of this was probably because we had to design the \gls{pcb} and draw all custom made footprints before actually receiving the components. This revision was also meant as a prototype, and not enough time was put to make sure all isolation's and trace widths had well thought out values. A high-speed switching logic had been designed for the wakeup-signal to the \gls{gps}, but this was not used. The schematic of revision one has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr1}.
-\begin{figure}[tbh]
+\begin{figure}[H]
 	\centering
     \includegraphics[width=\linewidth]{Figures/pcb_rev1.jpg}
-	\caption{First (1) revision circuit board}
+	\caption{First (1) revision circuit board.}
 	\label{fig:pcbr1}
 \end{figure}
 
 \subsubsection{Second revision}
 The second revision fixed all known problems, followed the space requirements and added a lot of customization. The option to toggle power source and what \gls{imu}s were currently powered were added. This way the effect from individual modules could be measured. Also since it was still unclear if a combined chip for all \gls{imu}s would be added or not, space for all of them and an evaluation module was added. However, some wires was lost in the transition from revision one to two, as all net-labels in the schematic was redrawn; also the micro-\gls{usb} housing was to small for continuous use and was ripped of by our, way to strong, programmers; all of this was hot fixed and eventually the circuit board worked as expected. As with revision one, the schematic of revision two has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr2}.
-\begin{figure}[tbh]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=\linewidth]{Figures/pcb_rev2.jpg}
-	\caption{Second (2) revision circuit board}
+	\caption{Second (2) revision circuit board.}
 	\label{fig:pcbr2}
 \end{figure}
 
@@ -113,16 +113,16 @@ Following communicative devices will used and act as ``mudule areas'', i.e. thes
 The layout of the components are such that all \gls{i2c} communicative devices are moved to one spot ensuring the shortest possible \gls{i2c} data line, these are placed to the top right of the \gls{pcb}. The power is placed in the bottom left, since this is as far as possible from everything else. \gls{usb} is placed next to the power, as power can be opted to be drawn from \gls{usb} rather than battery. Analog plane with the load cells are put right next to the power to ensure the star-ground\footnote{A common node ground connecting all grounds together to ensure the same set working level} to be as close as possible to the power-source allowing for as little noise as possible. \gls{bt} communication devices are rather fragile, it is therefore placed as far as possible from everything in the top left corner of the \gls{pcb}. This \gls{bt} module (SPBTLE-RF) requires \gls{spi} communication and in total $6$ isolated traces are to be drawn between the \gls{mcu} and the \gls{bt} unit. To minimize crossover the \gls{gps} is placed in the top-mid of the \gls{pcb}. Lastly the buttons whose placing is of low importance are placed in the middle-left, between the power source and the \gls{bt} unit. 
 Ground \gls{via}s was added around communication traces to prevent unwanted interference, ground \gls{via}s were also added to prevent antennas\footnote{Antennas appear by letting isolated thin grounds be connected on only one end, a \gls{via} can therefore be added to the other end to prevent this from happening.}.
 The third, and last, revision of the \gls{pcb} can be seen in \autoref{fig:pcbr3}, a simple explanation of the layout can be seen in \autoref{fig:pcbr3simple}.
-\begin{figure}[tb]
+\begin{figure}[H]
 	\centering
     \includegraphics[width=\linewidth]{Figures/pcb_rev3.jpg}
-	\caption{third (3) revision circuit board}
+	\caption{third (3) revision circuit board.}
 	\label{fig:pcbr3}
 \end{figure}
-\begin{figure}[tb]
+\begin{figure}[H]
 	\centering
     \includegraphics[width=.75\linewidth]{Figures/pcb_rev3_simple.png}
-	\caption{Simple model of third (3) revision circuit board areas}
+	\caption{Simple model of third (3) revision circuit board areas.}
 	\label{fig:pcbr3simple}
 \end{figure}
 

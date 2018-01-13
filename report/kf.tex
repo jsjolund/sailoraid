@@ -1,8 +1,4 @@
-
-\newpage
-
-
-\subsection*{Sensor theory}
+\subsection{Sensor theory}
 Sensor fusion can be observed everywhere e.g., living animals uses all of its senses to survive daily, an animal cannot hunt using its eyes only, it has to combine its sense of smell, eyes, and hearing to hunt the prey\cite{animal}. Sensor fusion theory is not only found in the living species it is found in cars, planes, computers and so on, this to enhance performance and accuracy. In this project, a sensor fusion will be designed to enhance the accuracy of the dinghy's position and velocity. The fusion will be a global positioning system,  \gls{gps} and an \gls{ins}. The \gls{ins} uses a low priced \gls{imu}.\\ 
 The \gls{gps}'s accuracy is not uniform since there might be building reflections, atmospherics delays or clock bias errors \cite{boken}. Using the only information provided by a \gls{sins} is not sufficient either since the \gls{imu} sensor will drift after time, but using the information provided by the \gls{ins} for short time intervals will give more accurate results.  
 
@@ -38,13 +34,13 @@ The Body frame denoted $b$-frame is the sensitive axes of the \gls{imu}'s sensor
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{Figures/Euler_angle.pdf}
-\caption{Body frame}
+\caption{Body frame.}
 \label{Fig:body_frame}
 \end{figure}
 \begin{itemize}
 \item Yaw $(\psi)$: Is an imaginary line running vertically through the ship and through its center of gravity. A yaw motion is a side-to-side movement of the bow and stern of the dinghy \cite{SNAME}.
 \item Pitch $(\theta)$: Is an imaginary line running horizontally across the ship and through the center of gravity. A pitch motion is an up-or-down movement of the bow and stern of the dinghy \cite{SNAME}.
-\item Roll $(\phi)$: Is an imaginary line running horizontally through the length of the ship, through its center of gravity, and parallel to the waterline. A roll motion is a side-to-side or port-starboard tilting motion of the superstructure around this axis \cite{SNAME}.
+\item Roll $(\phi)$: Is an imaginary line running horizontally through the length of the ship, through its center of gravity, and parallel to the waterline. A roll motion is a side-to-side or port-starboard tilting motion of the superstructure around this axis\cite{SNAME}.
 \end{itemize}
 
 \subsection{Transformation Between Frames}
@@ -142,7 +138,7 @@ C_b^n  = &
 cos(\theta)cos(\psi) & -cos(\phi)sin(\psi)+sin(\phi)sin(\theta)cos(\psi) &  sin(\phi)sin(\psi)+cos(\phi)sin(\theta)cos(\psi) \\
 cos(\theta)sin(\psi) & cos(\phi)cos(\psi)+sin(\phi)sin(\theta)sin(\psi) & -sin(\phi)cos(\psi)+cos(\phi)sin(\theta)sin(\psi)\\
 -sin(\theta) & sin(\phi)cos(\theta) & cos(\phi)cos(\theta) 
-\end{bmatrix}.
+\end{bmatrix}
 \end{align}
 Where $\psi$, $\theta$ and $\phi$ are the Euler angles as described earlier. Expressing the matrix above in a more compact form.
 \begin{align}
@@ -155,7 +151,7 @@ c_{31} && c_{32} && c_{33}
 \label{Eq.C_b_n_compact}
 \end{align}
 The Euler angles is a transformation from one coordinate frame to another and is defined by three successive rotations about the different axis. Its possible to see the three angles as a set of mechanical gimbals. 
-The problem with Euler angles is that when rotating about each axis, its possible to drive two of the three gimbals so they appear parallel to each other this implies that a degree of freedom is lost, this is called a gimbal-lock \cite{nonlinear}. To resolve this issue its possible to use quaternion attitude representation instead, as Euler angels the representation allows transformation between one coordinate frame to another, but the difference is that the transformation is done in a single rotation, instead of three about a vector defined in the reference frame. The \gls{dcm} using quaternion is defined such that\cite{nonlinear}.
+The problem with Euler angles is that when rotating about each axis, its possible to drive two of the three gimbals so they appear parallel to each other this implies that a degree of freedom is lost, this is called a gimbal-lock \cite{nonlinear}. To resolve this issue its possible to use quaternion attitude representation instead, as Euler angels the representation allows transformation between one coordinate frame to another, but the difference is that the transformation is done in a single rotation, instead of three about a vector defined in the reference frame. The \gls{dcm} using quaternion is defined such that\cite{nonlinear}
 \begin{align}
 C_b^n & =
 \begin{bmatrix}
@@ -165,7 +161,7 @@ C_b^n & =
 \end{bmatrix}
 \end{align}
 
-Where $q_1$, $q_2$, $q_3$ and $q_4$ can be derived using the Euler angles from Eq. \eqref{Eq.C_b_n_compact}
+Where $q_1$, $q_2$, $q_3$ and $q_4$ can be derived using the Euler angles from \autoref{Eq.C_b_n_compact}
 \begin{align*}
 q_1 =& \frac{1}{2}(1+c_{11} + c_{22} + c_{33})^{0.5} \\
 q_2 =& \frac{1}{4q_1}(c_{32} - c_{23})\\
@@ -300,8 +296,8 @@ where $\gamma = [0 \quad 0 \quad 9.8123]$.\\ \\
 The Navigation frame Inertial Navigation System can now be seen in \autoref{Fig:body_frame}, Where its possible to examine all the steps which were derived earlier, from the \gls{imu} to the output.
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.7\textwidth]{Figures/ins_2}
-\caption{The Inertial Navigation Frame}
+\includegraphics[width=\textwidth]{Figures/ins_2.jpg}
+\caption{The Inertial Navigation Frame.}
 \label{Fig:body_frame}
 \end{figure}
 \section{Implementation of Sensor Fusion Using a Kalman Filter.}

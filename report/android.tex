@@ -5,16 +5,16 @@ The main reason for this project is to give a sailor qualitative feedback and he
 
 \subsubsection{Software design}
 A \gls{uml}\cite{uml} model of the system, see \autoref{android-uml}, was developed for an overview of the system implementation. The android system uses activities\cite{activity} to display content to the device screen. These activities have a life-cycle, see \autoref{android-activity}, that determine how data is accessed and displayed. What should be understood is that the application starts in a main activity and switching to another activity is done by sending an intent that spawns as a child activity. While the application is in the child activity the main activity is paused but the state is stored and when switching back from the child all data from the previous state is being accessed. When the user returns from the child activity,  that activity is destroyed and all data is erased. Sending data between activities is done using intents, to send an intent to a child activity is done by adding a bundle with a data object along with the intent to spawn the child activity. Sending data back to the child activity is done by calling the method ``startActivityForResult'', this allows the child to send a data packet as a result back to the parent. 
-\begin{figure}[H]
+\begin{figure}[H]%Can this be put in the Appendix? It is very large and detailed.
 \centering
-\includegraphics[width=1\textwidth]{Figures/uml.png}
-\caption{\gls{uml} model}
+\includegraphics[width=\textwidth]{Figures/uml.png}
+\caption{\gls{uml} model.}
 \label{android-uml}
 \end{figure}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{Figures/activity_lifecycle.png}
-\caption{Activity lifecycle}
+\caption{Activity lifecycle.}
 \label{android-activity}
 \end{figure}
 The Bluetooth connection and data logging class is implemented as a services\cite{android-service}. A service can be started by an activity and continue running until it is explicitly called to stop. This allows several activities to share resources and perform long-running operations in the background. The lifecycle
@@ -23,7 +23,7 @@ of a service is seen in Fig. \ref{android-service}.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{Figures/service_lifecycle.png}
-\caption{Activity lifecycle}
+\caption{Activity lifecycle.}
 \label{android-service}
 \end{figure}
 \subsubsection{Feedback}
@@ -57,7 +57,9 @@ It was determined that the visual feedback provided to the user was to include v
 \item [\ref{feedback-text} \textbf{Feedback}] a text that changes values based on the current state of the boat.
 \end{labeling}
 
-\begin{figure}[H]
+%Are all these pictures better fit within a sub chapter in the appendix? Since it is a few pages of only figures it kind of breaks the ``flow'' of the report.
+%They could be referred to as ``\autoref{first} to \ref{last}'', individually ``\autoref{first}, \ref{second}, ... and \ref{last}'' or simply as ``\autoref{appendix_subchapter}''.
+\begin{figure}[H] 
 \centering
 \includegraphics[width=0.6\textwidth]{Figures/incline.png}
 \caption{Incline feedback view}
@@ -66,49 +68,49 @@ It was determined that the visual feedback provided to the user was to include v
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.3\textwidth]{Figures/pressure.png}
-\caption{Pressure feedback view}
+\caption{Pressure feedback view.}
 \label{feedback-pressure}
 \end{figure}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.6\textwidth]{Figures/compass.png}
-\caption{Bearing feedback view}
+\caption{Bearing feedback view.}
 \label{feedback-compass}
 \end{figure}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.4\textwidth]{Figures/map.png}
-\caption{Map feedback view}
+\caption{Map feedback view.}
 \label{feedback-map}
 \end{figure}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.6\textwidth]{Figures/drift.png}
-\caption{Drift feedback view}
+\caption{Drift feedback view.}
 \label{feedback-drift}
 \end{figure}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.4\textwidth]{Figures/height.png}
-\caption{Centerboard height view}
+\caption{Centerboard height view.}
 \label{feedback-height}
 \end{figure}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{Figures/sog.png}
-\caption{Speed over ground view}
+\caption{Speed over ground view.}
 \label{feedback-sog}
 \end{figure}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{Figures/wave.png}
-\caption{Wave period feedback view}
+\caption{Wave period feedback view.}
 \label{feedback-wave}
 \end{figure}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{Figures/text.png}
-\caption{Text feedback view}
+\caption{Text feedback view.}
 \label{feedback-text}
 \end{figure}
 The figures were chosen at a development stage and improvements can easily be made by adding different \gls{png}\cite{png} files in android studio. They are implemented as GLSurfaceView\cite{gl} so that updating the figures is be done by calling a requestRender function, this improves the performance of the application when only updates to the figures are done when new sensor readings are received. To make the figure fit the application the GLSurfaceView is extended into a RotatableGLView that has the wanted features for rotation and positioning. Using these figures four different layouts are developed to give multiple choices for the user and is seen in figure \ref{feedback-layouts}. Switching between these layouts a swipeTouchListener is implemented which allows the user to swipe across the screen to change the layout. Changing view the figures needs to be redrawn onto a new view matching the current layout, this is handled in the ViewDisplayer class that contained all RotatableGLViews.
@@ -131,13 +133,13 @@ The ability to analyze the sailing trip was determined to be an important featur
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.4\textwidth]{Figures/log_data.png}
-\caption{Log data summary}
+\caption{Log data summary example.}
 \label{log-summary}
 \end{figure}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.7\textwidth]{Figures/log_graph.png}
-\caption{Log graphs}
+\caption{Log graphs examples.}
 \label{log-graph}
 \end{figure}
 

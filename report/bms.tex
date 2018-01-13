@@ -15,7 +15,7 @@ One of the most common form factors is the cylindrical cell referred to as 18650
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.3\textwidth]{Figures/cellstruct.png}
-	\caption{\gls{lion} 18650 battery structure}
+	\caption{\gls{lion} 18650 battery structure.}
 	\label{fig:cellstruct}
 \end{figure}
 
@@ -33,7 +33,7 @@ The preferred way of charging \gls{lion} batteries is \gls{cccv}-charging. The c
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.3\textwidth]{Figures/cccv.jpg}
-	\caption{Behaviour of \gls{cccv}-charging}
+	\caption{Behaviour of \gls{cccv}-charging.}
 	\label{fig:cccv}
 \end{figure}
 
@@ -74,7 +74,7 @@ Figure \autoref{fig:protection} is an illustration of a protected \gls{lion} bat
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.3\textwidth]{Figures/protection.png}
+	\includegraphics[width=0.45\textwidth]{Figures/protection.png}
 	\caption{A protected 18650 cell.}
 	\label{fig:protection}
 \end{figure}
@@ -99,20 +99,20 @@ Safety is of high priority as concluded earlier. So a second flowchart was creat
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.3\textwidth]{Figures/powerinput.png}
-	\caption{Power input flowchart}
+	\includegraphics[width=\textwidth]{Figures/powerinput.png}
+	\caption{Power input flowchart.}
 	\label{fig:powerinput}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.3\textwidth]{Figures/battery.png}
-	\caption{Battery management flowchart}
+	\includegraphics[width=\textwidth]{Figures/battery.png}
+	\caption{Battery management flowchart.}
 	\label{fig:battery}
 \end{figure}
 
 
-Three\gls{ic}s where chosen for the \gls{bms}. The BQ28Z610 is a gas gauge \gls{ic} for Li-ion batteries from \gls{ti}, including these features:
+Three \gls{ic}s where chosen for the \gls{bms}. The BQ28Z610 is a gas gauge \gls{ic} for Li-ion batteries from \gls{ti}, including these features:
 
 \begin{itemize}[noitemsep]
 	\item \gls{i2c} communication of status to host.
@@ -143,7 +143,7 @@ Figure \autoref{fig:modules} displays how the \gls{bms} is currently set up. Up 
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.3\textwidth]{Figures/modules.png}
+	\includegraphics[width=0.6\textwidth]{Figures/modules.png}
 	\caption{Current setup of the battery management.}
 	\label{fig:modules}
 \end{figure}
@@ -153,26 +153,26 @@ Charging is done by turning the device upside down and connecting a \gls{2s} \gl
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.3\textwidth]{Figures/charging.png}
-	\caption{How to charge}
+	\includegraphics[width=0.45\textwidth]{Figures/charging.png}
+	\caption{How to charge.}
 	\label{fig:charging}
 \end{figure}
 
-A connection diagram for this configuration can be seen in figure\autoref{fig:diagram}. The charger is connected to the input of the voltage regulator. This configuration has all the features of that implemented on the \gls{pwb} except the charger is external, charges with 1A instead of $2A$ and there is no power Path, meaning that the device has to be turned off to make charging safely.
+A connection diagram for this configuration can be seen in \autoref{fig:diagram}. The charger is connected to the input of the voltage regulator. This configuration has all the features of that implemented on the \gls{pwb} except the charger is external, charges with 1A instead of $2A$ and there is no power Path, meaning that the device has to be turned off to make charging safely.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.3\textwidth]{Figures/diagram.jpg}
+	\includegraphics[width=0.45\textwidth]{Figures/diagram.jpg}
 	\caption{Connection diagram.}
 	\label{fig:diagram}
 \end{figure} 
 
-\autoref{fig:bmspwb} shows the unpopulated \gls{pwb} that when soldered and tested would fulfill all requirements. It is supposed to be the entire \gls{bms}. 
+\autoref{fig:bmspwb} shows the \gls{pwb} that when soldered and tested would fulfill all requirements. It is supposed to be the entire \gls{bms}. 
 Schematics, board layout, and Gerber-files can all be found in the appendix. %Nope. Not there. Also, refer to them!: Can be found in the appendix, see: \autoref{first}, \ref{second}, ..., and \ref{last}.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.3\textwidth]{Figures/bmspwb.png}
-	\caption{\gls{bms} \gls{pwb}}
+	\includegraphics[width=.6\textwidth]{Figures/bmspwb.png}
+	\caption{Battery management \gls{pwb}.}
 	\label{fig:bmspwb}
 \end{figure}
