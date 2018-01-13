@@ -1,0 +1,232 @@
+EESchema Schematic File Version 2
+LIBS:2sBatteryCharger-rescue
+LIBS:power
+LIBS:device
+LIBS:switches
+LIBS:relays
+LIBS:motors
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:bq28z610lib
+LIBS:2sBatteryCharger-cache
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 4
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Sheet
+S 4100 1200 1250 500 
+U 5A1DC10C
+F0 "bq24133" 60
+F1 "bq24133.sch" 60
+F2 "PACK+" I L 4100 1300 60 
+F3 "PACK-" I L 4100 1450 60 
+F4 "ADAPTER" I R 5350 1350 60 
+F5 "AGND" I R 5350 1550 60 
+F6 "DCDC" I L 4100 1600 60 
+$EndSheet
+$Sheet
+S 2000 1200 1250 500 
+U 5A1E5370
+F0 "bq28z610" 60
+F1 "bq28z610.sch" 60
+F2 "PACK-" I R 3250 1550 60 
+F3 "PACK+" I R 3250 1350 60 
+F4 "1N" I L 2000 1600 60 
+F5 "1P" I L 2000 1500 60 
+F6 "2N" I L 2000 1400 60 
+F7 "2P" I L 2000 1300 60 
+$EndSheet
+$Sheet
+S 4100 2000 1250 500 
+U 5A1EFA9D
+F0 "lm2529" 60
+F1 "lm2529.sch" 60
+F2 "PACK-" I L 4100 2350 60 
+F3 "5V" I R 5350 2150 60 
+F4 "GND" I R 5350 2350 60 
+F5 "DCDC" I L 4100 2150 60 
+$EndSheet
+Wire Wire Line
+	1850 1300 2000 1300
+Wire Wire Line
+	1850 1400 2000 1400
+Wire Wire Line
+	1850 1500 2000 1500
+Wire Wire Line
+	1850 1600 2000 1600
+Wire Wire Line
+	3250 1550 3700 1550
+Wire Wire Line
+	3700 1450 3700 2350
+Wire Wire Line
+	3250 1350 3700 1350
+Wire Wire Line
+	3700 1350 3700 1300
+Wire Wire Line
+	3700 1300 4100 1300
+Wire Wire Line
+	3700 1450 4100 1450
+Wire Wire Line
+	4100 1600 3900 1600
+Wire Wire Line
+	3900 1600 3900 2150
+Wire Wire Line
+	3900 2150 4100 2150
+Wire Wire Line
+	3700 2350 4100 2350
+Connection ~ 3700 1550
+$Comp
+L Conn_01x02 J2
+U 1 1 5A200462
+P 5750 1400
+F 0 "J2" H 5750 1500 50  0000 C CNN
+F 1 "ACadapter" H 5750 1200 50  0000 C CNN
+F 2 "Connectors_JST:JST_XH_S02B-XH-A_02x2.50mm_Angled" H 5750 1400 50  0001 C CNN
+F 3 "" H 5750 1400 50  0001 C CNN
+	1    5750 1400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5550 1400 5450 1400
+Wire Wire Line
+	5450 1400 5450 1350
+Wire Wire Line
+	5450 1350 5350 1350
+Wire Wire Line
+	5350 1550 5450 1550
+Wire Wire Line
+	5450 1550 5450 1500
+Wire Wire Line
+	5450 1500 5550 1500
+$Comp
+L Conn_01x02 J3
+U 1 1 5A203273
+P 5750 2200
+F 0 "J3" H 5750 2300 50  0000 C CNN
+F 1 "Power" H 5750 2000 50  0000 C CNN
+F 2 "Connectors_JST:JST_XH_S02B-XH-A_02x2.50mm_Angled" H 5750 2200 50  0001 C CNN
+F 3 "" H 5750 2200 50  0001 C CNN
+	1    5750 2200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5350 2150 5450 2150
+Wire Wire Line
+	5450 2150 5450 2200
+Wire Wire Line
+	5450 2200 5550 2200
+Wire Wire Line
+	5350 2350 5450 2350
+Wire Wire Line
+	5450 2350 5450 2300
+Wire Wire Line
+	5450 2300 5550 2300
+$Comp
+L CONN_01X01 P1
+U 1 1 5A20D26D
+P 1700 2500
+F 0 "P1" H 1700 2600 50  0000 C CNN
+F 1 "CONN_01X01" V 1800 2500 50  0000 C CNN
+F 2 "Mounting_Holes:MountingHole_3.2mm_M3" H 1700 2500 50  0001 C CNN
+F 3 "" H 1700 2500 50  0000 C CNN
+	1    1700 2500
+	0    1    1    0   
+$EndComp
+$Comp
+L CONN_01X01 P2
+U 1 1 5A20D722
+P 2200 2500
+F 0 "P2" H 2200 2600 50  0000 C CNN
+F 1 "CONN_01X01" V 2300 2500 50  0000 C CNN
+F 2 "Mounting_Holes:MountingHole_3.2mm_M3" H 2200 2500 50  0001 C CNN
+F 3 "" H 2200 2500 50  0000 C CNN
+	1    2200 2500
+	0    1    1    0   
+$EndComp
+$Comp
+L CONN_01X01 P3
+U 1 1 5A20D8CD
+P 2700 2500
+F 0 "P3" H 2700 2600 50  0000 C CNN
+F 1 "CONN_01X01" V 2800 2500 50  0000 C CNN
+F 2 "Mounting_Holes:MountingHole_3.2mm_M3" H 2700 2500 50  0001 C CNN
+F 3 "" H 2700 2500 50  0000 C CNN
+	1    2700 2500
+	0    1    1    0   
+$EndComp
+$Comp
+L CONN_01X01 P4
+U 1 1 5A20DA63
+P 3200 2500
+F 0 "P4" H 3200 2600 50  0000 C CNN
+F 1 "CONN_01X01" V 3300 2500 50  0000 C CNN
+F 2 "Mounting_Holes:MountingHole_3.2mm_M3" H 3200 2500 50  0001 C CNN
+F 3 "" H 3200 2500 50  0000 C CNN
+	1    3200 2500
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	1700 2300 1700 2150
+Wire Wire Line
+	1700 2150 3200 2150
+Wire Wire Line
+	2200 2150 2200 2300
+Wire Wire Line
+	2700 2150 2700 2300
+Connection ~ 2200 2150
+Wire Wire Line
+	3200 2150 3200 2300
+Connection ~ 2700 2150
+Wire Wire Line
+	2450 2150 2450 1950
+Wire Wire Line
+	2450 1950 3700 1950
+Connection ~ 3700 1950
+Connection ~ 2450 2150
+$Comp
+L Conn_01x04 J1
+U 1 1 5A1F53C4
+P 1650 1500
+F 0 "J1" H 1650 1700 50  0000 C CNN
+F 1 "Battery" H 1650 1200 50  0000 C CNN
+F 2 "Connectors_JST:JST_XH_S04B-XH-A_04x2.50mm_Angled" H 1650 1500 50  0001 C CNN
+F 3 "" H 1650 1500 50  0001 C CNN
+	1    1650 1500
+	-1   0    0    1   
+$EndComp
+$EndSCHEMATC

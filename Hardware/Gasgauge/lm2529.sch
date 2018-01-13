@@ -1,0 +1,191 @@
+EESchema Schematic File Version 2
+LIBS:2sBatteryCharger-rescue
+LIBS:power
+LIBS:device
+LIBS:switches
+LIBS:relays
+LIBS:motors
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:bq28z610lib
+LIBS:2sBatteryCharger-cache
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 4 4
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L LM2596 U3
+U 1 1 5A1F04FE
+P 4950 3000
+F 0 "U3" H 5200 2650 60  0000 C CNN
+F 1 "LM2596" H 5000 3350 60  0000 C CNN
+F 2 "TO_SOT_Packages_SMD:TO-263-5_TabPin3" H 4950 3000 60  0001 C CNN
+F 3 "" H 4950 3000 60  0001 C CNN
+	1    4950 3000
+	1    0    0    -1  
+$EndComp
+$Comp
+L GNDPWR #PWR32
+U 1 1 5A1F0505
+P 5550 3500
+F 0 "#PWR32" H 5550 3300 50  0001 C CNN
+F 1 "GNDPWR" H 5550 3370 50  0000 C CNN
+F 2 "" H 5550 3450 50  0001 C CNN
+F 3 "" H 5550 3450 50  0001 C CNN
+	1    5550 3500
+	1    0    0    -1  
+$EndComp
+$Comp
+L L Lz1
+U 1 1 5A1F050B
+P 6100 3000
+F 0 "Lz1" V 6050 3000 50  0000 C CNN
+F 1 "33uH" V 6175 3000 50  0000 C CNN
+F 2 "Inductors_SMD:L_12x12mm_h8mm" H 6100 3000 50  0001 C CNN
+F 3 "" H 6100 3000 50  0001 C CNN
+	1    6100 3000
+	0    -1   -1   0   
+$EndComp
+$Comp
+L D_Schottky Dz3
+U 1 1 5A1F0512
+P 5850 3250
+F 0 "Dz3" H 5850 3350 50  0000 C CNN
+F 1 "1N5824" H 5850 3150 50  0000 C CNN
+F 2 "Diodes_THT:D_5W_P10.16mm_Horizontal" H 5850 3250 50  0001 C CNN
+F 3 "" H 5850 3250 50  0001 C CNN
+	1    5850 3250
+	0    1    1    0   
+$EndComp
+$Comp
+L GNDPWR #PWR33
+U 1 1 5A1F0519
+P 5850 3500
+F 0 "#PWR33" H 5850 3300 50  0001 C CNN
+F 1 "GNDPWR" H 5850 3370 50  0000 C CNN
+F 2 "" H 5850 3450 50  0001 C CNN
+F 3 "" H 5850 3450 50  0001 C CNN
+	1    5850 3500
+	1    0    0    -1  
+$EndComp
+$Comp
+L GNDPWR #PWR34
+U 1 1 5A1F051F
+P 6400 3500
+F 0 "#PWR34" H 6400 3300 50  0001 C CNN
+F 1 "GNDPWR" H 6400 3370 50  0000 C CNN
+F 2 "" H 6400 3450 50  0001 C CNN
+F 3 "" H 6400 3450 50  0001 C CNN
+	1    6400 3500
+	1    0    0    -1  
+$EndComp
+$Comp
+L GNDPWR #PWR31
+U 1 1 5A1F052B
+P 4200 3300
+F 0 "#PWR31" H 4200 3100 50  0001 C CNN
+F 1 "GNDPWR" H 4200 3170 50  0000 C CNN
+F 2 "" H 4200 3250 50  0001 C CNN
+F 3 "" H 4200 3250 50  0001 C CNN
+	1    4200 3300
+	1    0    0    -1  
+$EndComp
+$Comp
+L CP Cz11
+U 1 1 5A1F0531
+P 4200 3000
+F 0 "Cz11" H 4225 3100 50  0000 L CNN
+F 1 "680uF" H 4225 2900 50  0000 L CNN
+F 2 "Capacitors_SMD:CP_Elec_8x10" H 4238 2850 50  0001 C CNN
+F 3 "" H 4200 3000 50  0001 C CNN
+	1    4200 3000
+	1    0    0    -1  
+$EndComp
+$Comp
+L CP Cz12
+U 1 1 5A1F0538
+P 6400 3250
+F 0 "Cz12" H 6425 3350 50  0000 L CNN
+F 1 "220uF" H 6425 3150 50  0000 L CNN
+F 2 "Capacitors_SMD:CP_Elec_6.3x5.8" H 6438 3100 50  0001 C CNN
+F 3 "" H 6400 3250 50  0001 C CNN
+	1    6400 3250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4200 2850 4200 2800
+Wire Wire Line
+	3950 2800 4550 2800
+Wire Wire Line
+	4200 3150 4200 3300
+Wire Wire Line
+	3950 3200 4550 3200
+Connection ~ 4200 3200
+Wire Wire Line
+	5550 3200 5550 3500
+Wire Wire Line
+	5500 3000 5950 3000
+Wire Wire Line
+	5850 3000 5850 3100
+Wire Wire Line
+	5850 3400 5850 3500
+Connection ~ 5850 3000
+Wire Wire Line
+	6250 3000 6650 3000
+Wire Wire Line
+	6400 2800 6400 3100
+Wire Wire Line
+	6400 3400 6400 3500
+Wire Wire Line
+	5500 3200 5550 3200
+Wire Wire Line
+	6400 2800 5500 2800
+Connection ~ 6400 3000
+Connection ~ 4200 2800
+Text HLabel 3950 2800 0    60   Input ~ 0
+DCDC
+Text HLabel 3950 3200 0    60   Input ~ 0
+PACK-
+Text HLabel 6650 3000 2    60   Input ~ 0
+5V
+Wire Wire Line
+	6400 3450 6650 3450
+Connection ~ 6400 3450
+Text HLabel 6650 3450 2    60   Input ~ 0
+GND
+$EndSCHEMATC
