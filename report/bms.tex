@@ -43,15 +43,12 @@ The preferred way of charging \gls{lion} batteries is \gls{cccv}-charging. The c
 \subsection{Balancing}
 Unlike other types of batteries that have a lower coulombic efficiency, lithium-ion batteries do not self-balance during a charge cycle. Without the ability to transfer charge, capacity will be limited to the battery with the lowest capacity in a series configuration. Knowing the capacity in real-time increases the efficiency of the balancing process.
 Cell balancing is used for one or more of these purposes\cite[p.183-185]{book}:
-
 \begin{itemize}[noitemsep]
 	\item Minimize charge difference
 	\item Maximize available battery power
 	\item Maximize available battery energy
 \end{itemize}
-
 \autoref{fig:variations} Shows the variations that can occur between cells in a series stack.
-
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.8\textwidth]{Figures/variations.png} 
@@ -84,7 +81,6 @@ The \gls{pcb} protects against over discharge, overcharge, and overcurrent. Depe
 \subsection{Safety and Abuse Conditions}
 
 Due to the differences between \gls{lion} batteries and other batteries, their higher capacity makes them more susceptible to faults when abused. A list of abuse conditions and their implications follows\cite[p.35-38]{book}.
-
 
 \begin{itemize}
 \item Overcharge occurs when \gls{soc} is greater than $100\%$. Cell voltage will begin to rise fast and may damage load or monitoring circuitry. Irreversible degradation inside the cell will occur. Both single large events and many small events cause degradation. Unlike in other chemistries, small currents causes this. Leading to thermal runaway, cell swelling, and venting. Begins somewhere between $3.75V$ and $4.2V$ depending on the cell.
