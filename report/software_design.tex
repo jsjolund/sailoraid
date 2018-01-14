@@ -88,7 +88,7 @@ The mathematical background of this algorithm is quite complicated. See the offi
 \caption{Maestro A2235-H GPS module with built-in antenna.}
 \label{gps-figure}
 \end{figure}
-The \gls{gps} module used in this project, A2235-H by Maestro \cite{gps} could communicate with the \gls{mcu} through either \gls{i2c} or \gls{uart}. Both protocols require only two pins to operate, but \gls{uart} communication was determined to be easier to implement in code. The \gls{uart} baud rate of the \gls{gps} module was set to $4800Hz$ by default. While this could be changed by software there was no reason to do so. The low baud rate did however mean that blocking transmissions might cause problematic interruptions in the firmware code. To prevent this, interrupt based communication through \gls{dma} was implemented, using the same type of queuing system as the \gls{usb} \gls{uart}, see \autoref{usb-uart}.
+The \gls{gps} module used in this project, A2235-H by Maestro \cite{gps} could communicate with the \gls{mcu} through either \gls{i2c} or \gls{uart}. Both protocols require only two pins to operate, but \gls{uart} communication was determined to be easier to implement in code. The \gls{uart} baud rate of the \gls{gps} module was set to $4800Hz$ by default. While this could be changed by software there was no reason to do so. The low baud rate did however mean that blocking transmissions might cause problematic interruptions in the firmware code. To prevent this, interrupt based communication through \gls{dma} was implemented, using the same type of queuing system as the \gls{usb} \gls{uart}, see section \ref{usb-uart}.
 
 Data from the \gls{gps} was formatted according to the \gls{nmea}. It is used by nearly all \gls{gps} devices internally, but is quite hard for a human to read. For example,
 \begin{lstlisting}
@@ -103,7 +103,7 @@ Several \gls{nmea} parsing libraries are freely available on the web. The one ch
 \subsubsection{Range sensor}
 In order to communicate with the VL53L0X range finder sensor, another software library called X-CUBE-53L0A1\cite{x-cube-53l0a} developed by \gls{st} was used. This software was written for another Nucleo expansion board called X-NUCLEO-53L0A1 which integrated three range sensor units to perform gesture recognition. It was however possible to modify the code to work with the single sensor used in this project. The library implemented a leaky integrator algorithm (basically a low-pass filter) to reduce measurement noise and improve accuracy.
 
-Since the sensor measures the time-of-flight of a laser beam, it was obvious that having the firmware code block while waiting for measurement data was not a realistic option. Instead, the code repeatedly alternated between instructing the sensor to initiate a measurement, and reading back the data from the last measurement. Since the module was meant only to measure the height of the dinghy center board a low measurement frequency of 1 Hz was used.
+Since the sensor measures the time-of-flight of a laser beam, it was obvious that having the firmware code block while waiting for measurement data was not a realistic option. Instead, the code repeatedly alternated between instructing the sensor to initiate a measurement, and reading back the data from the last measurement. Since the module was meant only to measure the height of the dinghy center board a low measurement frequency of $1Hz$ was used.
 
 
 \subsubsection{USB UART}

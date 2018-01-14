@@ -12,7 +12,7 @@ Memory effects present in other chemistries which causes gradual loss of capacit
 
 Water-based electrolytes are common in most batteries but as electrolysis begins at two volts in water and the voltages present in lithium cells are higher than that, that is not possible. Organic solvents are instead used. These solvents are flammable and have high vapour pressures. The increased performance of \gls{lion} batteries comes with higher severity if something would go wrong, so they have to be handled with extra care.
 
-One of the most common form factors is the cylindrical cell referred to as 18650. That is $18mm$ in diameter and $65mm$ in length \cite[p. 26-27]{book}. The figure \autoref{fig:cellstruct} displays the parts that build up such a cylindrical cell.
+One of the most common form factors is the cylindrical cell referred to as 18650. That is $18mm$ in diameter and $65mm$ in length \cite[p. 26-27]{book}. The \autoref{fig:cellstruct} displays the parts that build up such a cylindrical cell.
 
 \begin{figure}[H]
 	\centering
@@ -84,7 +84,7 @@ Due to the differences between \gls{lion} batteries and other batteries, their h
 
 \begin{itemize}
 \item Overcharge occurs when \gls{soc} is greater than $100\%$. Cell voltage will begin to rise fast and may damage load or monitoring circuitry. Irreversible degradation inside the cell will occur. Both single large events and many small events cause degradation. Unlike in other chemistries, small currents causes this. Leading to thermal runaway, cell swelling, and venting. Begins somewhere between $3.75V$ and $4.2V$ depending on the cell.
-\item Over-discharge occurs when \gls{soc} reaches below $0\%$, the voltage decreases fast and can even be reversed if discharge current is too high. A reversed voltage may result in damaged monitoring circuitry. Internal damage includes dissolution of the negative terminal foil. Self-over-discharge cannot be prevented. Minimum voltage before over discharge occurs is between $1.8-2.5V$ depending on the cell.
+\item Over-discharge occurs when \gls{soc} reaches below $0\%$, the voltage decreases fast and can even be reversed if discharge current is too high. A reversed voltage may result in damaged monitoring circuitry. Internal damage includes dissolution of the negative terminal foil. Self-over-discharge cannot be prevented. Minimum voltage before over discharge occurs is between $1.8$-$2.5V$ depending on the cell.
 \item High temperatures increase cell degradation which in turn causes thermal runaway further increasing inside temperatures. Excessive temperatures activate exothermic chemical reactions in the organic solvents. Releasing high amounts of energy that leads to venting of cell contents, fire or explosion.
 \item Low temperatures can cause plating of metal lithium onto the electrodes which leads to irreversible capacity loss and possibly metallic ``dendrite'' growth. Dendrites can penetrate the separator leading to internal short circuits. Low temperatures also increase cell impedance thus limiting discharging capabilities. Charging below $0\degree C$ is not recommended, although some cells allow temperatures below $-10\degree C$.
 \item Overcurrent, both during dis- and re-charging can cause the same type of problems as with general over- and under-charge conditions, at the same time high currents increases temperature. The maximum current allowed for is a function of \gls{soc} and temperature. Even though temperature would be held at acceptable levels, the amount of current will still be limited by the number of ions the negative terminal can receive at any given moment.
@@ -106,7 +106,7 @@ Safety is of high priority as concluded earlier. So a second flowchart was creat
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=\textwidth]{Figures/battery.png}
+	\includegraphics[width=\textwidth]{Figures/battery.jpg}
 	\caption{Battery management flowchart.}
 	\label{fig:battery}
 \end{figure}
@@ -143,17 +143,17 @@ A \gls{pwb} containing the three \gls{ic}'s mentioned above was designed using K
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.6\textwidth]{Figures/modules.png}
+	\includegraphics[width=0.6\textwidth]{Figures/modules.jpg}
 	\caption{Current setup of the battery management.}
 	\label{fig:modules}
 \end{figure}
 
 
-Charging is done by turning the device upside down and connecting a \gls{2s} \gls{lion} charger. See\autoref{fig:charging}.
+Charging is done by turning the device upside down and connecting a \gls{2s} \gls{lion} charger, See \autoref{fig:charging}.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.45\textwidth]{Figures/charging.png}
+	\includegraphics[width=0.45\textwidth]{Figures/charging.jpg}
 	\caption{How to charge.}
 	\label{fig:charging}
 \end{figure}
@@ -172,7 +172,7 @@ Schematics, board layout, and Gerber-files can all be found in the appendix. %No
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.6\textwidth]{Figures/bmspwb.png}
+	\includegraphics[width=.6\textwidth]{Figures/bmspwb.jpg}
 	\caption{Battery management \gls{pwb}.}
 	\label{fig:bmspwb}
 \end{figure}
