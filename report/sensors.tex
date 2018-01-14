@@ -1,4 +1,3 @@
-%In order to sail properly and make the most out of the wind that’s is supplied by the nature itself some data acquisition is needed. The sailing is all about this harnessing all the forces of the nature and the wind that it pushing towards you. Since there has not been any other extensive projects and measurements in this particular area the measurements have to be done in new ways. 
 
 Since all kinds of sailboats main feature is to move completely analogue without the need of fuel or electricity, the use and optimization of surrounding forces are of foremost importance. Measuring this will provide the sailor with all the information needed to optimize the way they move and control their dinghy.
 
@@ -26,7 +25,7 @@ Other solutions are, either way, more difficult to apply and mount or more compl
 \end{figure}
 
 \subsubsection{The prototype}
-To implement the gauges, a prototype is designed to show how the measurements will be made. The prototype is a bit bigger than the intended solution for this project but it's good to see how it would be constructed. The function is easy to understand. The board goes on the outside and can easily slide up and down past this steel bead. The bead itself is kept inside a small space where it can move in and out.
+To implement the gauges, a prototype is designed to show how the measurements will be made. The prototype is a bit bigger than the intended solution for this project but it is good to see how it would be constructed. The function is easy to understand. The board goes on the outside and can easily slide up and down past this steel bead. The bead itself is kept inside a small space where it can move in and out.
 
 A model of the pressure sensor was created in order to clearly show the function of this sensor and to help the thought process involved in the improving of this design.
 
@@ -53,7 +52,7 @@ A better solution is to make some research into load cells, which is a sensor wh
 
 
 \subsubsection{Sensor}
-The force from the board onto the mounting plate will be a considerable amount. The actual force is something that’s not known for sure. The initial assumption was that a load cell with a $90.75$ kg force range should be enough. If the sensor will be maxed out the cell it's rated for a $150\%$ overload without causing some damage to the sensor.  
+The force from the board onto the mounting plate will be a considerable amount. The actual force is something that is not known for sure. The initial assumption was that a load cell with a $90.75$ kg force range should be enough. If the sensor will be maxed out, the cell its rated for a $150\%$ overload without causing some damage to the sensor.  
 
 The chosen sensor for this application is this part, the compression load cell called FX1901\cite{load_cell}.  
 From the datasheet, the voltage readings of this part could be calculated. The maximum voltage difference is calculated to be around $180mV$. 
@@ -72,7 +71,7 @@ With a such small signal, an amplifier is needed to get some desired measurement
 A suitable amplifier needs to be chosen from this implementation. Inspiration is taken from The University of Chicago\cite{UoC} in an experiment where they use this exact load cell together with an instrumental amplifier called INA125. This amplifier is somewhat more complicated and has some more features that other amplifiers.  
 
 In the same family of instrument amplifiers, a model called INA126\cite{ina_126} is selected as a less complicated and more power efficient solution.  
-This amplifier has a smaller power draw due to some simpler functions and lesser precision. But for this application it's sufficient.  
+This amplifier has a smaller power draw due to some simpler functions and lesser precision. But for this application it is sufficient.  
 The implementation is easy and the gain can easily be determined by connection a resistor Rg between two pins on the amplifier. 
 
 \begin{figure}[H]

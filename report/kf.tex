@@ -567,7 +567,7 @@ Q_k\approx \Phi_k GQG^T \Phi_k^T
 \label{Eq.Q_k}
 \end{equation}
 
-If Eq. \eqref{Eq.Q} is analyzed, by increase the norm of $Q_k$ the Kalman Filter trusts the measurements more than the system, which will make the output more noisy due to noise induced from the measurements, the advantages with a large norm is that the time lag will decrease. If the norm is small the measurements will be less induced by measurement noise but time lag will increase, which means that we don't trust the measurements. Determining $Q_k$ can be done by testing several different settings and from that make an assumption, but a good assumption should be that the trajectory of the output should follow the \gls{gps} data when the \gls{gps} is connected to several satellites.\\
+If Eq. \eqref{Eq.Q} is analyzed, by increase the norm of $Q_k$ the Kalman Filter trusts the measurements more than the system, which will make the output more noisy due to noise induced from the measurements, the advantages with a large norm is that the time lag will decrease. If the norm is small the measurements will be less induced by measurement noise but time lag will increase, which means that we do not trust the measurements. Determining $Q_k$ can be done by testing several different settings and from that make an assumption, but a good assumption should be that the trajectory of the output should follow the \gls{gps} data when the \gls{gps} is connected to several satellites.\\
 
 
 
@@ -635,7 +635,7 @@ R_k = diag(\sigma_{r_N}^2 \quad \sigma_{r_E}^2 \quad \sigma_{r_d}^2 \quad \sigma
 \end{equation}
 where $\sigma_{r_{(N,E,d)}}^2$ and $\sigma_{v_{(N,E,d)}}^2$ is the variance of the position and velocity in all direction, respectively.\\
 
-The Kalman Filter is invoked every time the \gls{gps} is updated, i.e. $1Hz$, but since the \gls{imu} and the \gls{gps} updates at different frequencies a problem arises. The problem is such that at $t_{GPS}(k)$ there won't be a value to read from the \gls{imu}, since discrete time domain. To solve this problem a linear interpolation is done between $t_{imu}(k)$ and $t_{imu}(k+1)$, where $t_{imu}(k)$ $\leq$ $t_{GPS}(k)$ $\leq$  $t_{imu}(k+1)$. See \autoref{Fig.different_update}.
+The Kalman Filter is invoked every time the \gls{gps} is updated, i.e. $1Hz$, but since the \gls{imu} and the \gls{gps} updates at different frequencies a problem arises. The problem is such that at $t_{GPS}(k)$ there will not be a value to read from the \gls{imu}, since discrete time domain. To solve this problem a linear interpolation is done between $t_{imu}(k)$ and $t_{imu}(k+1)$, where $t_{imu}(k)$ $\leq$ $t_{GPS}(k)$ $\leq$  $t_{imu}(k+1)$. See \autoref{Fig.different_update}.
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Figures/linear.pdf}
@@ -652,7 +652,7 @@ r_n(t_k(GPS) = r_n(t_{imu}(k)) + \frac{r_n(t_{imu}(k+1))-r_n(t_{imu}(k))}{t_{imu
 v_n(t_k(GPS) = v_n(t_{imu}(k)) + \frac{v_n(t_{imu}(k+1))-v_n(t_{imu}(k))}{t_{imu}(k+1)-t_{imu}(k)}(t_{GPS}(k)-t_{GPS}(k)).
 \end{equation}
 \subsection{Result}
-The data provided by the Inertial Navigation System is working better than just using the raw \gls{gps} data, on some occasions. If the goal is to estimate the position, then it's better to use the \gls{ins} connected to a Kalman Filter, this can be seen in \autoref{Fig:result_kalman}. As seen, the Filtered data is inaccurate in the beginning but after some time converges to the true value, true value as in the case of wanted value, and at some points even catches the wanted value. In comparison to the raw \gls{gps} data, the \gls{ins} is a better estimator for the user's position.
+The data provided by the Inertial Navigation System is working better than just using the raw \gls{gps} data, on some occasions. If the goal is to estimate the position, then it is better to use the \gls{ins} connected to a Kalman Filter, this can be seen in \autoref{Fig:result_kalman}. As seen, the Filtered data is inaccurate in the beginning but after some time converges to the true value, true value as in the case of wanted value, and at some points even catches the wanted value. In comparison to the raw \gls{gps} data, the \gls{ins} is a better estimator for the user's position.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{result.eps}
@@ -701,7 +701,7 @@ Consider implementing a more advanced technique, e.g. using this three-stage pro
 \item Static testing and studying the effects of natural phenomenon on the \gls{imu}.
 \item Dynamic testing where the \gls{imu} is subjected to motions that should resemble the conditions out on the sea, e.g. constant waves hitting the sides of the boat. 
 \end{itemize}
-The purpose of this more advanced calibration technique is to determine the following parameters \cite{non-linear}
+The purpose of this more advanced calibration technique is to determine the following parameters\cite{non-linear}:
 \begin{itemize}[noitemsep]
 \item scale factors
 \item scale factor linearity
