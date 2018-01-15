@@ -12,8 +12,8 @@ The circuit board must minimally fulfill the following set of basic requirements
 \subsection{Method}
 \chapterauthor{Brolin, Daniel (Eriksson, Kenny)}
 % Methodology
-The main circuit board is built using the open source electronic design software KiCad\cite{kicad}. It is completely free to use and the source code is open for any modifications.
-Designing circuit boards differs slightly between what software you are using. KiCad\cite{kicad} uses a four step process as follows:
+The main circuit board is built using the open source electronic design software \emph{KiCad}\cite{kicad}. It is completely free to use and the source code is open for any modifications.
+Designing circuit boards differs slightly between what software you are using. \emph{KiCad} uses a four step process as follows:
 \begin{enumerate}[noitemsep]
 \item Draw schematic:
 	\begin{enumerate}[noitemsep]
@@ -63,32 +63,32 @@ Non-standard library entries include following components:\\
 \label{table:nstdlibs}
 \end{table}
 \end{minipage}
-\vfill
+\vspace{.5cm}
 
 %\subsection{Revisions}\label{sec:hw:rev}
 In total three revisions of the \gls{pcb} was designed. The first revision was designed well before any components arrived and was meant exclusively as a prototype, while both the second and third revisions were supposed to have full functionality. All revisions following the first were initially supposed to be designed as consecutive debugged states, but complete redesigns of component placings and tracing was eventually necessary.
 
 \subsubsection{First revision}
-First revision included the main functionality and test points on basically every pin in the system. It did not follow any space- or requirements and was riddled with small problems. The USBtoSerial converter was broken, the \gls{i2c} line was short circuited somewhere, the custom footprint for the \gls{gps} was mirrored, the \gls{bt} worked, but poorly due to inferences from other circuitry and so on and so fourth. Most of this was probably because we had to design the \gls{pcb} and draw all custom made footprints before actually receiving the components. This revision was also meant as a prototype, and not enough time was put to make sure all isolation's and trace widths had well thought out values. A high-speed switching logic had been designed for the wakeup-signal to the \gls{gps}, but this was not used. The schematic of revision one has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr1}.
+First revision included the main functionality and test points on basically every pin in the system. It did not follow any space- or requirements and was riddled with small problems. The \emph{USB-to-Serial} converter was broken, the \gls{i2c} line was short circuited somewhere, the custom footprint for the \gls{gps} was mirrored, the \gls{bt} worked, but poorly due to interference from other circuitry and so on and so fourth. Most of this was probably because we had to design the \gls{pcb} and draw all custom made footprints before actually receiving the components. This revision was also meant as a prototype, and not enough time was put to make sure all isolation's and trace widths had well thought out values. A high-speed switching logic had been designed for the wakeup-signal to the \gls{gps}, but this was not used. The schematic of revision one has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr1}.
 \begin{figure}[H]
 	\centering
-    \includegraphics[width=\linewidth]{Figures/pcb_rev1.jpg}
+    \includegraphics[width=.8\linewidth]{Figures/pcb_rev1.jpg}
 	\caption{First (1) revision circuit board.}
 	\label{fig:pcbr1}
 \end{figure}
 
 \subsubsection{Second revision}
-The second revision fixed all known problems, followed the space requirements and added a lot of customization. The option to toggle power source and what \gls{imu}s were currently powered were added. This way the effect from individual modules could be measured. Also since it was still unclear if a combined chip for all \gls{imu}s would be added or not, space for all of them and an evaluation module was added. However, some wires was lost in the transition from revision one to two, as all net-labels in the schematic was redrawn; also the micro-\gls{usb} housing was to small for continuous use and was ripped of by our, way to strong, programmers; all of this was hot fixed and eventually the circuit board worked as expected. As with revision one, the schematic of revision two has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr2}.
+The second revision fixed all known problems, followed the space requirements and added a lot of customization. The option to toggle power source and what sensors were currently powered was added. This way the effect from individual modules could be measured. Also since it was still unclear if a combined chip for all \gls{imu}s would be added or not, space for all of them and an evaluation module was added. However, some wires was lost in the transition from revision one to two, as all net-labels in the schematic was redrawn; also the micro-\gls{usb} housing was to small for continuous use and was ripped of by our, way to strong, programmers; all of this was hot fixed and eventually the circuit board worked as expected. As with revision one, the schematic of revision two has not been included in this report, as there is little to learn from it; the \gls{pcb} can however be seen as \autoref{fig:pcbr2}.
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=\linewidth]{Figures/pcb_rev2.jpg}
+	\includegraphics[width=.8\linewidth]{Figures/pcb_rev2.jpg}
 	\caption{Second (2) revision circuit board.}
 	\label{fig:pcbr2}
 \end{figure}
 
 \subsubsection{Third revision}
-With almost all problems solved in the second revision, what remained was some hotfix for an unexpected wiring error in the \gls{gps}; interference between \gls{i2c} clock and data line; minimizing much to large decoupling ground loops; unwanted antennas; ground islands of missing copper and a KiCad problem where disconnected \gls{via}s lose their net property. The option to pull power from either \gls{usb} or batteries remained in the last revision, as this makes programming and testing much easier. A four pin connector to measure the battery level through \gls{i2c} was added, and since the power level of this depends slightly on the power left in the batteries logic level converters was designed to allow for a variable voltage level\cite{llc}, the electronic circuitry can be see in \autoref{fig:schr3b}.
-For the third revision all decisions have been made and the schematic can be seen as \autoref{fig:schr3a}, \ref{fig:schr3b} and \ref{fig:schr3c}.
+With almost all problems solved in the second revision, what remained was some hotfix for an unexpected wiring error in the \gls{gps}; interference between \gls{i2c} clock and data line; minimizing much to large decoupling ground loops; unwanted antennas; ground islands of missing copper and a KiCad problem where disconnected \gls{via}s lose their net property. The option to pull power from either \gls{usb} or batteries remained in the last revision, as this makes programming and testing much easier. A four pin connector to measure the battery level through \gls{i2c} was added; and since the power level of this depends slightly on the power left in the batteries, logic level converters was designed to allow for variable voltage levels\cite{llc}, the electronic circuitry can be see in \autoref{fig:schr3b}.
+For the third revision all decisions have been made and the schematic can be seen as \autoref{fig:schr3a}, \ref{fig:schr3b} and \ref{fig:schr3c}, section \ref{app:schemmain}.
 
 Following communicative devices will used and act as ``mudule areas'', i.e. these units will be the central units of the \gls{pcb} layout. This was introduced in the second
 \begin{itemize}[noitemsep]
@@ -108,21 +108,21 @@ Following communicative devices will used and act as ``mudule areas'', i.e. thes
 	\item Battery level
 	\item VL530x \qquad- Time of flight
 	\end{itemize}
-\item INA128 \qquad- Analog load cell amplifiers (ADC)
-\item MCDTS2-4N \qquad- Tactile push buttons (Pull-up/Pull-down)
+\item{\makebox[2.5cm][l]{INA128} - Analog load cell amplifiers (ADC)}
+\item{\makebox[2.5cm][l]{MCDTS2-4N} - Tactile push buttons (Pull-up/Pull-down)}
 \end{itemize}
-The layout of the components are such that all \gls{i2c} communicative devices are moved to one spot ensuring the shortest possible \gls{i2c} data line, these are placed to the top right of the \gls{pcb}. The power is placed in the bottom left, since this is as far as possible from everything else. \gls{usb} is placed next to the power, as power can be opted to be drawn from \gls{usb} rather than battery. Analog plane with the load cells are put right next to the power to ensure the star-ground\footnote{A common node ground connecting all grounds together to ensure the same set working level} to be as close as possible to the power-source allowing for as little noise as possible. \gls{bt} communication devices are rather fragile, it is therefore placed as far as possible from everything in the top left corner of the \gls{pcb}. This \gls{bt} module (SPBTLE-RF) requires \gls{spi} communication and in total $6$ isolated traces are to be drawn between the \gls{mcu} and the \gls{bt} unit. To minimize crossover the \gls{gps} is placed in the top-mid of the \gls{pcb}. Lastly the buttons whose placing is of low importance are placed in the middle-left, between the power source and the \gls{bt} unit. 
+The layout of the components are such that all \gls{i2c} communicative devices are moved to one spot ensuring the shortest possible \gls{i2c} data line, these are placed to the top right of the \gls{pcb}. The power is placed in the bottom left, since this is as far as possible from everything else. \gls{usb} is placed next to the power, as power can be opted to be drawn from \gls{usb} rather than battery. Analog plane with the load cells are put right next to the power to ensure the star-ground\footnote{A common node ground connecting all grounds together to ensure the same set working level} to be as close as possible to the power-source allowing for as little noise as possible. \gls{bt} communication devices are rather fragile, it is therefore placed as far as possible from everything in the top left corner of the \gls{pcb}. This \gls{bt} module, \emph{SPBTLE-RF}, requires \gls{spi} communication and in total $6$ isolated traces are to be drawn between the \gls{mcu} and the \gls{bt} unit. To minimize crossover the \gls{gps} is placed in the top-mid of the \gls{pcb}. Lastly the buttons whose placing is of low importance are placed in the middle-left, between the power source and the \gls{bt} unit. 
 Ground \gls{via}s was added around communication traces to prevent unwanted interference, ground \gls{via}s were also added to prevent antennas\footnote{Antennas appear by letting isolated thin grounds be connected on only one end, a \gls{via} can therefore be added to the other end to prevent this from happening.}.
 The third, and last, revision of the \gls{pcb} can be seen in \autoref{fig:pcbr3}, a simple explanation of the layout can be seen in \autoref{fig:pcbr3simple}.
 \begin{figure}[H]
 	\centering
-    \includegraphics[width=\linewidth]{Figures/pcb_rev3.jpg}
+    \includegraphics[width=.8\linewidth]{Figures/pcb_rev3.jpg}
 	\caption{third (3) revision circuit board.}
 	\label{fig:pcbr3}
 \end{figure}
 \begin{figure}[H]
 	\centering
-    \includegraphics[width=.75\linewidth]{Figures/pcb_rev3_simple.png}
+    \includegraphics[width=.6\linewidth]{Figures/pcb_rev3_simple.png}
 	\caption{Simple model of third (3) revision circuit board areas.}
 	\label{fig:pcbr3simple}
 \end{figure}
@@ -134,7 +134,7 @@ The third, and last, revision of the \gls{pcb} can be seen in \autoref{fig:pcbr3
 \subsection{Results, Discussion and Future Work}\label{sec:hw:tip2}
 \chapterauthor{Brolin, Daniel (Eriksson, Kenny)}
 The final sensor board works as expected. Had it not been for the fact that one of the sensors was broken it would have been soldered without any problem. No interference problems or antennas has been found on the last revision \gls{pcb} and no hot fixes were necessary.
-Calibrating the potentiometers for the analog load cell amplifiers is possibly the most uncertain process, as wrongly tuning these will offset all values in the feedback. This is however necessary until the last prototype for the casing is complete, see \autoref{sec:case}.
+Calibrating the potentiometers for the analog load cell amplifiers is possibly the most uncertain process, as wrongly tuning these will offset all values in the feedback. This is however necessary until the last prototype for the casing is complete, see \autoref{sec:case}, since small differences in the casing will require different calibrations.
 The system is estimated to run for about $24hrs$, more about power management in \autoref{sec:bat}. 
 
-All components in the last revision prototype is of a rather large form factor considering the relatively low effect acting on the components, making soldering and testing easier but taking up more space. As it is now the system can very likely be minimized further. Taking away the general purpose button, set the general form factor to the industry standard $0402$ ($1mm$x$.5mm$) which is still easily soldered by hand), use $4-$layer design could probably shrink the system to about half of the size if no more devices are added to the design. Alternatively more sensors or communication with an external sensor board could be supported in future updates without the need of to much remodeling. 
+All components in the last revision prototype is of a rather large form factor considering the relatively low effect acting on the components, making soldering and testing easier but taking up more space. As it is now the system can very likely be minimized further. Taking away the general purpose button, set the general form factor to the industry standard $0402$ (approximately $1mm$x$.5mm$) which is still easily soldered by hand), use $4$-layer design could probably shrink the system to about half of the size if no more devices are added to the design. Alternatively more sensors or communication with an external sensor board could be supported in future updates without the need of to much remodeling. 

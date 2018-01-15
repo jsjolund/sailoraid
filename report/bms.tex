@@ -1,6 +1,6 @@
 
 \subsection{Introduction}
-Lithium-ion batteries packs large amounts of energy in a small package and can power systems for long periods before a recharge is needed. Because of the high energy density they have to be handled with care. Beyond protection a \gls{bms} can be used to report battery percentages and remaining capacity. The specific type of battery used in this project is ICR18650.
+Lithium-ion batteries packs large amounts of energy in a small package and can power systems for long periods before a recharge is needed. Because of the high energy density they have to be handled with care. Beyond protection a \gls{bms} can be used to report battery percentages and remaining capacity. The specific type of battery used in this project is \emph{ICR18650}.
 
 
 \subsection{Lithium-ion Battery Composition}
@@ -12,7 +12,7 @@ Memory effects present in other chemistries which causes gradual loss of capacit
 
 Water-based electrolytes are common in most batteries but as electrolysis begins at two volts in water and the voltages present in lithium cells are higher than that, that is not possible. Organic solvents are instead used. These solvents are flammable and have high vapour pressures. The increased performance of \gls{lion} batteries comes with higher severity if something would go wrong, so they have to be handled with extra care.
 
-One of the most common form factors is the cylindrical cell referred to as 18650. That is $18mm$ in diameter and $65mm$ in length \cite[p. 26-27]{book}. The \autoref{fig:cellstruct} displays the parts that build up such a cylindrical cell.
+One of the most common form factors is the cylindrical cell referred to as $18650$. That is $18mm$ in diameter and $65mm$ in length\cite[p. 26-27]{book}. \autoref{fig:cellstruct} displays the parts that build up such a cylindrical cell.
 
 \begin{figure}[H]
 	\centering
@@ -31,7 +31,7 @@ Charging can be either controlled by a separate charger or by the management sys
 	\item Charge termination
 \end{itemize}
 
-The preferred way of charging \gls{lion} batteries is \gls{cccv}-charging. The charge cycle begins with a constant current after the specification of the battery in use. This current is supplied continually until the battery has reached its end-of-charge-voltage. Then charging is switched over to constant voltage mode and the current will taper off as the cell reaches its full capacity. Charging is then terminated when the current goes below a predefined value. \autoref{fig:cccv} displays the process\cite{cccv}. As the voltage curve is steep when the battery reaches its full capacity precise regulation is needed to prevent overcharging\cite[p.111-112]{book}.
+The preferred way of charging \gls{lion} batteries is \gls{cccv}-charging. The charge cycle begins with a constant current after the specification of the battery in use. This current is supplied continually until the battery has reached its end-of-charge-voltage. Then charging is switched over to constant voltage mode and the current will taper off as the cell reaches its full capacity\cite{cccv}. Charging is then terminated when the current goes below a predefined value, \autoref{fig:cccv} displays this process. As the voltage curve is steep when the battery reaches its full capacity precise regulation is needed to prevent overcharging\cite[p.111-112]{book}.
 
 \begin{figure}[H]
 	\centering
@@ -57,8 +57,7 @@ Cell balancing is used for one or more of these purposes\cite[p.183-185]{book}:
 \end{figure}
 
 \subsection{18650 Basic Safety}
-There are both protected and unprotected 18650 batteries. Protected ones include three basic safety features\cite{webpage}:
-
+There are both protected and unprotected $18650$ batteries. Protected ones include three basic safety features\cite{webpage}:
 \begin{itemize}[noitemsep]
 	\item \gls{ptc}
 	\item \gls{cid}
@@ -70,16 +69,14 @@ A \gls{ptc} is a resistor that increases resistance when temperature rises, thus
 The \gls{pcb} protects against over discharge, overcharge, and overcurrent. Depending on the design, it will be reset when there is no fault condition any more or when it is placed in a charger.  
 
 \autoref{fig:protection} is an illustration of a protected \gls{lion} battery. The pressure valve on the left side also breaks the connection between the internal and external positive pole which is why it is called \gls{cid} or current interrupt device.
-
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.45\textwidth]{Figures/protection.png}
-	\caption{A protected 18650 cell.}
+	\includegraphics[width=0.6\textwidth]{Figures/protection.png}
+	\caption{A protected $18650$ cell.}
 	\label{fig:protection}
 \end{figure}
 
 \subsection{Safety and Abuse Conditions}
-
 Due to the differences between \gls{lion} batteries and other batteries, their higher capacity makes them more susceptible to faults when abused. A list of abuse conditions and their implications follows\cite[p.35-38]{book}.
 
 \begin{itemize}
@@ -92,9 +89,9 @@ Due to the differences between \gls{lion} batteries and other batteries, their h
 \end{itemize}
 
 \subsection{Determining \gls{bms} Specifications}
-A flow chart was used to determine the power requirements of the system powered by the batteries. As is seen in \autoref{fig:powerinput}. The particular \gls{mcu} runs on $3.3V$ and the sensors that were chosen runs on $3.3V$ and $5.5V$ respectively, so those requirements where definite. There were thoughts about adding a display that might have needed $12V$, therefore the light blue block in \autoref{fig:powerinput}. As the project continued it was omitted and $12V$ would not be needed. Therefore two batteries in series are used. Resulting in a voltage range of $8.4V$ fully charged and down to $6V$ fully depleted. This voltage is stepped down to $5V$ and supplied to the system.
-Current wise it was not known how much the system would draw but it was estimated that the capacity of the batteries of $2.2Ah$ would be enough to power the system for several hours.
-In a worst-case scenario, the system would draw more than $500mA$ which would result in $4h$ and $24min$ of usage.
+A flow chart was used to determine the power requirements of the system powered by the batteries, as is seen in \autoref{fig:powerinput}. The particular \gls{mcu} operates at $3.3V$ and the sensors that were chosen operates at $3.3V$ and $5.5V$ respectively, so those requirements where definite. There were thoughts about adding a display that might have needed $12V$, therefore the light blue block in \autoref{fig:powerinput}. As the project continued it was omitted and $12V$ would not be needed. Therefore two batteries in series are used. Resulting in a voltage range of $8.4V$ fully charged and down to $6V$ fully depleted. This voltage is stepped down to $5V$ and supplied to the system.
+The level of current required by the system was unknown, but it was estimated that the capacity of the batteries of $2.2Ah$ would be enough to power the system for several hours.
+In a worst-case scenario, the system would require  more than $500mA$ which would result in $4h$ and $24min$ of usage.
 Safety is of high priority as concluded earlier. So a second flowchart was created to determine the specifications of the monitoring of the two batteries in a series configuration. \autoref{fig:battery} displays these specifications.
 
 \begin{figure}[H]
@@ -112,10 +109,10 @@ Safety is of high priority as concluded earlier. So a second flowchart was creat
 \end{figure}
 
 
-Three \gls{ic}s where chosen for the \gls{bms}. The BQ28Z610 is a gas gauge \gls{ic} for Li-ion batteries from \gls{ti}, including these features:
+Three \gls{ic}s where chosen for the \gls{bms}. The \emph{BQ28Z610} is a gas gauge \gls{ic} for Li-ion batteries from \gls{ti}, including these features:
 
 \begin{itemize}[noitemsep]
-	\item \gls{i2c} communication of status to host.
+	\item Communication of status to host \gls{i2c}.
 	\item Balancing of cells, both during charge and use.
 	\item Temperature monitoring and regulation.
 	\item Under and overvoltage protection.
@@ -123,24 +120,23 @@ Three \gls{ic}s where chosen for the \gls{bms}. The BQ28Z610 is a gas gauge \gls
 	\item \gls{soc} reporting.
 \end{itemize}
 
-The BQ24133, also a \gls{ti} \gls{ic}, is chosen for charging purposes, making use of the following features:
+The \emph{BQ24133}, also a \gls{ti} \gls{ic}, is chosen for charging purposes, making use of the following features:
 
 \begin{itemize}[noitemsep]
-	\item 1-3 series cells.
+	\item $1$-$3$ series cells.
 	\item Temperature monitoring and regulation.
 	\item Power Path, load can safely be connected during charging.
 \end{itemize}
 
-The output voltage is managed by the \gls{ti} \gls{ic} LM2596 step-down converter.
+\noindent The output voltage is managed by the \gls{ti} \gls{ic} \emph{LM2596} step-down converter.
 
-During development, a BQ28Z610 development board was used together with a Luxorparts variable voltage regulator utilizing the LM2596 and a generic \gls{lion} \gls{2s} charger.
+During development, a \emph{BQ28Z610} development board was used together with a \emph{Luxorparts} variable voltage regulator utilizing the \emph{LM2596} and a generic \gls{lion} \gls{2s} charger.
 
-The BQ28Z610's software was configured using a windows computer, \gls{ti}'s software bqStudio\cite{bqStudio} and the EV2300 \gls{pc} interface board.
+The \emph{BQ28Z610}'s software was configured using a windows computer, \gls{ti}'s software \emph{bqStudio}\cite{bqStudio} and the \emph{EV2300} \gls{pc} interface board.
 A \gls{pwb} containing the three \gls{ic}'s mentioned above was designed using KiCad\cite{kicad}. The designs were made according to the typical application of each \gls{ic}. Typical applications are found in data sheets.  
 
 \subsection{Current State}
-\autoref{fig:modules} displays how the \gls{bms} is currently set up. Up left on top of the main PCB is the BQ28Z610 development board, and below that is the voltage regulator. Charging is enabled via the charging port visible to the right, on the lid.
-
+\autoref{fig:modules} displays how the \gls{bms} is currently set up. Up left on top of the main \gls{pcb} is the \emph{BQ28Z610} development board, and below that is the voltage regulator. Charging is enabled via the charging port visible to the right, on the lid.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6\textwidth]{Figures/modules.jpg}
@@ -148,9 +144,7 @@ A \gls{pwb} containing the three \gls{ic}'s mentioned above was designed using K
 	\label{fig:modules}
 \end{figure}
 
-
 Charging is done by turning the device upside down and connecting a \gls{2s} \gls{lion} charger, See \autoref{fig:charging}.
-
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.45\textwidth]{Figures/charging.jpg}
@@ -159,7 +153,6 @@ Charging is done by turning the device upside down and connecting a \gls{2s} \gl
 \end{figure}
 
 A connection diagram for this configuration can be seen in \autoref{fig:diagram}. The charger is connected to the input of the voltage regulator. This configuration has all the features of that implemented on the \gls{pwb} except the charger is external, charges with $1A$ instead of $2A$ and there is no power path, meaning that the device has to be turned off to make charging safely.
-
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6\textwidth]{Figures/diagram.jpg}
@@ -167,8 +160,7 @@ A connection diagram for this configuration can be seen in \autoref{fig:diagram}
 	\label{fig:diagram}
 \end{figure} 
 
-\autoref{fig:bmspwb} shows the \gls{pwb} that when soldered and tested would fulfill all requirements. It is supposed to be the entire \gls{bms}. For detailed view of the schematic see section \ref{app:bms}.
-
+\autoref{fig:bmspwb} shows the \gls{pwb} that when soldered and tested would fulfill all requirements. It is supposed to be the entire \gls{bms}. For detailed view of the schematic, see section \ref{app:bms}.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=.6\textwidth]{Figures/bmspwb.jpg}
