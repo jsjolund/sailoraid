@@ -85,7 +85,7 @@ The mathematical background of this algorithm is quite complicated. See the offi
 \caption{Maestro \emph{A2235-H} \gls{gps} module with built-in antenna.}
 \label{gps-figure}
 \end{figure}
-The \gls{gps} module used in this project, \emph{A2235-H} by Maestro \cite{gps} could communicate with the \gls{mcu} through either \gls{i2c} or \gls{uart}. Both protocols require only two pins to operate, but \gls{uart} communication was determined to be easier to implement in code. The \gls{uart} baud rate of the \gls{gps} module was set to $4800Hz$ by default. While this could be changed by software there was no reason to do so. The low baud rate did however mean that blocking transmissions might cause problematic interruptions in the firmware code. To prevent this, interrupt based communication through \gls{dma} was implemented, using the same type of queuing system as the \gls{usb} \gls{uart}, see section \ref{usb-uart}.
+The \gls{gps} module used in this project, \emph{A2235-H} by Maestro \cite{gps} could communicate with the \gls{mcu} through either \gls{i2c} or \gls{uart}. Both protocols require only two pins to operate, but \gls{uart} communication was determined to be easier to implement in code. The \gls{uart} baud rate of the \gls{gps} module was set to $4800$ Hz by default. While this could be changed by software there was no reason to do so. The low baud rate did however mean that blocking transmissions might cause problematic interruptions in the firmware code. To prevent this, interrupt based communication through \gls{dma} was implemented, using the same type of queuing system as the \gls{usb} \gls{uart}, see section \ref{usb-uart}.
 
 Data from the \gls{gps} was formatted according to the \gls{nmea}. It is used by nearly all \gls{gps} devices internally, but is quite hard for a human to read. For example,
 \begin{lstlisting}
@@ -104,11 +104,11 @@ Since the sensor measures the time-of-flight of a laser beam, it was obvious tha
 
 \subsubsection{USB UART}
 \label{usb-uart}
-Since this project involved analyzing sensor data for developing sensor fusion algorithms, for example combining \gls{gps} and accelerometer for accurate positioning and measuring water wave properties, it was important to be able to log data at a reasonably high frequency; for more about sensorfusion, see \autoref{kf}. Transferring serial commands between a computer and the \gls{mcu} also helped in debugging the code. To this end, a hardware \gls{uart}-over-\gls{usb} chip was used, the \emph{ST-LINK/V2-1} on the Nucleo board, and \emph{FTDI FT232R} on the custom project board.
+Since this project involved analyzing sensor data for developing sensor fusion algorithms, for example combining \gls{gps} and accelerometer for accurate positioning and measuring water wave properties, it was important to be able to log data at a reasonably high frequency; for more about sensor fusion, see \autoref{kf}. Transferring serial commands between a computer and the \gls{mcu} also helped in debugging the code. To this end, a hardware \gls{uart}-over-\gls{usb} chip was used, the \emph{ST-LINK/V2-1} on the Nucleo board, and \emph{FTDI FT232R} on the custom project board.
 
 It was determined that send and receive should both be interrupt based using \gls{dma} transfers to minimize the impact on system resources. Reception of data like key presses from a computer was handled one character at a time. The characters were appended as a string until the enter key was detected. At this point the string was matched against a list of valid commands, and the appropriate task performed, such as sending current sensor values. Sending was implemented as a simple circular buffer which could be transferred to the \gls{uart} peripheral registers using \gls{dma}.
 
-To connect to the \gls{usb}-\gls{uart}, a baud rate of $230400bps$ should be used, with eight data bits, no parity and one stop bit. Commands can be entered with the the keyboard and executed by pressing the enter key. Valid commands and outputs are listed in \autoref{table:serial}. The rate at which the serial outputs sensor values can be adjusted in the main firmware source file.
+To connect to the \gls{usb}-\gls{uart}, a baud rate of $230400$ bps should be used, with eight data bits, no parity and one stop bit. Commands can be entered with the the keyboard and executed by pressing the enter key. Valid commands and outputs are listed in \autoref{table:serial}. The rate at which the serial outputs sensor values can be adjusted in the main firmware source file.
 \begin{table}[H]
 \centering
 \begin{tabular}{ l | l }
@@ -151,4 +151,4 @@ In order to save battery power, it was decided that not all sensor data needed t
 \label{table:systemrates}
 \end{table}
 
-A hardware timer with microsecond resolution was used to calculate the timing of these device communications. For the devices which used polling, a timeout of a few milliseconds was used in case of communication failure on the \gls{i2c} and \gls{spi} data busses. Problems such as noise or framing errors and were handled by discarding any buffered data, clearing hardware error status bits and re-initializing devices if necessary.
+A hardware timer with microsecond resolution was used to calculate the timing of these device communications. For the devices which used polling, a timeout of a few milliseconds was used in case of communication failure on the \gls{i2c} and \gls{spi} data buses. Problems such as noise or framing errors and were handled by discarding any buffered data, clearing hardware error status bits and re-initializing devices if necessary.
