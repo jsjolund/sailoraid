@@ -56,7 +56,7 @@ In the second prototype load cells, which are sensors that utilizes strain gauge
 The force from the board on the mounting plate will be considerably large. The actual force is something that is not known for sure. The initial assumption was that a load cell with a $90.75~\textrm{kg}$ force range should be enough. If the sensor will be maxed out, the cell its rated for a $150\%$ overload without causing some damage to the sensor. 
 
 The chosen sensor for this application is the compression load cell called \emph{FX1901}. 
-From the datasheet\cite{load_cell}, the voltage readings of this part could be calculated. The maximum voltage difference is calculated to be around $180mV$, see \autoref{Load_cell}.
+From the datasheet\cite{load_cell}, the voltage readings of this part could be calculated. The maximum voltage difference is calculated to be around $180~\textrm{mV}$, see \autoref{Load_cell}.
 \begin{figure}[H]
 \begin{center}
 	\includegraphics[width = .45\textwidth]{Figures/Load_cell.png}
@@ -67,7 +67,7 @@ From the datasheet\cite{load_cell}, the voltage readings of this part could be c
 
 
 \subsection{Amplifier}
-With such a small signal, an amplifier is needed to get good measurements. A good measurement signal to the \gls{mcu} should be between $0$-$3.3V$. Since the maximum value from the load cell is $180mV$ a signal of $3.3V$ is achieved by an amplification gain of around $20$ times.  
+With such a small signal, an amplifier is needed to get good measurements. A good measurement signal to the \gls{mcu} should be between $0$-$3.3~\textrm{V}$. Since the maximum value from the load cell is $180~\textrm{mV}$ a signal of $3.3~\textrm{V}$ is achieved by an amplification gain of around $20$ times.  
 A suitable amplifier needs to be chosen from this implementation. Inspiration is taken from The University of Chicago\cite{UoC} in an experiment where they use this exact load cell together with an instrumental amplifier called \emph{INA125}. %This amplifier is more advanced and has more features than other amplifiers.  % Either explain why or leave it out.
 
 In the same family of instrument amplifiers, the model \emph{INA126} was selected as a less complicated and more power efficient solution.  
@@ -93,7 +93,7 @@ In order to adjust the gain of the amplifier, the resistor $R_G$ is set to a fix
 The height of the dagger-board is a crucial measurement in dinghy sailing. The dagger-board not only gives the dinghy a corresponding force to the sail, the board can also be a danger if you sail in running wind. One of the best implementations of a height sensor would be the use of a linear wire distance sensor. This sensor measures how far a wire is pulled, which gives a very accurate measurement. This solution can be completely watertight and concealed in the main center-plate\footnote{The plate on where the dagger-board is mounted.}. Another solutions could be to use some type of light, \gls{tof} sensor. 
 
 \subsubsection{Sensors}
-A suitable product was found, it is accurate and reliable, the \emph{Micro epsilon mk30}; its physical volume in small enough with a size of $3x5cm$. As the product have tight space constraints this would probably fit inside the case. The sensors price however was about $2000kr$, it was deemed to expensive. If no other solution would work as intended this might have been considered again.
+A suitable product was found, it is accurate and reliable, the \emph{Micro epsilon mk30}; its physical volume in small enough with a size of $3x5~\textrm{cm}$. As the product have tight space constraints this would probably fit inside the case. The sensors price however was about $2000~\textrm{kr}$, it was deemed to expensive. If no other solution would work as intended this might have been considered again.
 \begin{figure}[H]
 \begin{center}
 	\includegraphics[width = .45\textwidth]{Figures/microepsilon_mk30.png}
@@ -116,7 +116,7 @@ By the fact that the sensor must be waterproof the signal has to go through a me
 	\label{micro_lidar}
 \end{figure}
 
-All the information about this sensor and the usage of a cover widow can be found in the specific datasheet\cite{Tof_cover}. The maximum thickness of the cover window together with the air gap between the sensor and the window is $2mm$. That is the parameters that need to be considered. To reflect the signal a detection plate is constructed and fastened to the top of the dagger-board. This plate is level with the sensor and has a white bottom for best performance of the sensor. In the case the sensor is mounted behind a thin epoxy window witch was to thick at the beginning but was sanded down to a suitable thickness. The final window was then carefully polished for the best possible measurements. 
+All the information about this sensor and the usage of a cover widow can be found in the specific datasheet\cite{Tof_cover}. The maximum thickness of the cover window together with the air gap between the sensor and the window is $2~\textrm{mm}$. That is the parameters that need to be considered. To reflect the signal a detection plate is constructed and fastened to the top of the dagger-board. This plate is level with the sensor and has a white bottom for best performance of the sensor. In the case the sensor is mounted behind a thin epoxy window witch was to thick at the beginning but was sanded down to a suitable thickness. The final window was then carefully polished for the best possible measurements. 
 
 \begin{figure}[H]
 	\centering
@@ -127,7 +127,7 @@ All the information about this sensor and the usage of a cover widow can be foun
 
 
 \subsubsection{Results}
-The sensor works very well in the open air and can detect heights up to $1.5m$ with great accuracy. It also works well when used behind a thin transparent plastic cover. With a $1mm$ thin transparent plastic cover the maximum height measurement is decreased to about $1m$. 
+The sensor works very well in the open air and can detect heights up to $1.5~\textrm{m}$ with great accuracy. It also works well when used behind a thin transparent plastic cover. With a $1~\textrm{mm}$ thin transparent plastic cover the maximum height measurement is decreased to about $1~\textrm{m}$. 
 
 The performance of the sensor heavily depends on the the finish of the window, if there is small imperfections on the window such as scratches the sensor performance is greatly reduced or completely diminished due to the light spreading everywhere.
 

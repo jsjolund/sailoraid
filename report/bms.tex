@@ -12,7 +12,7 @@ Memory effects present in other chemistries which causes gradual loss of capacit
 
 Water-based electrolytes are common in most batteries but as electrolysis begins at two volts in water and the voltages present in lithium cells are higher than that, that is not possible. Organic solvents are instead used. These solvents are flammable and have high vapour pressures. The increased performance of \gls{lion} batteries comes with higher severity if something would go wrong, so they have to be handled with extra care.
 
-One of the most common form factors is the cylindrical cell referred to as $18650$. That is $18mm$ in diameter and $65mm$ in length\cite[p. 26-27]{book}. \autoref{fig:cellstruct} displays the parts that build up such a cylindrical cell.
+One of the most common form factors is the cylindrical cell referred to as $18650$. That is $18~\textrm{mm}$ in diameter and $65~\textrm{mm}$ in length\cite[p. 26-27]{book}. \autoref{fig:cellstruct} displays the parts that build up such a cylindrical cell.
 
 \begin{figure}[H]
 	\centering
@@ -80,18 +80,18 @@ The \gls{pcb} protects against over discharge, overcharge, and overcurrent. Depe
 Due to the differences between \gls{lion} batteries and other batteries, their higher capacity makes them more susceptible to faults when abused. A list of abuse conditions and their implications follows\cite[p.35-38]{book}.
 
 \begin{itemize}
-\item Overcharge occurs when \gls{soc} is greater than $100\%$. Cell voltage will begin to rise fast and may damage load or monitoring circuitry. Irreversible degradation inside the cell will occur. Both single large events and many small events cause degradation. Unlike in other chemistries, small currents causes this. Leading to thermal runaway, cell swelling, and venting. Begins somewhere between $3.75V$ and $4.2V$ depending on the cell.
-\item Over-discharge occurs when \gls{soc} reaches below $0\%$, the voltage decreases fast and can even be reversed if discharge current is too high. A reversed voltage may result in damaged monitoring circuitry. Internal damage includes dissolution of the negative terminal foil. Self-over-discharge cannot be prevented. Minimum voltage before over discharge occurs is between $1.8$-$2.5V$ depending on the cell.
+\item Overcharge occurs when \gls{soc} is greater than $100\%$. Cell voltage will begin to rise fast and may damage load or monitoring circuitry. Irreversible degradation inside the cell will occur. Both single large events and many small events cause degradation. Unlike in other chemistries, small currents causes this. Leading to thermal runaway, cell swelling, and venting. Begins somewhere between $3.75~\textrm{V}$ and $4.2~\textrm{V}$ depending on the cell.
+\item Over-discharge occurs when \gls{soc} reaches below $0\%$, the voltage decreases fast and can even be reversed if discharge current is too high. A reversed voltage may result in damaged monitoring circuitry. Internal damage includes dissolution of the negative terminal foil. Self-over-discharge cannot be prevented. Minimum voltage before over discharge occurs is between $1.8$-$2.5~\textrm{V}$ depending on the cell.
 \item High temperatures increase cell degradation which in turn causes thermal runaway further increasing inside temperatures. Excessive temperatures activate exothermic chemical reactions in the organic solvents. Releasing high amounts of energy that leads to venting of cell contents, fire or explosion.
-\item Low temperatures can cause plating of metal lithium onto the electrodes which leads to irreversible capacity loss and possibly metallic ``dendrite'' growth. Dendrites can penetrate the separator leading to internal short circuits. Low temperatures also increase cell impedance thus limiting discharging capabilities. Charging below $0\degree C$ is not recommended, although some cells allow temperatures below $-10\degree C$.
+\item Low temperatures can cause plating of metal lithium onto the electrodes which leads to irreversible capacity loss and possibly metallic ``dendrite'' growth. Dendrites can penetrate the separator leading to internal short circuits. Low temperatures also increase cell impedance thus limiting discharging capabilities. Charging below $0\degree~\textrm{C}$ is not recommended, although some cells allow temperatures below $-10\degree~\textrm{C}$.
 \item Overcurrent, both during dis- and re-charging can cause the same type of problems as with general over- and under-charge conditions, at the same time high currents increases temperature. The maximum current allowed for is a function of \gls{soc} and temperature. Even though temperature would be held at acceptable levels, the amount of current will still be limited by the number of ions the negative terminal can receive at any given moment.
 \item Age is a major factor when it comes to Li-ion batteries, the risk of failure increases with age. Monitoring and estimating remaining battery lifetime can be done and is expressed in \gls{soh}.
 \end{itemize}
 
 \subsection{Determining \gls{bms} Specifications}
-A flow chart was used to determine the power requirements of the system powered by the batteries, as is seen in \autoref{fig:powerinput}. The particular \gls{mcu} operates at $3.3V$ and the sensors that were chosen operates at $3.3V$ and $5.5V$ respectively, so those requirements where definite. There were thoughts about adding a display that might have needed $12V$, therefore the light blue block in \autoref{fig:powerinput}. As the project continued it was omitted and $12V$ would not be needed. Therefore two batteries in series are used. Resulting in a voltage range of $8.4V$ fully charged and down to $6V$ fully depleted. This voltage is stepped down to $5V$ and supplied to the system.
-The level of current required by the system was unknown, but it was estimated that the capacity of the batteries of $2.2Ah$ would be enough to power the system for several hours.
-In a worst-case scenario, the system would require  more than $500mA$ which would result in $4h$ and $24min$ of usage.
+A flow chart was used to determine the power requirements of the system powered by the batteries, as is seen in \autoref{fig:powerinput}. The particular \gls{mcu} operates at $3.3~\textrm{V}$ and the sensors that were chosen operates at $3.3V$ and $5.5V$ respectively, so those requirements where definite. There were thoughts about adding a display that might have needed $12~\textrm{V}$, therefore the light blue block in \autoref{fig:powerinput}. As the project continued it was omitted and $12~\textrm{V}$ would not be needed. Therefore two batteries in series are used. Resulting in a voltage range of $8.4~\textrm{V}$ fully charged and down to $6~\textrm{V}$ fully depleted. This voltage is stepped down to $5~\textrm{V}$ and supplied to the system.
+The level of current required by the system was unknown, but it was estimated that the capacity of the batteries of $2.2~\textrm{Ah}$ would be enough to power the system for several hours.
+In a worst-case scenario, the system would require  more than $500~\textrm{mA}$ which would result in $4~\textrm{h}$ and $24~\textrm{min}$ of usage.
 Safety is of high priority as concluded earlier. So a second flowchart was created to determine the specifications of the monitoring of the two batteries in a series configuration. \autoref{fig:battery} displays these specifications.
 
 \begin{figure}[H]
@@ -107,7 +107,6 @@ Safety is of high priority as concluded earlier. So a second flowchart was creat
 	\caption{Battery management flowchart.}
 	\label{fig:battery}
 \end{figure}
-
 
 Three \gls{ic}s where chosen for the \gls{bms}. The \emph{BQ28Z610} is a gas gauge \gls{ic} for Li-ion batteries from \gls{ti}, including these features:
 
@@ -152,7 +151,7 @@ Charging is done by turning the device upside down and connecting a \gls{2s} \gl
 	\label{fig:charging}
 \end{figure}
 
-A connection diagram for this configuration can be seen in \autoref{fig:diagram}. The charger is connected to the input of the voltage regulator. This configuration has all the features of that implemented on the \gls{pwb} except the charger is external, charges with $1A$ instead of $2A$ and there is no power path, meaning that the device has to be turned off to make charging safely.
+A connection diagram for this configuration can be seen in \autoref{fig:diagram}. The charger is connected to the input of the voltage regulator. This configuration has all the features of that implemented on the \gls{pwb} except the charger is external, charges with $1~\textrm{A}$ instead of $2~\textrm{A}$ and there is no power path, meaning that the device has to be turned off to make charging safely.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6\textwidth]{Figures/diagram.jpg}

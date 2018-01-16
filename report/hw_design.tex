@@ -37,7 +37,7 @@ Designing circuit boards differs slightly between what software you are using. \
 \item Generate manufacturing (gerber/drill) files.
 \end{enumerate}
 % Borrowed shit
-The initial required circuitry, see \autoref{fig:schr3a}, was copied from earlier works with the \gls{st} \gls{arm} \gls{mcu}'s but modified to meet our needs. The power section, also found in \autoref{fig:schr3a}, is designed to only allow for exactly $+5V$. This design is credited to, and derived from \emph{Maxim Integrated}, Application note 760\cite{overprotection}.
+The initial required circuitry, see \autoref{fig:schr3a}, was copied from earlier works with the \gls{st} \gls{arm} \gls{mcu}'s but modified to meet our needs. The power section, also found in \autoref{fig:schr3a}, is designed to only allow for exactly $+5~\textrm{V}$. This design is credited to, and derived from \emph{Maxim Integrated}, Application note 760\cite{overprotection}.
 
 % Original custom shit
 Non-standard library entries include following components:\\
@@ -135,6 +135,6 @@ The third, and last, revision of the \gls{pcb} can be seen in \autoref{fig:pcbr3
 \chapterauthor{Brolin, Daniel (Eriksson, Kenny)}
 The final sensor board works as expected. Had it not been for the fact that one of the sensors was broken it would have been soldered without any problem. No interference problems or antennas has been found on the last revision \gls{pcb} and no hot fixes were necessary.
 Calibrating the potentiometers for the analog load cell amplifiers is possibly the most uncertain process, as wrongly tuning these will offset all values in the feedback. This is however necessary until the last prototype for the casing is complete, see \autoref{sec:case}, since small differences in the casing will require different calibrations.
-The system is estimated to run for about $24hrs$, more about power management in \autoref{sec:bat}. 
+The system is estimated to run for about $24~\textrm{hrs}$, more about power management in \autoref{sec:bat}. 
 
-All components in the last revision prototype is of a rather large form factor considering the relatively low effect acting on the components, making soldering and testing easier but taking up more space. As it is now the system can very likely be minimized further. Taking away the general purpose button, set the general form factor to the industry standard $0402$ (approximately $1mm$x$.5mm$) which is still easily soldered by hand), use $4$-layer design could probably shrink the system to about half of the size if no more devices are added to the design. Alternatively more sensors or communication with an external sensor board could be supported in future updates without the need of to much remodeling. 
+All components in the last revision prototype is of a rather large form factor considering the relatively low effect acting on the components, making soldering and testing easier but taking up more space. As it is now the system can very likely be minimized further. Taking away the general purpose button, set the general form factor to the industry standard $0402$ (approximately $1~\textrm{mm}$ x $0.5~\textrm{mm}$) which is still easily soldered by hand), use $4$-layer design could probably shrink the system to about half of the size if no more devices are added to the design. Alternatively more sensors or communication with an external sensor board could be supported in future updates without the need of to much remodeling. 

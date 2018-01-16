@@ -24,7 +24,7 @@ The Inertial frame denoted $i$-frame for future notation is defined such that it
 
 The Earth navigation frame denoted $e$-frame for future notation is fixed with respect to Earth and has its origin at the center of the Earth. The frame is defined as $X_e$, $Y_e$ and $Z_e$, with $Z_e$ along Earth's polar axis. Axis $X_e$ and $Y_e$ lies along the intersection of the plane of the Greenwich meridian with the Earth's equatorial plane. The $e$-frame rotates at a constant rate with respect to the $i$-frame and is denoted $\omega_e$.
 
-The Navigation frame denoted $n$-frame for future notation is a local frame and has its origin located in the navigation system, in this case point P, see \autoref{WGS}, and its axes aligned with the directions of north, east and down, denoted NED. The turn rate of the navigation frame with respect to Earth's fixed frame, $\omega_{en}^n$, is directed by the motion of point $P$ with respect to the Earth and is referred to the transport rate.   
+The Navigation frame denoted $n$-frame for future notation is a local frame and has its origin located in the navigation system, in this case point $P$, see \autoref{WGS}, and its axes aligned with the directions of north, east and down, denoted NED. The turn rate of the navigation frame with respect to Earth's fixed frame, $\omega_{en}^n$, is directed by the motion of point $P$ with respect to the Earth and is referred to the transport rate.   
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.45\textwidth]{Figures/WGS-coordinates.png}
@@ -178,7 +178,7 @@ The angular velocity of the $e$-frame with respect to the $i$-frame projected on
 \end{bmatrix}^T
 \end{equation}
 Where $\omega_e$ is the angular velocity of the Earth and has a value of
-$7.2921158 \times 10^{-5}$ $rad/s$\cite{nonlinear}. Using the projection matrix equation \eqref{Cosine_1} its possible to project $\bar{\omega}_ {ie}^i$ onto the $n$-frame
+$7.2921158 \times 10^{-5}~\textrm{rad/s}$\cite{nonlinear}. Using the projection matrix equation \eqref{Cosine_1} its possible to project $\bar{\omega}_ {ie}^i$ onto the $n$-frame
 \begin{align}
 \bar{\omega}_{ie}^n=C_e^n\bar{\omega}_{ie}^e=
 \begin{bmatrix}
@@ -194,7 +194,7 @@ $\bar{\omega}_{en}^n$ represents the turn rate of the $n$-frame with respect to 
 \end{bmatrix}^T
 \label{omega_en}
 \end{align}
-Where $\dot{\lambda}=v_e/(R_N+h)cos(\varphi)$ and $\dot{\varphi}=v_n/(R_E+h)$, here we assume the Earth to be an ellipsoid and that there are no variations in Earth's gravitation depending on where the user is on the ellipsoid. $R_N$ is the meridian radius of curvature and defined as $R_N=R_0(1-e^2)/(1-e^2sin^2\varphi)^{3/2}$\cite{nonlinear}. $R_E$ is the transverse radius of curvature and defined as $R_E=R_0/(1-e^2sin^2\varphi)^{1/2}$. Where $R_0$ is the length of the semi-major axis and has a constant value of $6356752.3142m$, $e$ is the major eccentricity of the ellipsoid and has a constant value of $0.081819$, $\varphi$ is the current latitude in radians, $v_N$ and $v_E$ is the velocity in north and east direction, respectively and $h$ is the height above the surface of the Earth. Then Rewriting equation \eqref{omega_en} with the new expressions
+Where $\dot{\lambda}=v_e/(R_N+h)cos(\varphi)$ and $\dot{\varphi}=v_n/(R_E+h)$, here we assume the Earth to be an ellipsoid and that there are no variations in Earth's gravitation depending on where the user is on the ellipsoid. $R_N$ is the meridian radius of curvature and defined as $R_N=R_0(1-e^2)/(1-e^2sin^2\varphi)^{3/2}$\cite{nonlinear}. $R_E$ is the transverse radius of curvature and defined as $R_E=R_0/(1-e^2sin^2\varphi)^{1/2}$. Where $R_0$ is the length of the semi-major axis and has a constant value of $6356752.3142~\textrm{m}$, $e$ is the major eccentricity of the ellipsoid and has a constant value of $0.081819$, $\varphi$ is the current latitude in radians, $v_N$ and $v_E$ is the velocity in north and east direction, respectively and $h$ is the height above the surface of the Earth. Then Rewriting equation \eqref{omega_en} with the new expressions
 \begin{align}
 \bar{\omega}_{en}^n=
 \begin{bmatrix}
@@ -210,7 +210,7 @@ Now the turn rate of the $n$-frame with respect to $i$-frame, $\bar{\omega}_{in}
 \label{Eq.omega_in}
 \end{align}
 
-\noindent Now Eq. \eqref{Eq.omega_in} is a function dependent both on velocity and position.
+\noindent Now equation \eqref{Eq.omega_in} is a function dependent both on velocity and position.
 
 \subsection{Inertial Navigation Equation}
 Describing the position of the dinghy in the $n$-frame is done by
@@ -272,7 +272,7 @@ v_D
 Where $\bar{f}^b$ is the specific force vector defined as the difference between the true acceleration in space and the acceleration due to gravity and $\bar{g}^n$ is the gravity vector. Where $\Omega$ is the skew matrix of $\omega$, more precise $\Omega_{ib}^b$ the skew-matrix of the outputs of the strapdown gyroscopes and $\Omega_{in}^n$ is the skew-matrix of equation \eqref{Eq.omega_in}. Skew-matrix is defined as the cross product between the vectors.
 
 \subsection{INS mechanization}
-Since the INS has to work in discrete time domain, equations \eqref{Eq.r_n_t}, \eqref{Eq.v_n_t} and \eqref{Eq.C_b_n_t} has to be discretized. The sampling time should be seen as a changing variable since it may not be constant instead it will fluctuate around $100Hz$, this means that $\Delta t_k = \Delta k_{k-1} - t_{k}$, this to improve the accuracy. The discrete dynamics are \cite{non-linear}, Using equations \eqref{Eq.r_n_t}, \eqref{Eq.v_n_t} and \eqref{Eq.C_b_n_t}.
+Since the INS has to work in discrete time domain, equations \eqref{Eq.r_n_t}, \eqref{Eq.v_n_t} and \eqref{Eq.C_b_n_t} has to be discretized. The sampling time should be seen as a changing variable since it may not be constant instead it will fluctuate around $100~\textrm{Hz}$, this means that $\Delta t_k = \Delta k_{k-1} - t_{k}$, this to improve the accuracy. The discrete dynamics are \cite{non-linear}, Using equations \eqref{Eq.r_n_t}, \eqref{Eq.v_n_t} and \eqref{Eq.C_b_n_t}.
 
 \begin{align}
 \bar{r}_{k+1}^n = & \bar{r}_k + 0.5D^{-1}(\bar{v}_k^n + \bar{v}_{k+1}^n)\Delta t
@@ -565,7 +565,7 @@ Q_k\approx \Phi_k GQG^T \Phi_k^T
 
 If equation \eqref{Eq.Q} is analyzed, by increase the norm of $Q_k$ the Kalman Filter trusts the measurements more than the system, which will make the output more noisy due to noise induced from the measurements, the advantages with a large norm is that the time lag will decrease. If the norm is small the measurements will be less induced by measurement noise but time lag will increase, which means that we do not trust the measurements. Determining $Q_k$ can be done by testing several different settings and from that make an assumption, but a good assumption should be that the trajectory of the output should follow the \gls{gps} data when the \gls{gps} is connected to several satellites.
 
-The Kalman filter is a linear quadratic estimator which is recursive and the estimator is unbiased and has minimum variance. The algorithm starts with a random process model, i.e. Eq. \eqref{Eq.discrete} and the following observation matrices \cite{Discrete_kalman}.
+The Kalman filter is a linear quadratic estimator which is recursive and the estimator is unbiased and has minimum variance. The algorithm starts with a random process model, i.e. equation \eqref{Eq.discrete} and the following observation matrices \cite{Discrete_kalman}.
 \begin{equation}
 z_k = H_k\bar{x}_k + \bar{e}_k
 \end{equation}
@@ -702,7 +702,7 @@ The purpose of this more advanced calibration technique is to determine the foll
 \end{itemize}
 Also, the dinghy's body may flex due to rough sea conditions, to solve this, implement one master \gls{ins} and one slave \gls{ins}, consider literature as Strap Down Inertial Navigation Technology, D.H. Titterton and J.L. Weston as a starting point for these different calibration methods.
 
-A more advanced interpolation technique between \gls{imu} data and \gls{gps} data, here referencing to literature like ``Fundamentals of Scientific Computing'', \emph{Bertil Gustafsson}. E.g. Lagrange polynomial can be used to capture the true value better than using a linear interpolation.
+A more advanced interpolation technique between \gls{imu} data and \gls{gps} data, here referencing to literature like ``Fundamentals of Scientific Computing'', \emph{Bertil Gustafsson}, e.g., Lagrange polynomial can be used to capture the true value better than using a linear interpolation.
 
 One should also try different types of control methods to see if one can achieve more accurate results or not, e.g. feed-forward method.\\
 Weighted parameters if one believes the \gls{ins} more than the \gls{gps} or vice-versa, this question arises when e.g. the \gls{gps} is connected to many/few satellites or if the user is having a large/small velocity or sensor anomalies. 
