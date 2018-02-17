@@ -34,10 +34,15 @@
 % header layout
 \usepackage{suffix}
 
-% abbreviations glossary
-\usepackage[acronym]{glossaries}
+% Abbreviations and glossary
+\usepackage[automake,entrycounter,acronym,toc,section=section,numberedsection=autolabel]{glossaries-extra}
 \makeglossaries
-\glsenablehyper
+\setabbreviationstyle[acronym]{long-postshort-user}
+\glssetcategoryattribute{acronym}{nohyperfirst}{true}
+\renewcommand*{\glsxtruserparen}[2]{
+  \glsxtrfullsep{#2}
+  (\glshyperlink[#1]{#2})
+}
 
 \newcommand{\project}{\emph{SailorAid}}
 
