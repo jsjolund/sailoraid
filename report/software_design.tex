@@ -5,7 +5,7 @@ The software has been divided into two parts, the firmware for the \gls{arm} \gl
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.6\textwidth]{Figures/stm32nucleo.jpg}
-\caption{\emph{NUCLEO-F411RE} development board for the \gls{arm} Cortex-M microcontroller \emph{STM32F411RE}.}
+\captionsource{\emph{NUCLEO-F411RE} development board for the \gls{arm} Cortex-M microcontroller \emph{STM32F411RE}.}{Author}
 \label{nucleo-board}
 \end{figure}
 
@@ -21,7 +21,7 @@ Three libraries produced by \gls{st} were used, one for the Bluetooth module, th
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.6\textwidth]{Figures/x-nucleo-idb05a1.jpg}
-\caption{\emph{X-NUCLEO-IDB05A1} Bluetooth Low Energy evaluation board for the \emph{STM32 Nucleo}.}
+\captionsource{\emph{X-NUCLEO-IDB05A1} Bluetooth Low Energy evaluation board for the \emph{STM32 Nucleo}.}{Author}
 \label{bt-eval-board}
 \end{figure}
 
@@ -43,7 +43,7 @@ While \gls{st} included example code for communicating with the Bluetooth module
 	\caption{ GATT topology}
 	\label{bt-gatt}
 	\end{subfigure}
-	\caption{Bluetooth topologies.}\label{bt-tops}
+	\captionsource{Bluetooth topologies.}{\url{https://learn.adafruit.com/introduction-to-bluetooth-low-energy/gatt}}\label{bt-tops}
 \end{figure}
 
 As mentioned previously, the library implemented the Bluetooth GATT protocol. This protocol supports bidirectional communication from a single central device, in this case an Android cell phone, to several peripheral devices, such as the embedded system in this project. The library also supported the Bluetooth GAP protocol, which is a unidirectional communication protocol allowing one peripheral device to broadcast to multiple central devices. \autoref{bt-tops} illustrates the topological differences between these protocols.
@@ -52,7 +52,7 @@ For this project, the GATT protocol was chosen. The reasoning was that enabling 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.6\textwidth]{Figures/bt_gatt_profile.png}
-\caption{Bluetooth GATT transaction profile with usage example.}
+\captionsource{Bluetooth GATT transaction profile with usage example.}{\url{https://learn.adafruit.com/introduction-to-bluetooth-low-energy/gatt}}
 \label{bt-gatt-profile}
 \end{figure}
 
@@ -62,7 +62,7 @@ The GATT protocol performs transactions by nested structures called Profiles, Se
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.6\textwidth]{Figures/x-nucleo-iks01a2.jpg}
-\caption{\emph{X-NUCLEO-IKS01A2} motion \gls{mems} and environmental sensor expansion board for the \emph{STM32 Nucleo}.}
+\captionsource{\emph{X-NUCLEO-IKS01A2} motion \gls{mems} and environmental sensor expansion board for the \emph{STM32 Nucleo}.}{Author}
 \label{imu-eval-board}
 \end{figure}
 
@@ -81,8 +81,8 @@ The mathematical background of this algorithm is quite complicated. See the offi
 \subsubsection{GPS}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.3\textwidth]{Figures/A2235-H.jpg}
-\caption{Maestro \emph{A2235-H} \gls{gps} module with built-in antenna.}
+\includegraphics[width=0.7\textwidth]{Figures/A2235-H.jpg}
+\captionsource{Maestro \emph{A2235-H} \gls{gps} module with built-in antenna.}{Author}
 \label{gps-figure}
 \end{figure}
 The \gls{gps} module used in this project, \emph{A2235-H} by Maestro \cite{gps} could communicate with the \gls{mcu} through either \gls{i2c} or \gls{uart}. Both protocols require only two pins to operate, but \gls{uart} communication was determined to be easier to implement in code. The \gls{uart} baud rate of the \gls{gps} module was set to $4800$ Hz by default. While this could be changed by software there was no reason to do so. The low baud rate did however mean that blocking transmissions might cause problematic interruptions in the firmware code. To prevent this, interrupt based communication through \gls{dma} was implemented, using the same type of queuing system as the \gls{usb} \gls{uart}, see section \ref{usb-uart}.

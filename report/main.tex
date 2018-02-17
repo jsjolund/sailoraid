@@ -65,6 +65,15 @@
 }
 \makeatother
 
+% Figure caption source
+\newcommand*{\captionsource}[2]{%
+  \caption[{#1}]{%
+    #1%
+    \\\hspace{\linewidth}%
+    \textbf{Source:} #2%
+  }%
+}
+
 % header style
 \pagestyle{fancy}
 \lhead{Project \project}
