@@ -25,7 +25,7 @@ Sending data back to the child activity is done by calling the method ``\emph{st
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{Figures/activity_lifecycle.png}
-\caption{Activity lifecycle.}
+\caption{Activity lifecycle.\\\textbf{Source:} Author}
 \label{android-activity}
 \end{figure}
 
@@ -72,13 +72,13 @@ It was determined that the visual feedback provided to the user was to include v
  	\centering
 	\begin{minipage}[c]{0.6\textwidth}
 	\includegraphics[width=\textwidth]{Figures/incline.jpg}
-	\caption{Incline feedback view}
+	\captionsource{Incline feedback view}{\url{https://pixabay.com/en/sailboat-children-playing-kid-girl-23801/}}
 	\label{feedback-incline}
 	\end{minipage}
 	~
 	\begin{minipage}[c]{.3\textwidth}
 	\includegraphics[width=\textwidth]{Figures/pressure.png}
-	\caption{Pressure feedback view.}
+	\captionsource{Pressure feedback view.}{Author}
 	\label{feedback-pressure}
 	\end{minipage}
 \end{figure}
@@ -87,13 +87,13 @@ It was determined that the visual feedback provided to the user was to include v
 	\centering
 	\begin{minipage}[c]{0.55\textwidth}
 	\includegraphics[width=\textwidth]{Figures/compass.png}
-	\caption{Bearing feedback view.}
+	\captionsource{Bearing feedback view.}{\url{http://www.pngall.com/compass-png}}
 	\label{feedback-compass}
 	\end{minipage}
 	~
 	\begin{minipage}[c]{0.35\textwidth}
 	\includegraphics[width=\textwidth]{Figures/map.png}
-	\caption{Map feedback view.}
+	\captionsource{Map feedback view.}{Author}
 	\label{feedback-map}
 	\end{minipage}
 \end{figure}
@@ -101,30 +101,30 @@ It was determined that the visual feedback provided to the user was to include v
 	\centering
 	\begin{minipage}[c]{0.35\textwidth}
 	\includegraphics[width=\textwidth]{Figures/height.jpg}
-	\caption{Dagger-board height view.}
+	\captionsource{Dagger-board height view.}{\url{https://www.pinterest.se/pin/275212227218947579/}}
 	\label{feedback-height}
 	\end{minipage}
 	~
 	\begin{minipage}[c]{0.55\textwidth}
 	\includegraphics[width=\textwidth]{Figures/drift.png}
-	\caption{Drift feedback view.}
+	\captionsource{Drift feedback view.}{Author}
 	\label{feedback-drift}
 	
 	\includegraphics[width=\textwidth]{Figures/text.png}
-	\caption{Text feedback view.}
+	\captionsource{Text feedback view.}{Author}
 	\label{feedback-text}
 	\end{minipage}
 \end{figure}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.8\textwidth]{Figures/sog.jpg}
-	\caption{Speed over ground view.}
+	\captionsource{Speed over ground view.}{\url{https://youtu.be/k8M6ZHplbIU}}
 	\label{feedback-sog}
 \end{figure}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.8\textwidth]{Figures/wave.jpg}
-	\caption{Wave period feedback view.}
+	\captionsource{Wave period feedback view.}{Author, Stockfresh\#2886857, Dreamstime\#33314341, \url{http://shorelinesailboats.com/product/pico/}}
 	\label{feedback-wave}
 \end{figure}
 The figures were chosen at a development stage and improvements can easily be made by adding different \gls{png}\cite{png} files in android studio. They are implemented as \emph{GLSurfaceView}\cite{gl} so that updating the figures is be done by calling a \emph{requestRender} function, this improves the performance of the application when only updates to the figures are done when new sensor readings are received. To make the figure fit the application the \emph{GLSurfaceView} is extended into a \emph{RotatableGLView} that has the wanted features for rotation and positioning. Using these figures four different layouts are developed to give multiple choices for the user and is seen in figure \ref{feedback-layouts}. Switching between these layouts a \emph{swipeTouchListener} is implemented which allows the user to swipe across the screen to change the layout. Changing view the figures needs to be redrawn onto a new view matching the current layout, this is handled in the \emph{ViewDisplayer} class that contained all \emph{RotatableGLViews}.
@@ -132,7 +132,7 @@ The figures were chosen at a development stage and improvements can easily be ma
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{Figures/layouts.jpg}
-\caption{Different layouts}
+\captionsource{Different layouts}{Author}
 \label{feedback-layouts}
 \end{figure}
 
