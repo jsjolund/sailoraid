@@ -28,7 +28,7 @@ The Navigation frame denoted $n$-frame for future notation is a local frame and 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.45\textwidth]{Figures/WGS-coordinates.png}
-\caption{Inertial, Earth and Navigation frame.}
+\captionsource{Inertial, Earth and Navigation frame.}{\url{https://www.researchgate.net/figure/Inertial-frame-earth-frame-and-navigation-frame-representation-on-the-Earth-ellipsoid_fig1_228071809}}
 \label{WGS}
 \end{figure}
 
@@ -36,9 +36,10 @@ The Body frame denoted $b$-frame is the sensitive axes of the \gls{imu}'s sensor
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{Figures/Euler_angle.pdf}
-\caption{Body frame.}
+\captionsource{Body Frame.}{\url{https://http://moziru.com/images/row-boat-clipart-transparent-4.png}}
 \label{Fig:body_frame}
 \end{figure}
+
 \begin{itemize}
 \item Yaw $(\psi)$: Is an imaginary line running vertically through the ship and through its center of gravity. A yaw motion is a side-to-side movement of the bow and stern of the dinghy \cite{SNAME}.
 \item Pitch $(\theta)$: Is an imaginary line running horizontally across the ship and through the center of gravity. A pitch motion is an up-or-down movement of the bow and stern of the dinghy \cite{SNAME}.
@@ -292,8 +293,7 @@ The Navigation frame Inertial Navigation System can now be seen in \autoref{Fig:
 \begin{figure}[H]
 \centering
 \includegraphics[width=.9\textwidth]{Figures/ins_2.jpg}
-\caption{The Inertial Navigation Frame.}
-\label{Fig:body_frame}
+\captionsource{The Intertial Navigation block diagram.}{\url{https://https://forum.pololu.com/t/ahrs-system-and-inertial-navigation-system/11501}}
 \end{figure}
 
 \section{Implementation of Sensor Fusion Using a Kalman Filter.}
@@ -483,7 +483,7 @@ This system uses a feedback method to control the drift errors in the \gls{imu},
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.7\textwidth]{Figures/feed-back.png}
-\caption{The feedback-method which is used in the system.}
+\captionsource{The feedback-method which is used in the system.}{Author}
 \label{Fig:Feedback}
 \end{figure}
 Implementing a continuous Kalman Filter using integration between Inertial Navigation System and a Global Positioning System.
@@ -632,7 +632,7 @@ The Kalman Filter is invoked every time the \gls{gps} is updated, i.e. $1Hz$, bu
 \begin{figure}[H]
 \centering
 \includegraphics[width=.6\textwidth]{Figures/linear.png}
-\caption{Different update sequences \gls{imu} and \gls{gps}}
+\captionsource{Different update sequences \gls{imu} and \gls{gps}.}{Author}
 \label{Fig.different_update}
 \end{figure}
 
