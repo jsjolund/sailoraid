@@ -11,17 +11,11 @@ Other ways of representing data were implemented using text-to-speech where the 
 
 
 \subsubsection{Software design}
-A \gls{uml}\cite{uml} model of the system, see \autoref{android-uml}, was developed for an overview of the system implementation. The android system uses activities\cite{activity} to display content to the device screen. These activities have a life-cycle (\autoref{android-activity}) that determine how data is accessed and displayed. What should be understood is that the application starts in a main activity, and switching to another activity is done by sending an intent that spawns as a child activity.
+A \gls{uml}\cite{uml} model of the system, see \autoref{android-uml}, was developed for an overview of the system implementation. The android system uses activities\cite{activity} to display content to the device screen. These activities have a life-cycle, see \autoref{android-activity}, that determine how data is accessed and displayed. What should be understood is that the application starts in a main activity, and switching to another activity is done by sending an intent that spawns as a child activity.
 While the application is in the child activity the main activity is paused but the state is stored and when switching back from the child all data from the previous state is being accessed.
 When the user returns from the child activity,  that activity is destroyed and all data is erased.
 Sending data between activities is done using intents, to send an intent to a child activity is done by adding a bundle with a data object along with the intent to spawn the child activity.
 Sending data back to the child activity is done by calling the method ``\emph{startActivityForResult}'', this allows the child to send a data packet as a result back to the parent. 
-\begin{figure}[H]%Can this be put in the Appendix? It is very large and detailed.
-\centering
-\includegraphics[width=\textwidth]{Figures/uml.png}
-\caption{\gls{uml} model.}
-\label{android-uml}
-\end{figure}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{Figures/activity_lifecycle.png}

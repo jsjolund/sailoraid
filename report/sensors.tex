@@ -22,8 +22,6 @@ With this implementation the daggerboard itself will not be disassembled or modi
 \end{center}
 \end{figure}
 
-
-
 \subsubsection{The prototype}
 To integrate the gauges, a prototype was designed to show how the measurements would be made. The prototype shown in \autoref{Press_sens_prot_1} is a bit bigger than the intended solution for this project but it is good to see how it would be constructed. The board goes on the outside and can easily slide up and down past the steel bead. The bead itself is kept inside a small space where it can move in and out.
 
@@ -50,8 +48,6 @@ In the second prototype load cells, which are sensors that utilizes strain gauge
 \end{center}
 \end{figure}
 
-
-
 \subsubsection{Sensor}
 The force from the board on the mounting plate will be considerably large. The actual force is something that is not known for sure. The initial assumption was that a load cell with a $90.75~\textrm{kg}$ force range should be enough. If the sensor will be maxed out, the cell its rated for a $150\%$ overload without causing some damage to the sensor. 
 
@@ -64,7 +60,6 @@ From the datasheet\cite{load_cell}, the voltage readings of this part could be c
 	\label{Load_cell}
 \end{center}
 \end{figure}
-
 
 \subsection{Amplifier}
 With such a small signal, an amplifier is needed to get good measurements. A good measurement signal to the \gls{mcu} should be between $0$-$3.3~\textrm{V}$. Since the maximum value from the load cell is $180~\textrm{mV}$ a signal of $3.3~\textrm{V}$ is achieved by an amplification gain of around $20$ times.  
@@ -107,7 +102,7 @@ Light sensors have also been considered. This would be implemented with the use 
 With the use of a \gls{lidar}\gls{tof} system, we can point our light signal at an exact spot and then get an exact measurement of the height.  
 Many of the \gls{lidar} systems found was both too large and expensive to be implemented in this project.
 But a product called "micro-lidar" could be used; as it has a small form factor it is easy to implement and is not to expensive.
-The chosen module is the \emph{VL53L0X} from Adafruit\cite{micro_lidar}, see \autoref{micro_lidar}. It can measure heights up to one meter with great accuracy and communicates with \gls{i2c}.
+The chosen module is the \emph{VL53L0X} from Adafruit, see \autoref{micro_lidar}. It can measure heights up to one meter with great accuracy and communicates with \gls{i2c}.
 By the fact that the sensor must be waterproof the signal has to go through a medium. The medium can be some type of transparent plastic or glass.
 \begin{figure}[H]
 	\centering
