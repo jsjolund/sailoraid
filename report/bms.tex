@@ -107,7 +107,7 @@ Safety is of high priority as concluded earlier. So a second flowchart was creat
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=\textwidth]{Figures/battery.png}
+	\includegraphics[width=\textwidth]{Figures/battery.jpg}
 	\captionsource{Battery management flowchart.}{Author}
 	\label{fig:battery}
 \end{figure}
@@ -137,14 +137,14 @@ The output voltage is managed by the \gls{ti} \gls{ic} LM2596 step-down converte
 During development, a BQ28Z610 development board was used together with together with a Luxorparts variable voltage regulator utilizing the LM2596 and a generic \gls{lion} \gls{2s} charger.
 
 The BQ28Z610's software was configured using a windows computer, \gls{ti}'s software bqStudio\cite{bqStudio} and the EV2300 \gls{pc} interface board.
-A \gls{pwb} containing the three \gls{ic}'€™s mentioned above was designed using KiCad\cite{kicad}. The designs were made according to the typical application of each \gls{ic}. Typical applications are found in data sheets.  
+A \gls{pwb} containing the three \gls{ic}s mentioned above was designed using KiCad\cite{kicad}. The designs were made according to the typical application of each \gls{ic}. Typical applications are found in data sheets.  
 
 \subsection{Current State}
 Figure \autoref{fig:modules} displays how the \gls{bms} is currently set up. Up left on top of the main PCB is the BQ28Z610 development board, and below that is the voltage regulator. Charging is enabled via the charging port visible to the right, on the lid.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.6\textwidth]{Figures/modules.png}
+	\includegraphics[width=0.6\textwidth]{Figures/modules.jpg}
 	\captionsource{Current setup of the battery management.}{Author}
 	\label{fig:modules}
 \end{figure}
@@ -154,7 +154,7 @@ Charging is done by turning the device upside down and connecting a \gls{2s} \gl
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.45\textwidth]{Figures/charging.png}
+	\includegraphics[width=0.45\textwidth]{Figures/charging.jpg}
 	\captionsource{How to charge.}{Author}
 	\label{fig:charging}
 \end{figure}
@@ -174,7 +174,7 @@ Schematics, board layout, and Gerber-files can all be found in the appendix. %No
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.6\textwidth]{Figures/bmspwb.png}
+	\includegraphics[width=.6\textwidth]{Figures/bmspwb.jpg}
 	\captionsource{Battery management \gls{pwb}.}{Author}
 	\label{fig:bmspwb}
 \end{figure}
